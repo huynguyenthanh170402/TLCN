@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title layout:title-pattern="$CONTENT_TITLE | Cổng sinh viên">Cổng sinh viên</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
+    <style>
+        body { background: #f4f6f9; }
+        .sv-sidebar {
+            width: 250px; min-height: 100vh;
+            background: #0b3d91; color: #fff;
+            position: fixed; top: 0; left: 0;
+        }
+        .sv-sidebar .brand {
+            padding: 18px 20px; font-weight: 700;
+            border-bottom: 1px solid rgba(255,255,255,.15);
+        }
+        .sv-sidebar .nav-link {
+            color: rgba(255,255,255,.8); padding: 12px 20px;
+        }
+        .sv-sidebar .nav-link i { width: 22px; }
+        .sv-sidebar .nav-link:hover { background: rgba(255,255,255,.08); color: #fff; }
+        .sv-sidebar .nav-link.active { background: rgba(255,255,255,.18); color: #fff; font-weight: 600; }
+        .sv-main { margin-left: 250px; }
+        .sv-topbar {
+            background: #fff; padding: 12px 24px;
+            border-bottom: 1px solid #e3e6ea;
+        }
+        @media (max-width: 768px) {
+            .sv-sidebar { position: static; width: 100%; min-height: auto; }
+            .sv-main { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sv-sidebar">
+    <div class="brand">
+        <i class="fas fa-graduation-cap me-2"></i>Cổng sinh viên
+    </div>
+    <nav class="nav flex-column mt-2">
+        <a class="nav-link" th:href="@{/sinhvien/hoso}"
+           th:classappend="${menu == 'hoso'} ? 'active'">
+            <i class="fas fa-id-card"></i> Hồ sơ cá nhân
+        </a>
+        <a class="nav-link" th:href="@{/sinhvien/ketqua}"
+           th:classappend="${menu == 'ketqua'} ? 'active'">
+            <i class="fas fa-chart-line"></i> Kết quả học tập
+        </a>
+        <a class="nav-link" th:href="@{/sinhvien/dangky}"
+           th:classappend="${menu == 'dangky'} ? 'active'">
+            <i class="fas fa-pen-to-square"></i> Đăng ký học phần
+        </a>
+        <a class="nav-link" th:href="@{/sinhvien/lichhoc}"
+           th:classappend="${menu == 'lichhoc'} ? 'active'">
+            <i class="fas fa-calendar-days"></i> Lịch học
+        </a>
+        <a class="nav-link" th:href="@{/sinhvien/hocphi}"
+           th:classappend="${menu == 'hocphi'} ? 'active'">
+            <i class="fas fa-money-bill-wave"></i> Học phí
+        </a>
+        <a class="nav-link" th:href="@{/sinhvien/thongbao}"
+           th:classappend="${menu == 'thongbao'} ? 'active'">
+            <i class="fas fa-bell"></i> Thông báo
+            <!-- Badge đếm số thông báo chưa đọc -->
+            <span th:if="${soThongBaoChuaDoc != null and soThongBaoChuaDoc > 0}"
+                  class="badge bg-danger rounded-pill ms-1"
+                  th:text="${soThongBaoChuaDoc}"></span>
+        </a>
+    </nav>
+</aside>
+
+<!-- Nội dung -->
+<div class="sv-main">
+    <header class="sv-topbar d-flex justify-content-between align-items-center">
+        <h5 class="mb-0" layout:fragment="page-title">Cổng sinh viên</h5>
+
+        <div class="d-flex align-items-center gap-3">
+            <span th:if="${sinhVien != null}">
+                <i class="fas fa-user-circle me-1"></i>
+                <strong th:text="${sinhVien.hoTen}"></strong>
+                <small class="text-muted" th:text="'(' + ${sinhVien.maSoSinhVien} + ')'"></small>
+            </span>
+            <form th:action="@{/logout}" method="post" class="m-0">
+                <button type="submit" class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-right-from-bracket"></i> Đăng xuất
+                </button>
+            </form>
+        </div>
+    </header>
+
+    <main class="p-4">
+        <div layout:fragment="content"></div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

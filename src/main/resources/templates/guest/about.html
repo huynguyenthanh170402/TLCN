@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title th:text="#{about.title}">About</title>
+</head>
+<body>
+<main layout:fragment="content">
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1 th:text="#{about.heading}">About Our School</h1>
+            <p>Learn more about our institution and values</p>
+        </div>
+    </section>
+
+    <!-- Mission, Vision, History Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row mb-5">
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-bullseye me-2"></i> <span th:text="#{about.mission}">Mission</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p th:text="#{about.mission_content}">
+                                Provide high-quality education and holistic development for students in a modern learning environment.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-rocket me-2"></i> <span th:text="#{about.vision}">Vision</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p th:text="#{about.vision_content}">
+                                Become a leading university in the region, recognized for educational and research excellence.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-5">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i> <span th:text="#{about.history}">History</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p th:text="#{about.history_content}">
+                        Founded in 1995, the school has developed into one of the most prominent educational institutions.
+                    </p>
+                    <p>
+                        Over the past three decades, we have established a strong reputation for academic excellence,
+                        innovation, and community engagement. Our institution has continuously evolved to meet the changing
+                        needs of the education sector while maintaining our core values of integrity, excellence, and inclusivity.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Values Section -->
+    <section class="bg-light py-5">
+        <div class="container">
+            <h2 class="section-heading mb-5">Our Core Values</h2>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-star fa-3x mb-3" style="color: #f39c12;"></i>
+                            <h5 class="card-title">Excellence</h5>
+                            <p class="card-text">We are committed to achieving the highest standards in all our endeavors.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-handshake fa-3x mb-3" style="color: #27ae60;"></i>
+                            <h5 class="card-title">Integrity</h5>
+                            <p class="card-text">We conduct ourselves with honesty, transparency, and strong ethical principles.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-users fa-3x mb-3" style="color: #e74c3c;"></i>
+                            <h5 class="card-title">Inclusivity</h5>
+                            <p class="card-text">We welcome and celebrate diversity in our academic and campus community.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Highlights Section -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="section-heading mb-5">Why Choose Us?</h2>
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="d-flex mb-4">
+                        <div class="me-3">
+                            <i class="fas fa-check-circle fa-2x" style="color: #27ae60;"></i>
+                        </div>
+                        <div>
+                            <h5>World-Class Faculty</h5>
+                            <p>Our faculty members are renowned experts in their fields with international recognition.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="d-flex mb-4">
+                        <div class="me-3">
+                            <i class="fas fa-check-circle fa-2x" style="color: #27ae60;"></i>
+                        </div>
+                        <div>
+                            <h5>Modern Campus Facilities</h5>
+                            <p>State-of-the-art laboratories, libraries, and learning centers equipped with latest technology.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="d-flex mb-4">
+                        <div class="me-3">
+                            <i class="fas fa-check-circle fa-2x" style="color: #27ae60;"></i>
+                        </div>
+                        <div>
+                            <h5>Research Opportunities</h5>
+                            <p>Engage in cutting-edge research projects with support from experienced mentors.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="d-flex mb-4">
+                        <div class="me-3">
+                            <i class="fas fa-check-circle fa-2x" style="color: #27ae60;"></i>
+                        </div>
+                        <div>
+                            <h5>Global Network</h5>
+                            <p>Strong connections with international universities and industry partners worldwide.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="d-flex mb-4">
+                        <div class="me-3">
+                            <i class="fas fa-check-circle fa-2x" style="color: #27ae60;"></i>
+                        </div>
+                        <div>
+                            <h5>Career Support</h5>
+                            <p>Comprehensive career counseling and placement services to launch your professional journey.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="d-flex mb-4">
+                        <div class="me-3">
+                            <i class="fas fa-check-circle fa-2x" style="color: #27ae60;"></i>
+                        </div>
+                        <div>
+                            <h5>Student Support Services</h5>
+                            <p>Dedicated support for academic, personal, and professional development.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Accreditation Section -->
+    <section class="bg-light py-5">
+        <div class="container text-center">
+            <h2 class="section-heading mb-5">Accreditations & Recognition</h2>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5>International Accreditation</h5>
+                    <p>Recognized by leading international accreditation bodies for quality and standards.</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5>National Rankings</h5>
+                    <p>Consistently ranked among top educational institutions in the nation.</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5>Professional Recognition</h5>
+                    <p>Our programs are recognized by professional organizations and industry leaders.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title th:text="#{center.title}">Centers</title>
+</head>
+<body>
+<main layout:fragment="content">
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1 th:text="#{center.heading}">Research Centers</h1>
+            <p>Advancing knowledge through specialized research facilities</p>
+        </div>
+    </section>
+
+    <!-- Centers Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <!-- Center 1 -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-server me-2"></i> <span th:text="#{center.ict}">Information Technology Center</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                Cutting-edge facility dedicated to IT innovation, cybersecurity research, 
+                                and cloud computing technologies.
+                            </p>
+                            <h6 class="mt-3 mb-2">Research Areas:</h6>
+                            <ul class="list-unstyled mb-3">
+                                <li><i class="fas fa-check text-success me-2"></i>Cloud Computing</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Cybersecurity</li>
+                                <li><i class="fas fa-check text-success me-2"></i>AI & Machine Learning</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Blockchain Technology</li>
+                            </ul>
+                            <p class="small text-muted mb-2">
+                                <i class="fas fa-users me-2"></i> Director: Dr. John Smith
+                            </p>
+                            <a href="#" class="btn btn-sm btn-primary" th:text="#{common.read_more}">Read More</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center 2 -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-lightbulb me-2"></i> <span th:text="#{center.innovation}">Innovation & Entrepreneurship Center</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                Supporting startup development, business incubation, and entrepreneurial ventures 
+                                with mentorship and resources.
+                            </p>
+                            <h6 class="mt-3 mb-2">Services Offered:</h6>
+                            <ul class="list-unstyled mb-3">
+                                <li><i class="fas fa-check text-success me-2"></i>Business Mentorship</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Incubation Programs</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Funding Support</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Networking Events</li>
+                            </ul>
+                            <p class="small text-muted mb-2">
+                                <i class="fas fa-users me-2"></i> Director: Ms. Sarah Johnson
+                            </p>
+                            <a href="#" class="btn btn-sm btn-primary" th:text="#{common.read_more}">Read More</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center 3 -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-language me-2"></i> <span th:text="#{center.language}">Language Center</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                Comprehensive language learning and cultural exchange programs with international partnerships 
+                                and native-speaking instructors.
+                            </p>
+                            <h6 class="mt-3 mb-2">Languages Offered:</h6>
+                            <ul class="list-unstyled mb-3">
+                                <li><i class="fas fa-check text-success me-2"></i>English (TOEFL, IELTS)</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Mandarin Chinese</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Japanese</li>
+                                <li><i class="fas fa-check text-success me-2"></i>French & German</li>
+                            </ul>
+                            <p class="small text-muted mb-2">
+                                <i class="fas fa-users me-2"></i> Director: Prof. Michael Brown
+                            </p>
+                            <a href="#" class="btn btn-sm btn-primary" th:text="#{common.read_more}">Read More</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center 4 -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line me-2"></i> <span th:text="#{center.research}">Economic Research Center</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                Conducting policy-oriented research on economic development, international trade, 
+                                and sustainable development.
+                            </p>
+                            <h6 class="mt-3 mb-2">Research Focus:</h6>
+                            <ul class="list-unstyled mb-3">
+                                <li><i class="fas fa-check text-success me-2"></i>Development Economics</li>
+                                <li><i class="fas fa-check text-success me-2"></i>International Trade</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Sustainable Development</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Policy Analysis</li>
+                            </ul>
+                            <p class="small text-muted mb-2">
+                                <i class="fas fa-users me-2"></i> Director: Dr. Emily Davis
+                            </p>
+                            <a href="#" class="btn btn-sm btn-primary" th:text="#{common.read_more}">Read More</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Facilities Section -->
+    <section class="bg-light py-5">
+        <div class="container">
+            <h2 class="section-heading mb-5">Our Facilities</h2>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-desktop fa-3x mb-3" style="color: #3498db;"></i>
+                            <h5 class="card-title">Modern Laboratories</h5>
+                            <p class="card-text">State-of-the-art equipment and technology for advanced research and experimentation.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-library fa-3x mb-3" style="color: #2ecc71;"></i>
+                            <h5 class="card-title">Research Libraries</h5>
+                            <p class="card-text">Extensive collection of journals, publications, and digital resources.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-comments fa-3x mb-3" style="color: #e74c3c;"></i>
+                            <h5 class="card-title">Collaboration Spaces</h5>
+                            <p class="card-text">Modern meeting rooms and collaborative work areas for team projects.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Projects Section -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="section-heading mb-5">Recent Research Projects</h2>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">AI-Powered Healthcare Solutions</h5>
+                            <p class="card-text small">Developing machine learning models for early disease detection and patient care optimization.</p>
+                            <p class="small text-muted">
+                                <i class="fas fa-building me-2"></i> IT Center
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Green Business Initiative</h5>
+                            <p class="card-text small">Researching sustainable business practices and environmental impact reduction strategies.</p>
+                            <p class="small text-muted">
+                                <i class="fas fa-building me-2"></i> Economic Research Center
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Tech Startup Accelerator</h5>
+                            <p class="card-text small">Supporting early-stage technology companies with funding, mentorship, and resources.</p>
+                            <p class="small text-muted">
+                                <i class="fas fa-building me-2"></i> Innovation Center
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Collaboration Section -->
+    <section class="bg-light py-5">
+        <div class="container">
+            <h2 class="section-heading mb-5">International Partnerships</h2>
+            <p class="text-center mb-4">
+                Our research centers collaborate with leading institutions worldwide to advance knowledge and innovation.
+            </p>
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-globe text-primary fa-2x me-3 mt-1"></i>
+                        <div>
+                            <h5>Global Research Network</h5>
+                            <p>Connected with over 100 universities and research institutions across continents.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-handshake text-primary fa-2x me-3 mt-1"></i>
+                        <div>
+                            <h5>Industry Partnerships</h5>
+                            <p>Strong collaborations with leading companies in technology, finance, and other sectors.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-5">
+        <div class="container text-center">
+            <h2 class="mb-4">Interested in Our Research?</h2>
+            <p class="lead mb-4">Explore opportunities to collaborate, participate in projects, or access our facilities.</p>
+            <a href="#" class="btn btn-primary btn-lg me-2">
+                <i class="fas fa-envelope me-2"></i> Get in Touch
+            </a>
+            <a href="#" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-file-pdf me-2"></i> Download Research Guide
+            </a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{sinhvien/layout}">
+<head>
+    <title>Học phí</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Học phí</h5>
+
+<div layout:fragment="content">
+
+    <div th:if="${sinhVien == null}" class="alert alert-warning">
+        Tài khoản này chưa được gắn với hồ sơ sinh viên nào.
+    </div>
+
+    <th:block th:if="${sinhVien != null}">
+
+        <!-- ===== Tổng quan ===== -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card shadow-sm border-start border-primary border-4">
+                    <div class="card-body">
+                        <div class="text-muted small">Tổng phải đóng</div>
+                        <div class="fs-5 fw-bold text-primary"
+                             th:text="${#numbers.formatDecimal(tongPhaiDong, 1, 'POINT', 0, 'COMMA')} + ' đ'"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm border-start border-info border-4">
+                    <div class="card-body">
+                        <div class="text-muted small">Miễn giảm</div>
+                        <div class="fs-5 fw-bold text-info"
+                             th:text="${#numbers.formatDecimal(tongMienGiam, 1, 'POINT', 0, 'COMMA')} + ' đ'"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm border-start border-success border-4">
+                    <div class="card-body">
+                        <div class="text-muted small">Đã đóng</div>
+                        <div class="fs-5 fw-bold text-success"
+                             th:text="${#numbers.formatDecimal(tongDaDong, 1, 'POINT', 0, 'COMMA')} + ' đ'"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm border-start border-danger border-4">
+                    <div class="card-body">
+                        <div class="text-muted small">Còn nợ</div>
+                        <div class="fs-5 fw-bold text-danger"
+                             th:text="${#numbers.formatDecimal(tongConNo, 1, 'POINT', 0, 'COMMA')} + ' đ'"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== Chi tiết học kỳ hiện tại ===== -->
+        <div class="card shadow-sm mb-4" th:if="${hocKyHienTai != null}">
+            <div class="card-header fw-bold"
+                 th:text="'Chi tiết học phí ' + ${hocKyHienTai.tenHocKy}"></div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Mã lớp</th>
+                        <th>Tên học phần</th>
+                        <th class="text-center">TC</th>
+                        <th class="text-end">Đơn giá / TC</th>
+                        <th class="text-end">Thành tiền</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${chiTiet == null or chiTiet.empty}">
+                        <td colspan="5" class="text-center text-muted py-3">
+                            Chưa đăng ký học phần nào trong học kỳ này.
+                        </td>
+                    </tr>
+                    <tr th:each="dk : ${chiTiet}"
+                        th:with="tc=${dk.lopHocPhan.hocPhan.soTinChi}">
+                        <td th:text="${dk.lopHocPhan.maLop}"></td>
+                        <td th:text="${dk.lopHocPhan.hocPhan.tenHocPhan}"></td>
+                        <td class="text-center" th:text="${tc}"></td>
+                        <td class="text-end"
+                            th:text="${#numbers.formatDecimal(donGia, 1, 'POINT', 0, 'COMMA')}"></td>
+                        <td class="text-end fw-bold"
+                            th:text="${#numbers.formatDecimal(donGia * tc, 1, 'POINT', 0, 'COMMA')}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== Công nợ theo học kỳ ===== -->
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold">Công nợ theo học kỳ</div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Học kỳ</th>
+                        <th>Nội dung</th>
+                        <th class="text-end">Phải đóng</th>
+                        <th class="text-end">Miễn giảm</th>
+                        <th class="text-end">Đã đóng</th>
+                        <th class="text-end">Còn nợ</th>
+                        <th class="text-center">Hạn đóng</th>
+                        <th class="text-center">Trạng thái</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${dsCongNo.empty}">
+                        <td colspan="8" class="text-center text-muted py-3">Chưa có công nợ nào.</td>
+                    </tr>
+                    <tr th:each="cn : ${dsCongNo}">
+                        <td th:text="${cn.hocKy.maHocKyCode}"></td>
+                        <td class="small" th:text="${cn.noiDung}"></td>
+                        <td class="text-end"
+                            th:text="${#numbers.formatDecimal(cn.soTienPhaiDong, 1, 'POINT', 0, 'COMMA')}"></td>
+                        <td class="text-end"
+                            th:text="${#numbers.formatDecimal(cn.soTienMienGiam, 1, 'POINT', 0, 'COMMA')}"></td>
+                        <td class="text-end"
+                            th:text="${#numbers.formatDecimal(cn.soTienDaDong, 1, 'POINT', 0, 'COMMA')}"></td>
+                        <td class="text-end fw-bold text-danger"
+                            th:text="${#numbers.formatDecimal(cn.soTienConLai, 1, 'POINT', 0, 'COMMA')}"></td>
+                        <td class="text-center"
+                            th:text="${#temporals.format(cn.hanThanhToan, 'dd/MM/yyyy')}"></td>
+                        <td class="text-center">
+                            <span class="badge"
+                                  th:classappend="${cn.trangThai == 2} ? 'bg-success'
+                                                 : (${cn.trangThai == 1} ? 'bg-warning text-dark' : 'bg-danger')"
+                                  th:text="${cn.tenTrangThai}"></span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <p class="text-muted small mt-3">
+            Học phí tính theo số tín chỉ đã đăng ký. Việc đóng tiền do Phòng Kế hoạch – Tài chính xác nhận.
+        </p>
+
+    </th:block>
+</div>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{sinhvien/layout}">
+<head>
+    <title>Kết quả học tập</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Kết quả học tập</h5>
+
+<div layout:fragment="content">
+
+    <div th:if="${sinhVien == null}" class="alert alert-warning">
+        Tài khoản này chưa được gắn với hồ sơ sinh viên nào.
+    </div>
+
+    <th:block th:if="${sinhVien != null}">
+
+        <!-- ===== Thẻ thống kê tích lũy ===== -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card shadow-sm border-start border-primary border-4">
+                    <div class="card-body">
+                        <div class="text-muted small">GPA tích lũy (hệ 4)</div>
+                        <div class="fs-3 fw-bold text-primary"
+                             th:text="${#numbers.formatDecimal(tongKet.gpa, 1, 2)}">0.00</div>
+                        <span class="badge bg-primary" th:text="${tongKet.xepLoai}"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm border-start border-success border-4">
+                    <div class="card-body">
+                        <div class="text-muted small">Tín chỉ tích lũy</div>
+                        <div class="fs-3 fw-bold text-success" th:text="${tongKet.tinChiTichLuy}">0</div>
+                        <small class="text-muted"
+                               th:text="'Đã học ' + ${tongKet.tinChiDaHoc} + ' tín chỉ'"></small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm border-start border-info border-4">
+                    <div class="card-body">
+                        <div class="text-muted small">Số môn đã học</div>
+                        <div class="fs-3 fw-bold text-info" th:text="${tongKet.soMonDaHoc}">0</div>
+                        <small class="text-muted"
+                               th:text="'Đạt ' + ${tongKet.soMonDat} + ' môn'"></small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm border-start border-danger border-4">
+                    <div class="card-body">
+                        <div class="text-muted small">Môn chưa đạt</div>
+                        <div class="fs-3 fw-bold text-danger"
+                             th:text="${tongKet.soMonDaHoc - tongKet.soMonDat}">0</div>
+                        <small class="text-muted">Cần đăng ký học lại</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== Bảng điểm ===== -->
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span class="fw-bold">Bảng điểm chi tiết</span>
+
+                <!-- Lọc theo học kỳ: GET nên không cần CSRF -->
+                <form th:action="@{/sinhvien/ketqua}" method="get" class="d-flex gap-2">
+                    <select name="hocKy" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">Tất cả học kỳ</option>
+                        <option th:each="hk : ${dsHocKy}"
+                                th:value="${hk.maHocKy}"
+                                th:text="${hk.tenHocKy}"
+                                th:selected="${hk.maHocKy == hocKyChon}"></option>
+                    </select>
+                </form>
+            </div>
+
+            <!-- GPA riêng học kỳ đang lọc -->
+            <div th:if="${tongKetHocKy != null}" class="alert alert-info m-3 mb-0 py-2">
+                GPA học kỳ này:
+                <strong th:text="${#numbers.formatDecimal(tongKetHocKy.gpa, 1, 2)}"></strong>
+                — <span th:text="${tongKetHocKy.tinChiTichLuy}"></span> tín chỉ đạt
+                / <span th:text="${tongKetHocKy.tinChiDaHoc}"></span> tín chỉ đăng ký
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                    <tr class="text-center">
+                        <th>STT</th>
+                        <th class="text-start">Mã HP</th>
+                        <th class="text-start">Tên học phần</th>
+                        <th>TC</th>
+                        <th class="text-start">Học kỳ</th>
+                        <th>QT</th>
+                        <th>GK</th>
+                        <th>CK</th>
+                        <th>Tổng kết</th>
+                        <th>Chữ</th>
+                        <th>Hệ 4</th>
+                        <th>Kết quả</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${trang.empty}">
+                        <td colspan="12" class="text-center text-muted py-4">Chưa có kết quả nào.</td>
+                    </tr>
+                    <tr th:each="kq, it : ${trang.content}" class="text-center"
+                        th:with="lop=${kq.dangKyHocPhan.lopHocPhan}">
+                        <td th:text="${trang.number * trang.size + it.count}"></td>
+                        <td class="text-start" th:text="${lop.hocPhan.maHocPhan}"></td>
+                        <td class="text-start" th:text="${lop.hocPhan.tenHocPhan}"></td>
+                        <td th:text="${lop.hocPhan.soTinChi}"></td>
+                        <td class="text-start small" th:text="${lop.hocKy.maHocKyCode}"></td>
+                        <td th:text="${#numbers.formatDecimal(kq.diemQuaTrinh, 1, 1)}"></td>
+                        <td th:text="${#numbers.formatDecimal(kq.diemGiuaKy, 1, 1)}"></td>
+                        <td th:text="${#numbers.formatDecimal(kq.diemCuoiKy, 1, 1)}"></td>
+                        <td class="fw-bold" th:text="${#numbers.formatDecimal(kq.diemTongKet, 1, 1)}"></td>
+                        <td th:text="${kq.diemChu}"></td>
+                        <td th:text="${#numbers.formatDecimal(kq.diemHe4, 1, 1)}"></td>
+                        <td>
+                            <span th:if="${kq.ketQua == 1}" class="badge bg-success">Đạt</span>
+                            <span th:if="${kq.ketQua == 0}" class="badge bg-danger">Không đạt</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ===== Phân trang ===== -->
+            <div class="card-footer d-flex justify-content-between align-items-center"
+                 th:if="${trang.totalPages > 1}">
+                <small class="text-muted"
+                       th:text="'Trang ' + ${trang.number + 1} + ' / ' + ${trang.totalPages}
+                                + ' — ' + ${trang.totalElements} + ' học phần'"></small>
+
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item" th:classappend="${trang.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/sinhvien/ketqua(page=${trang.number - 1}, hocKy=${hocKyChon})}">
+                            &laquo;
+                        </a>
+                    </li>
+                    <li class="page-item"
+                        th:each="i : ${#numbers.sequence(0, trang.totalPages - 1)}"
+                        th:classappend="${i == trang.number} ? 'active'">
+                        <a class="page-link"
+                           th:href="@{/sinhvien/ketqua(page=${i}, hocKy=${hocKyChon})}"
+                           th:text="${i + 1}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${trang.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/sinhvien/ketqua(page=${trang.number + 1}, hocKy=${hocKyChon})}">
+                            &raquo;
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </th:block>
+</div>
+</body>
+</html>

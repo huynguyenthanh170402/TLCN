@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title th:text="#{faculty.title}">Faculty</title>
+</head>
+<body>
+<main layout:fragment="content">
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1 th:text="#{faculty.heading}">Faculties & Departments</h1>
+            <p>Explore our academic divisions and programs</p>
+        </div>
+    </section>
+
+    <!-- Faculty Cards Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <!-- Faculty 1 -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-microchip me-2"></i> <span th:text="#{faculty.engineering}">Faculty of Technology</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                Leading programs in software engineering, computer science, and information technology.
+                                Our faculty combines theoretical knowledge with practical industry experience.
+                            </p>
+                            <h6 class="mt-3 mb-2">Featured Programs:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Software Engineering</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Computer Science</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Information Technology</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Cybersecurity</li>
+                            </ul>
+                            <a href="#" class="btn btn-sm btn-outline-primary mt-3" th:text="#{common.viewmore}">View More</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Faculty 2 -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line me-2"></i> <span th:text="#{faculty.business}">Faculty of Business & Economics</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                Comprehensive business education covering management, finance, and economics.
+                                Prepare for leadership roles in the global business environment.
+                            </p>
+                            <h6 class="mt-3 mb-2">Featured Programs:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Business Administration</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Accounting</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Finance & Banking</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Marketing</li>
+                            </ul>
+                            <a href="#" class="btn btn-sm btn-outline-primary mt-3" th:text="#{common.viewmore}">View More</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Faculty 3 -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chalkboard me-2"></i> <span th:text="#{faculty.education}">Faculty of Education</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                Training future educators with innovative pedagogical approaches and modern teaching methods.
+                                Focus on both content expertise and educational skills.
+                            </p>
+                            <h6 class="mt-3 mb-2">Featured Programs:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Teacher Training</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Educational Management</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Curriculum Development</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Special Education</li>
+                            </ul>
+                            <a href="#" class="btn btn-sm btn-outline-primary mt-3" th:text="#{common.viewmore}">View More</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Faculty 4 -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-flask me-2"></i> <span th:text="#{faculty.science}">Faculty of Natural Sciences</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                Deep exploration of natural sciences through research and practical experiments.
+                                Develop scientific thinking and problem-solving skills.
+                            </p>
+                            <h6 class="mt-3 mb-2">Featured Programs:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Physics</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Chemistry</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Biology</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Environmental Science</li>
+                            </ul>
+                            <a href="#" class="btn btn-sm btn-outline-primary mt-3" th:text="#{common.viewmore}">View More</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Statistics Section -->
+    <section class="bg-light py-5">
+        <div class="container">
+            <h2 class="section-heading mb-5">Faculty Statistics</h2>
+            <div class="row text-center">
+                <div class="col-md-3 mb-4">
+                    <h3 class="display-5 fw-bold" style="color: #3498db;">150+</h3>
+                    <p class="fs-5">Faculty Members</p>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h3 class="display-5 fw-bold" style="color: #2ecc71;">50+</h3>
+                    <p class="fs-5">Academic Programs</p>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h3 class="display-5 fw-bold" style="color: #e74c3c;">4</h3>
+                    <p class="fs-5">Faculties</p>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h3 class="display-5 fw-bold" style="color: #f39c12;">3000+</h3>
+                    <p class="fs-5">Students</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Academic Excellence Section -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="section-heading mb-5">Academic Excellence</h2>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <i class="fas fa-award fa-2x mb-3" style="color: #f39c12;"></i>
+                            <h5 class="card-title">Award-Winning Programs</h5>
+                            <p class="card-text">Our programs have received numerous national and international awards for excellence.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <i class="fas fa-globe fa-2x mb-3" style="color: #3498db;"></i>
+                            <h5 class="card-title">Global Standards</h5>
+                            <p class="card-text">Curriculum designed to meet international academic standards and best practices.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <i class="fas fa-briefcase fa-2x mb-3" style="color: #2ecc71;"></i>
+                            <h5 class="card-title">Career Ready</h5>
+                            <p class="card-text">Programs aligned with industry needs to ensure graduates are job-ready.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="bg-light py-5">
+        <div class="container text-center">
+            <h2 class="mb-4">Interested in Joining Our Faculty?</h2>
+            <p class="lead mb-4">Explore application requirements and admission procedures.</p>
+            <a href="#" class="btn btn-primary btn-lg me-2">
+                <i class="fas fa-file-alt me-2"></i> Apply Now
+            </a>
+            <a href="#" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-question-circle me-2"></i> Learn More
+            </a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

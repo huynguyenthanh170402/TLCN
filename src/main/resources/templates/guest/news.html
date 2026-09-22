@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title th:text="#{news.title}">News & Events</title>
+</head>
+<body>
+<main layout:fragment="content">
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1 th:text="#{news.heading}">Latest News & Updates</h1>
+            <p>Stay informed about campus events and announcements</p>
+        </div>
+    </section>
+
+    <!-- Tabs Section -->
+    <section class="py-5">
+        <div class="container">
+            <ul class="nav nav-tabs mb-4" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="latest-tab" data-bs-toggle="tab" data-bs-target="#latest" type="button" role="tab">
+                        <i class="fas fa-newspaper me-2"></i> <span th:text="#{news.latest}">Latest News</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="events-tab" data-bs-toggle="tab" data-bs-target="#events" type="button" role="tab">
+                        <i class="fas fa-calendar me-2"></i> <span th:text="#{news.events}">Upcoming Events</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="archive-tab" data-bs-toggle="tab" data-bs-target="#archive" type="button" role="tab">
+                        <i class="fas fa-archive me-2"></i> <span th:text="#{news.archive}">Archive</span>
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Latest News Tab -->
+                <div class="tab-pane fade show active" id="latest" role="tabpanel">
+                    <div class="row">
+                        <!-- News Item 1 -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="News">
+                                <div class="card-body">
+                                    <h5 class="card-title">New Student Center Opens</h5>
+                                    <p class="card-text">
+                                        The university is proud to announce the opening of our state-of-the-art student center 
+                                        featuring modern facilities, study spaces, and recreational areas.
+                                    </p>
+                                    <p class="small text-muted mb-3">
+                                        <i class="fas fa-calendar me-2"></i> <span th:text="#{common.posted_on}">Posted on</span> September 15, 2024
+                                    </p>
+                                    <a href="#" class="btn btn-sm btn-primary" th:text="#{common.read_more}">Read More</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- News Item 2 -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="News">
+                                <div class="card-body">
+                                    <h5 class="card-title">Award-Winning Research Published</h5>
+                                    <p class="card-text">
+                                        Faculty members publish groundbreaking research in top-tier international journals, 
+                                        bringing recognition to our institution.
+                                    </p>
+                                    <p class="small text-muted mb-3">
+                                        <i class="fas fa-calendar me-2"></i> <span th:text="#{common.posted_on}">Posted on</span> September 10, 2024
+                                    </p>
+                                    <a href="#" class="btn btn-sm btn-primary" th:text="#{common.read_more}">Read More</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- News Item 3 -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="News">
+                                <div class="card-body">
+                                    <h5 class="card-title">International Partnership Announced</h5>
+                                    <p class="card-text">
+                                        We are excited to announce a new partnership with leading universities from Europe 
+                                        and Asia for student exchange programs.
+                                    </p>
+                                    <p class="small text-muted mb-3">
+                                        <i class="fas fa-calendar me-2"></i> <span th:text="#{common.posted_on}">Posted on</span> September 5, 2024
+                                    </p>
+                                    <a href="#" class="btn btn-sm btn-primary" th:text="#{common.read_more}">Read More</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- News Item 4 -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="News">
+                                <div class="card-body">
+                                    <h5 class="card-title">Scholarship Program Expansion</h5>
+                                    <p class="card-text">
+                                        The university increased scholarship funding for outstanding students, 
+                                        supporting 500 more students this academic year.
+                                    </p>
+                                    <p class="small text-muted mb-3">
+                                        <i class="fas fa-calendar me-2"></i> <span th:text="#{common.posted_on}">Posted on</span> August 28, 2024
+                                    </p>
+                                    <a href="#" class="btn btn-sm btn-primary" th:text="#{common.read_more}">Read More</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming Events Tab -->
+                <div class="tab-pane fade" id="events" role="tabpanel">
+                    <div class="row">
+                        <!-- Event Item 1 -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card border-left border-4 border-primary">
+                                <div class="card-body">
+                                    <h5 class="card-title">Annual Career Fair</h5>
+                                    <p class="card-text">
+                                        Meet with over 100 companies and explore career opportunities in your field.
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="fas fa-calendar-alt text-primary me-2"></i> 
+                                        <strong>October 5-6, 2024</strong>
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="fas fa-map-marker-alt text-primary me-2"></i> 
+                                        Convention Center, Main Campus
+                                    </p>
+                                    <a href="#" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-ticket-alt me-2"></i> Register Now
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Event Item 2 -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card border-left border-4 border-success">
+                                <div class="card-body">
+                                    <h5 class="card-title">International Student Orientation</h5>
+                                    <p class="card-text">
+                                        Welcome session for international students with campus tour and support services.
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="fas fa-calendar-alt text-success me-2"></i> 
+                                        <strong>September 25, 2024</strong>
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="fas fa-map-marker-alt text-success me-2"></i> 
+                                        Auditorium Building, Room 101
+                                    </p>
+                                    <a href="#" class="btn btn-sm btn-success">
+                                        <i class="fas fa-ticket-alt me-2"></i> Register Now
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Event Item 3 -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card border-left border-4 border-info">
+                                <div class="card-body">
+                                    <h5 class="card-title">Research Symposium 2024</h5>
+                                    <p class="card-text">
+                                        Showcase of student and faculty research projects with presentations and demonstrations.
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="fas fa-calendar-alt text-info me-2"></i> 
+                                        <strong>October 12, 2024</strong>
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="fas fa-map-marker-alt text-info me-2"></i> 
+                                        Science Building, Multiple Halls
+                                    </p>
+                                    <a href="#" class="btn btn-sm btn-info">
+                                        <i class="fas fa-ticket-alt me-2"></i> Register Now
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Event Item 4 -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card border-left border-4 border-warning">
+                                <div class="card-body">
+                                    <h5 class="card-title">Entrepreneur Meetup Series</h5>
+                                    <p class="card-text">
+                                        Network with successful entrepreneurs and learn startup success stories.
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="fas fa-calendar-alt text-warning me-2"></i> 
+                                        <strong>Every Friday, 5:00 PM</strong>
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="fas fa-map-marker-alt text-warning me-2"></i> 
+                                        Innovation Center, Conference Room
+                                    </p>
+                                    <a href="#" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-ticket-alt me-2"></i> Register Now
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Archive Tab -->
+                <div class="tab-pane fade" id="archive" role="tabpanel">
+                    <div class="list-group">
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <h6 class="mb-1">Graduation Ceremony 2024</h6>
+                            <p class="mb-1 small">Celebrated achievements of 2000+ graduates in the annual graduation ceremony.</p>
+                            <small class="text-muted">June 15, 2024</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <h6 class="mb-1">Summer Internship Program Success</h6>
+                            <p class="mb-1 small">Over 500 students completed internships with leading companies worldwide.</p>
+                            <small class="text-muted">May 20, 2024</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <h6 class="mb-1">Spring Festival Celebration</h6>
+                            <p class="mb-1 small">Cultural celebration with performances, food, and activities from around the world.</p>
+                            <small class="text-muted">April 10, 2024</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <h6 class="mb-1">Technology Innovation Hackathon</h6>
+                            <p class="mb-1 small">48-hour hackathon with prizes totaling $50,000 for innovative solutions.</p>
+                            <small class="text-muted">March 22, 2024</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <h6 class="mb-1">Sports Day 2024</h6>
+                            <p class="mb-1 small">Inter-departmental sports competitions showcasing student talents and unity.</p>
+                            <small class="text-muted">February 28, 2024</small>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="bg-light py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 offset-md-2">
+                    <h3 class="text-center mb-4">Subscribe to Our Newsletter</h3>
+                    <p class="text-center mb-4">Get the latest news, events, and updates delivered to your inbox.</p>
+                    <form class="row g-2">
+                        <div class="col-md-8">
+                            <input type="email" class="form-control form-control-lg" placeholder="Enter your email address" required>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-envelope me-2"></i> Subscribe
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Media Section -->
+    <section class="py-5">
+        <div class="container text-center">
+            <h3 class="mb-4">Follow Us on Social Media</h3>
+            <div>
+                <a href="#" class="btn btn-light btn-lg me-2 mb-2">
+                    <i class="fab fa-facebook fa-2x text-primary"></i>
+                </a>
+                <a href="#" class="btn btn-light btn-lg me-2 mb-2">
+                    <i class="fab fa-twitter fa-2x" style="color: #1DA1F2;"></i>
+                </a>
+                <a href="#" class="btn btn-light btn-lg me-2 mb-2">
+                    <i class="fab fa-instagram fa-2x" style="color: #E4405F;"></i>
+                </a>
+                <a href="#" class="btn btn-light btn-lg mb-2">
+                    <i class="fab fa-youtube fa-2x" style="color: #FF0000;"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

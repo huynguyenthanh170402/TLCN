@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE" th:text="#{page.title}">School Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --hero-text: #1a3a6b;   /* đổi thành #ffffff nếu ảnh nền tối */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+
+        /* Navbar */
+        .navbar {
+            background-color: var(--primary-color) !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.15rem;
+            color: white !important;
+        }
+
+        .navbar-nav .nav-link {
+            color: rgba(255,255,255,.75) !important;
+            margin: 0 6px;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: white !important;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+
+        .navbar-nav .nav-link.active {
+            color: var(--secondary-color) !important;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+
+        /* Language Selector */
+        .lang-selector {
+            margin-left: auto;
+        }
+
+        .lang-btn {
+            padding: 8px 12px;
+            margin: 0 4px;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,.3);
+            background: transparent;
+            color: rgba(255,255,255,.7);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            text-decoration: none;
+        }
+
+        .lang-btn:hover,
+        .lang-btn.active {
+            background: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        /* Hero Section - ảnh nguyên màu, không lớp phủ.
+           Chữ đặt ở phần trên, nơi ảnh thường là vùng trời trống. */
+        .hero {
+            background: url('/images/campus.jpg') center top / cover no-repeat;
+            min-height: 600px;
+            display: flex;
+            align-items: flex-start;
+            padding-top: 60px;
+            text-align: center;
+            margin-top: 70px;
+        }
+
+        .hero .container {
+            width: 100%;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--hero-text);
+            margin-bottom: 16px;
+            animation: fadeInDown 1s ease;
+        }
+
+        .hero p {
+            font-size: 1.4rem;
+            color: var(--hero-text);
+            margin-bottom: 0;
+            animation: fadeInUp 1s ease;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Content Area */
+        main {
+            min-height: calc(100vh - 200px);
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0,0,0,.15);
+        }
+
+        .card-header {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 40px 0 20px;
+            margin-top: 60px;
+        }
+
+        footer a {
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        footer a:hover {
+            color: var(--secondary-color);
+        }
+
+        /* Section Heading */
+        .section-heading {
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--secondary-color);
+            display: inline-block;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: var(--secondary-color);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-outline-primary {
+            color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        @media (max-width: 991px) {
+            .hero { margin-top: 56px; min-height: 450px; }
+            .hero h1 { font-size: 2.4rem; }
+        }
+
+        @media (max-width: 768px) {
+            .hero { min-height: 340px; padding-top: 30px; }
+            .hero h1 { font-size: 1.6rem; }
+            .hero p  { font-size: 1rem; }
+            .lang-selector { margin-left: 0; margin-top: 10px; }
+            .lang-btn { padding: 6px 10px; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/}">
+            <i class="fas fa-graduation-cap me-2"></i><span th:text="#{app.name}">HCMUTE</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/}" th:classappend="${page == 'home' ? 'active' : ''}" th:text="#{nav.home}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/about}" th:classappend="${page == 'about' ? 'active' : ''}" th:text="#{nav.about}">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/faculty}" th:classappend="${page == 'faculty' ? 'active' : ''}" th:text="#{nav.faculty}">Faculty</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/major}" th:classappend="${page == 'major' ? 'active' : ''}" th:text="#{nav.major}">Majors</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/center}" th:classappend="${page == 'center' ? 'active' : ''}" th:text="#{nav.center}">Centers</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/news}" th:classappend="${page == 'news' ? 'active' : ''}" th:text="#{nav.news}">News</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/research}" th:classappend="${page == 'research' ? 'active' : ''}" th:text="#{nav.research}">Research</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/login}" th:classappend="${page == 'login' ? 'active' : ''}" th:text="#{nav.login}">Login</a>
+                </li>
+            </ul>
+            <div class="lang-selector d-flex ms-3">
+                <a th:href="@{''(lang='vi')}" class="lang-btn"
+                   th:classappend="${#locale.language == 'vi' ? 'active' : ''}">VN</a>
+                <a th:href="@{''(lang='en')}" class="lang-btn"
+                   th:classappend="${#locale.language == 'en' ? 'active' : ''}">EN</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content: trang con dùng <div layout:fragment="content"> -->
+<main>
+    <div layout:fragment="content"></div>
+</main>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <h5 th:text="#{footer.about}">About Us</h5>
+                <p th:text="#{footer.about_content}">Leading educational institution.</p>
+            </div>
+            <div class="col-md-3">
+                <h5 th:text="#{footer.quicklinks}">Quick Links</h5>
+                <ul class="list-unstyled">
+                    <li><a th:href="@{/}" th:text="#{nav.home}">Home</a></li>
+                    <li><a th:href="@{/about}" th:text="#{nav.about}">About</a></li>
+                    <li><a th:href="@{/faculty}" th:text="#{nav.faculty}">Faculty</a></li>
+                </ul>
+            </div>
+            <div class="col-md-3">
+                <h5 th:text="#{footer.contact}">Contact</h5>
+                <p>Email: info@school.edu</p>
+                <p>Phone: +84 123 456 789</p>
+            </div>
+            <div class="col-md-3">
+                <h5 th:text="#{footer.followus}">Follow Us</h5>
+                <div>
+                    <a href="#" class="me-2"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="me-2"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="me-2"><i class="fab fa-youtube"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="text-center">
+            <p th:text="#{common.copyright}">&copy; 2026 HCMUTE. All Rights Reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

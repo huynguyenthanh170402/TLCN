@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongdaotao/layout}">
+<head>
+    <title>Học kỳ &amp; đăng ký</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Học kỳ &amp; thời gian đăng ký học phần</h5>
+
+<div layout:fragment="content">
+
+    <p class="text-muted">
+        Sinh viên chỉ đăng ký/hủy học phần được khi học kỳ đang trong khung giờ đăng ký.
+        Bấm <strong>Mở ngay</strong> / <strong>Đóng ngay</strong>, hoặc đặt thời gian cụ thể rồi bấm <strong>Lưu</strong>.
+    </p>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Học kỳ</th>
+                    <th class="text-center">Trạng thái học kỳ</th>
+                    <th class="text-center">Đăng ký</th>
+                    <th style="min-width: 470px">Thời gian đăng ký</th>
+                    <th class="text-center">Thao tác nhanh</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="hk : ${dsHocKy}" th:classappend="${hk.dangMoDangKy} ? 'table-success'">
+                    <td>
+                        <div class="fw-bold" th:text="${hk.maHocKyCode}"></div>
+                        <small class="text-muted" th:text="${hk.tenHocKy}"></small>
+                    </td>
+
+                    <td class="text-center">
+                        <span th:switch="${hk.trangThai}">
+                            <span th:case="0" class="badge bg-secondary">Chưa bắt đầu</span>
+                            <span th:case="1" class="badge bg-primary">Đang diễn ra</span>
+                            <span th:case="2" class="badge bg-dark">Đã kết thúc</span>
+                        </span>
+                    </td>
+
+                    <td class="text-center">
+                        <span th:if="${hk.dangMoDangKy}" class="badge bg-success">Đang mở</span>
+                        <span th:unless="${hk.dangMoDangKy}" class="badge bg-light text-dark border">Đóng</span>
+                    </td>
+
+                    <td>
+                        <form th:if="${hk.trangThai != 2}"
+                              th:action="@{/quanly/hocky/{id}/thoigian(id=${hk.maHocKy})}"
+                              method="post" class="d-flex gap-2 align-items-center">
+                            <input type="datetime-local" name="mo" class="form-control form-control-sm" required
+                                   th:value="${hk.ngayMoDangKy != null}
+                                             ? (${#temporals.format(hk.ngayMoDangKy, 'yyyy-MM-dd')} + 'T' + ${#temporals.format(hk.ngayMoDangKy, 'HH:mm')})
+                                             : ''">
+                            <span>→</span>
+                            <input type="datetime-local" name="dong" class="form-control form-control-sm" required
+                                   th:value="${hk.ngayDongDangKy != null}
+                                             ? (${#temporals.format(hk.ngayDongDangKy, 'yyyy-MM-dd')} + 'T' + ${#temporals.format(hk.ngayDongDangKy, 'HH:mm')})
+                                             : ''">
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Lưu</button>
+                        </form>
+
+                        <span th:if="${hk.trangThai == 2}" class="text-muted small">
+                            <th:block th:if="${hk.ngayMoDangKy != null}"
+                                      th:text="${#temporals.format(hk.ngayMoDangKy, 'dd/MM/yyyy HH:mm')}
+                                               + ' → ' + ${#temporals.format(hk.ngayDongDangKy, 'dd/MM/yyyy HH:mm')}"></th:block>
+                            <th:block th:if="${hk.ngayMoDangKy == null}">Không có dữ liệu</th:block>
+                        </span>
+                    </td>
+
+                    <td class="text-center text-nowrap">
+                        <th:block th:if="${hk.trangThai != 2}">
+                            <form th:unless="${hk.dangMoDangKy}"
+                                  th:action="@{/quanly/hocky/{id}/mo(id=${hk.maHocKy})}"
+                                  method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="fas fa-lock-open"></i> Mở ngay
+                                </button>
+                            </form>
+                            <form th:if="${hk.dangMoDangKy}"
+                                  th:action="@{/quanly/hocky/{id}/dong(id=${hk.maHocKy})}"
+                                  method="post" class="d-inline"
+                                  onsubmit="return confirm('Đóng đăng ký? Sinh viên sẽ không đăng ký/hủy được nữa.');">
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-lock"></i> Đóng ngay
+                                </button>
+                            </form>
+                        </th:block>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

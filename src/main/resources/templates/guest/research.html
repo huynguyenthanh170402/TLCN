@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title th:text="#{research.title}">Research</title>
+</head>
+<body>
+<main layout:fragment="content">
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1 th:text="#{research.heading}">Research & Innovation</h1>
+            <p>Advancing knowledge and driving positive change through research</p>
+        </div>
+    </section>
+
+    <!-- Tabs Section -->
+    <section class="py-5">
+        <div class="container">
+            <ul class="nav nav-tabs mb-4" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="projects-tab" data-bs-toggle="tab" data-bs-target="#projects" type="button" role="tab">
+                        <i class="fas fa-project-diagram me-2"></i> <span th:text="#{research.projects}">Research Projects</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="publications-tab" data-bs-toggle="tab" data-bs-target="#publications" type="button" role="tab">
+                        <i class="fas fa-book me-2"></i> <span th:text="#{research.publications}">Publications</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="collaboration-tab" data-bs-toggle="tab" data-bs-target="#collaboration" type="button" role="tab">
+                        <i class="fas fa-handshake me-2"></i> <span th:text="#{research.collaboration}">Collaborations</span>
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Research Projects Tab -->
+                <div class="tab-pane fade show active" id="projects" role="tabpanel">
+                    <div class="row">
+                        <!-- Project 1 -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-header bg-primary">
+                                    <span class="badge bg-light text-primary float-end">Active</span>
+                                    <h5 class="mb-0 text-white">AI for Healthcare Innovation</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text">
+                                        Developing artificial intelligence and machine learning solutions for medical diagnosis 
+                                        and treatment planning.
+                                    </p>
+                                    <h6 class="mt-3 mb-2">Key Details:</h6>
+                                    <ul class="list-unstyled small">
+                                        <li class="mb-2"><i class="fas fa-user me-2"></i> <strong>Lead:</strong> Dr. James Wilson</li>
+                                        <li class="mb-2"><i class="fas fa-calendar me-2"></i> <strong>Duration:</strong> 2023-2025</li>
+                                        <li class="mb-2"><i class="fas fa-money-bill me-2"></i> <strong>Funding:</strong> $500,000</li>
+                                        <li class="mb-2"><i class="fas fa-users me-2"></i> <strong>Team:</strong> 12 members</li>
+                                    </ul>
+                                    <a href="#" class="btn btn-sm btn-primary mt-3" th:text="#{common.read_more}">Read More</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Project 2 -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-header bg-success">
+                                    <span class="badge bg-light text-success float-end">Active</span>
+                                    <h5 class="mb-0 text-white">Sustainable Green Energy</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text">
+                                        Research on renewable energy technologies and sustainable solutions for 
+                                        environmental conservation.
+                                    </p>
+                                    <h6 class="mt-3 mb-2">Key Details:</h6>
+                                    <ul class="list-unstyled small">
+                                        <li class="mb-2"><i class="fas fa-user me-2"></i> <strong>Lead:</strong> Dr. Emily Green</li>
+                                        <li class="mb-2"><i class="fas fa-calendar me-2"></i> <strong>Duration:</strong> 2024-2026</li>
+                                        <li class="mb-2"><i class="fas fa-money-bill me-2"></i> <strong>Funding:</strong> $400,000</li>
+                                        <li class="mb-2"><i class="fas fa-users me-2"></i> <strong>Team:</strong> 8 members</li>
+                                    </ul>
+                                    <a href="#" class="btn btn-sm btn-success mt-3" th:text="#{common.read_more}">Read More</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Project 3 -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-header bg-info">
+                                    <span class="badge bg-light text-info float-end">Active</span>
+                                    <h5 class="mb-0 text-white">Cybersecurity & Data Protection</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text">
+                                        Advanced research on cybersecurity threats, protection mechanisms, and privacy 
+                                        solutions for data security.
+                                    </p>
+                                    <h6 class="mt-3 mb-2">Key Details:</h6>
+                                    <ul class="list-unstyled small">
+                                        <li class="mb-2"><i class="fas fa-user me-2"></i> <strong>Lead:</strong> Prof. Michael Chen</li>
+                                        <li class="mb-2"><i class="fas fa-calendar me-2"></i> <strong>Duration:</strong> 2023-2025</li>
+                                        <li class="mb-2"><i class="fas fa-money-bill me-2"></i> <strong>Funding:</strong> $350,000</li>
+                                        <li class="mb-2"><i class="fas fa-users me-2"></i> <strong>Team:</strong> 10 members</li>
+                                    </ul>
+                                    <a href="#" class="btn btn-sm btn-info mt-3" th:text="#{common.read_more}">Read More</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Project 4 -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-header bg-warning">
+                                    <span class="badge bg-light text-warning float-end">Planning</span>
+                                    <h5 class="mb-0 text-white">Economic Development & Trade</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text">
+                                        Policy research on economic growth, international trade policies, and 
+                                        development strategies for emerging economies.
+                                    </p>
+                                    <h6 class="mt-3 mb-2">Key Details:</h6>
+                                    <ul class="list-unstyled small">
+                                        <li class="mb-2"><i class="fas fa-user me-2"></i> <strong>Lead:</strong> Dr. Robert Kim</li>
+                                        <li class="mb-2"><i class="fas fa-calendar me-2"></i> <strong>Duration:</strong> 2024-2027</li>
+                                        <li class="mb-2"><i class="fas fa-money-bill me-2"></i> <strong>Funding:</strong> $300,000</li>
+                                        <li class="mb-2"><i class="fas fa-users me-2"></i> <strong>Team:</strong> 6 members</li>
+                                    </ul>
+                                    <a href="#" class="btn btn-sm btn-warning mt-3" th:text="#{common.read_more}">Read More</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Publications Tab -->
+                <div class="tab-pane fade" id="publications" role="tabpanel">
+                    <div class="row">
+                        <!-- Publication 1 -->
+                        <div class="col-md-12 mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Machine Learning Applications in Clinical Diagnosis: A Systematic Review</h5>
+                                    <p class="card-text">
+                                        Wilson, J., et al. (2024). Published in <strong>IEEE Transactions on Medical Imaging</strong>
+                                    </p>
+                                    <p class="small text-muted mb-3">
+                                        <i class="fas fa-file-pdf me-2"></i> Volume 43, Issue 5, Pages 1234-1256
+                                    </p>
+                                    <div>
+                                        <span class="badge bg-secondary me-2">Artificial Intelligence</span>
+                                        <span class="badge bg-secondary me-2">Healthcare</span>
+                                        <span class="badge bg-secondary">Machine Learning</span>
+                                    </div>
+                                    <a href="#" class="btn btn-sm btn-outline-primary mt-3">
+                                        <i class="fas fa-download me-2"></i> Download PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Publication 2 -->
+                        <div class="col-md-12 mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Sustainable Energy Solutions: Current Trends and Future Perspectives</h5>
+                                    <p class="card-text">
+                                        Green, E., & Thompson, R. (2024). Published in <strong>Journal of Clean Energy</strong>
+                                    </p>
+                                    <p class="small text-muted mb-3">
+                                        <i class="fas fa-file-pdf me-2"></i> Volume 12, Issue 3, Pages 456-478
+                                    </p>
+                                    <div>
+                                        <span class="badge bg-secondary me-2">Renewable Energy</span>
+                                        <span class="badge bg-secondary me-2">Sustainability</span>
+                                        <span class="badge bg-secondary">Environmental Science</span>
+                                    </div>
+                                    <a href="#" class="btn btn-sm btn-outline-primary mt-3">
+                                        <i class="fas fa-download me-2"></i> Download PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Publication 3 -->
+                        <div class="col-md-12 mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Advanced Encryption Protocols for Enterprise Data Security</h5>
+                                    <p class="card-text">
+                                        Chen, M., & Rodriguez, S. (2024). Published in <strong>ACM Security Transactions</strong>
+                                    </p>
+                                    <p class="small text-muted mb-3">
+                                        <i class="fas fa-file-pdf me-2"></i> Volume 27, Issue 2, Pages 234-256
+                                    </p>
+                                    <div>
+                                        <span class="badge bg-secondary me-2">Cybersecurity</span>
+                                        <span class="badge bg-secondary me-2">Cryptography</span>
+                                        <span class="badge bg-secondary">Data Protection</span>
+                                    </div>
+                                    <a href="#" class="btn btn-sm btn-outline-primary mt-3">
+                                        <i class="fas fa-download me-2"></i> Download PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Publication 4 -->
+                        <div class="col-md-12 mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Trade Policy Impact on Emerging Market Development</h5>
+                                    <p class="card-text">
+                                        Kim, R., & Park, S. (2023). Published in <strong>International Economics Review</strong>
+                                    </p>
+                                    <p class="small text-muted mb-3">
+                                        <i class="fas fa-file-pdf me-2"></i> Volume 38, Issue 4, Pages 789-812
+                                    </p>
+                                    <div>
+                                        <span class="badge bg-secondary me-2">Economics</span>
+                                        <span class="badge bg-secondary me-2">Trade Policy</span>
+                                        <span class="badge bg-secondary">Development</span>
+                                    </div>
+                                    <a href="#" class="btn btn-sm btn-outline-primary mt-3">
+                                        <i class="fas fa-download me-2"></i> Download PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collaborations Tab -->
+                <div class="tab-pane fade" id="collaboration" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-university text-primary me-2"></i> Academic Partnerships
+                                    </h5>
+                                    <p class="card-text">
+                                        Collaborating with over 50 universities worldwide for joint research programs 
+                                        and student exchange initiatives.
+                                    </p>
+                                    <ul class="list-unstyled mt-3">
+                                        <li class="mb-2"><strong>Stanford University</strong> (USA)</li>
+                                        <li class="mb-2"><strong>ETH Zurich</strong> (Switzerland)</li>
+                                        <li class="mb-2"><strong>University of Tokyo</strong> (Japan)</li>
+                                        <li class="mb-2"><strong>Cambridge University</strong> (UK)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-industry text-success me-2"></i> Industry Partnerships
+                                    </h5>
+                                    <p class="card-text">
+                                        Strategic collaborations with leading tech companies and enterprises for 
+                                        applied research and innovation.
+                                    </p>
+                                    <ul class="list-unstyled mt-3">
+                                        <li class="mb-2"><strong>Microsoft Research</strong></li>
+                                        <li class="mb-2"><strong>Google AI</strong></li>
+                                        <li class="mb-2"><strong>IBM Innovation Labs</strong></li>
+                                        <li class="mb-2"><strong>AWS Research</strong></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-globe text-info me-2"></i> International Networks
+                                    </h5>
+                                    <p class="card-text">
+                                        Members of prestigious international research networks and consortiums 
+                                        for collaborative advancement of science.
+                                    </p>
+                                    <ul class="list-unstyled mt-3">
+                                        <li class="mb-2"><strong>World Research Council</strong></li>
+                                        <li class="mb-2"><strong>Asian Research Federation</strong></li>
+                                        <li class="mb-2"><strong>Global Innovation Alliance</strong></li>
+                                        <li class="mb-2"><strong>UNESCO Research Network</strong></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-handshake text-warning me-2"></i> Government & NGOs
+                                    </h5>
+                                    <p class="card-text">
+                                        Partnerships with government agencies and non-profit organizations for 
+                                        research on social and public policy issues.
+                                    </p>
+                                    <ul class="list-unstyled mt-3">
+                                        <li class="mb-2"><strong>National Science Foundation</strong></li>
+                                        <li class="mb-2"><strong>World Health Organization</strong></li>
+                                        <li class="mb-2"><strong>UNICEF</strong></li>
+                                        <li class="mb-2"><strong>UN Development Programme</strong></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Research Impact Section -->
+    <section class="bg-light py-5">
+        <div class="container">
+            <h2 class="section-heading mb-5">Our Research Impact</h2>
+            <div class="row text-center">
+                <div class="col-md-3 mb-4">
+                    <h3 class="display-4 fw-bold text-primary">150+</h3>
+                    <p class="fs-5">Publications Annually</p>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h3 class="display-4 fw-bold text-success">50+</h3>
+                    <p class="fs-5">Active Research Projects</p>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h3 class="display-4 fw-bold text-info">$5M+</h3>
+                    <p class="fs-5">Annual Research Funding</p>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h3 class="display-4 fw-bold text-warning">200+</h3>
+                    <p class="fs-5">Research Citations</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-5">
+        <div class="container text-center">
+            <h2 class="mb-4">Interested in Research Opportunities?</h2>
+            <p class="lead mb-4">Join our research teams, apply for funding, or collaborate on innovative projects.</p>
+            <a href="#" class="btn btn-primary btn-lg me-2">
+                <i class="fas fa-pencil-alt me-2"></i> Apply for Research
+            </a>
+            <a href="#" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-envelope me-2"></i> Contact Our Team
+            </a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

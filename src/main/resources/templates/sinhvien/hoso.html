@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{sinhvien/layout}">
+<head>
+    <title>Hồ sơ cá nhân</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Hồ sơ cá nhân</h5>
+
+<div layout:fragment="content">
+
+    <div th:if="${sinhVien == null}" class="alert alert-warning">
+        Tài khoản này chưa được gắn với hồ sơ sinh viên nào.
+    </div>
+
+    <div th:if="${sinhVien != null}" class="row">
+
+        <div class="col-lg-4 mb-4">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <img th:if="${sinhVien.anhDaiDien != null}"
+                         th:src="@{'/uploads/' + ${sinhVien.anhDaiDien}}"
+                         class="rounded-circle mb-3"
+                         style="width:140px;height:140px;object-fit:cover" alt="">
+                    <i th:unless="${sinhVien.anhDaiDien != null}"
+                       class="fas fa-user-circle fa-7x mb-3 text-secondary"></i>
+
+                    <h5 th:text="${sinhVien.hoTen}"></h5>
+                    <p class="text-muted mb-2" th:text="${sinhVien.maSoSinhVien}"></p>
+                    <span class="badge"
+                          th:classappend="${sinhVien.trangThai == 1} ? 'bg-success' : 'bg-secondary'"
+                          th:text="${sinhVien.tenTrangThai}"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header fw-bold">Thông tin học vụ</div>
+                <table class="table mb-0">
+                    <tr><th style="width:40%">Ngành</th>
+                        <td th:text="${sinhVien.nganh?.tenNganh}"></td></tr>
+                    <tr><th>Khoa quản lý</th>
+                        <td th:text="${sinhVien.nganh?.donVi?.tenDonVi}"></td></tr>
+                    <tr><th>Khóa tuyển sinh</th>
+                        <td th:text="${sinhVien.khoaTuyenSinh}"></td></tr>
+                    <tr><th>Ngày nhập học</th>
+                        <td th:text="${#temporals.format(sinhVien.ngayNhapHoc, 'dd/MM/yyyy')}"></td></tr>
+                    <tr><th>Dự kiến tốt nghiệp</th>
+                        <td th:text="${#temporals.format(sinhVien.ngayTotNghiepDuKien, 'dd/MM/yyyy')}"></td></tr>
+                </table>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header fw-bold">Thông tin cá nhân</div>
+                <table class="table mb-0">
+                    <tr><th style="width:40%">Ngày sinh</th>
+                        <td th:text="${#temporals.format(sinhVien.ngaySinh, 'dd/MM/yyyy')}"></td></tr>
+                    <tr><th>Giới tính</th><td th:text="${sinhVien.tenGioiTinh}"></td></tr>
+                    <tr><th>Nơi sinh</th><td th:text="${sinhVien.noiSinh}"></td></tr>
+                    <tr><th>Quê quán</th><td th:text="${sinhVien.queQuan}"></td></tr>
+                    <tr><th>Dân tộc</th><td th:text="${sinhVien.danToc}"></td></tr>
+                    <tr><th>Số CCCD</th><td th:text="${sinhVien.soGiayTo}"></td></tr>
+                </table>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header fw-bold">Liên hệ</div>
+                <table class="table mb-0">
+                    <tr><th style="width:40%">Email trường</th><td th:text="${sinhVien.emailTruong}"></td></tr>
+                    <tr><th>Email cá nhân</th><td th:text="${sinhVien.emailCaNhan}"></td></tr>
+                    <tr><th>Điện thoại</th><td th:text="${sinhVien.soDienThoai}"></td></tr>
+                    <tr><th>Thường trú</th><td th:text="${sinhVien.diaChiThuongTru}"></td></tr>
+                    <tr><th>Người liên hệ</th>
+                        <td>
+                            <span th:text="${sinhVien.hoTenNguoiLienHe}"></span>
+                            <span th:if="${sinhVien.quanHeVoiSinhVien}"
+                                  th:text="'(' + ${sinhVien.quanHeVoiSinhVien} + ')'"></span><br>
+                            <small class="text-muted" th:text="${sinhVien.soDienThoaiNguoiLienHe}"></small>
+                        </td></tr>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

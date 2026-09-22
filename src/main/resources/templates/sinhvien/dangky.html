@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{sinhvien/layout}">
+<head>
+    <title>Đăng ký học phần</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Đăng ký học phần</h5>
+
+<div layout:fragment="content">
+
+    <div th:if="${thongBao}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${thongBao}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${loi}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${loi}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${sinhVien == null}" class="alert alert-warning">
+        Tài khoản này chưa được gắn với hồ sơ sinh viên nào.
+    </div>
+
+    <div th:if="${sinhVien != null and hocKy == null}" class="alert alert-secondary">
+        Hiện chưa có học kỳ nào đang diễn ra.
+    </div>
+
+    <th:block th:if="${sinhVien != null and hocKy != null}">
+
+        <!-- ===== Trạng thái đợt đăng ký ===== -->
+        <div class="alert d-flex justify-content-between align-items-center flex-wrap gap-2"
+             th:classappend="${hocKy.dangMoDangKy} ? 'alert-success' : 'alert-secondary'">
+            <div>
+                <strong th:text="${hocKy.tenHocKy}"></strong><br>
+                <small th:if="${hocKy.ngayMoDangKy != null}"
+                       th:text="'Thời gian đăng ký: '
+                                + ${#temporals.format(hocKy.ngayMoDangKy, 'HH:mm dd/MM/yyyy')}
+                                + ' – '
+                                + ${#temporals.format(hocKy.ngayDongDangKy, 'HH:mm dd/MM/yyyy')}"></small>
+            </div>
+            <span class="badge fs-6"
+                  th:classappend="${hocKy.dangMoDangKy} ? 'bg-success' : 'bg-secondary'"
+                  th:text="${hocKy.dangMoDangKy} ? 'Đang mở đăng ký' : 'Chưa mở / đã đóng đăng ký'"></span>
+        </div>
+
+        <!-- ===== Đã đăng ký ===== -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Học phần đã đăng ký</span>
+                <span>
+                    Tổng: <strong th:text="${tongTinChi}"></strong>
+                    / <span th:text="${tinChiToiDa}"></span> tín chỉ
+                </span>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Mã lớp</th>
+                        <th>Tên học phần</th>
+                        <th class="text-center">TC</th>
+                        <th>Lịch học</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${daDangKy.empty}">
+                        <td colspan="5" class="text-center text-muted py-3">Chưa đăng ký học phần nào.</td>
+                    </tr>
+                    <tr th:each="dk : ${daDangKy}">
+                        <td th:text="${dk.lopHocPhan.maLop}"></td>
+                        <td th:text="${dk.lopHocPhan.hocPhan.tenHocPhan}"></td>
+                        <td class="text-center" th:text="${dk.lopHocPhan.hocPhan.soTinChi}"></td>
+                        <td class="small">
+                            <div th:each="lh : ${lichTheoLop[dk.lopHocPhan.maLopHocPhan]}"
+                                 th:text="${lh.tenThu} + ', tiết ' + ${lh.tietBatDau} + '–' + ${lh.tietKetThuc}
+                                          + ' (' + ${lh.phongHoc?.maPhong} + ')'"></div>
+                        </td>
+                        <td class="text-center">
+                            <form th:action="@{/sinhvien/dangky/huy/{id}(id=${dk.maDangKyHocPhan})}"
+                                  method="post" class="d-inline"
+                                  onsubmit="return confirm('Hủy đăng ký học phần này?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        th:disabled="${!hocKy.dangMoDangKy}">
+                                    <i class="fas fa-xmark"></i> Hủy
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== Lớp đang mở ===== -->
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold">Danh sách lớp học phần đang mở</div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Mã lớp</th>
+                        <th>Tên học phần</th>
+                        <th class="text-center">TC</th>
+                        <th>Lịch học</th>
+                        <th class="text-center">Sĩ số</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${dsLop.empty}">
+                        <td colspan="6" class="text-center text-muted py-3">Chưa có lớp nào mở.</td>
+                    </tr>
+                    <tr th:each="lop : ${dsLop}"
+                        th:with="daCo=${siSo[lop.maLopHocPhan]},
+                                 day=${lop.siSoToiDa != null and daCo >= lop.siSoToiDa},
+                                 daDk=${lopDaDangKy.contains(lop.maLopHocPhan)},
+                                 trungMon=${monDaDangKy.contains(lop.hocPhan.maHocPhanId)}"
+                        th:classappend="${daDk} ? 'table-success'">
+                        <td th:text="${lop.maLop}"></td>
+                        <td th:text="${lop.hocPhan.tenHocPhan}"></td>
+                        <td class="text-center" th:text="${lop.hocPhan.soTinChi}"></td>
+                        <td class="small">
+                            <div th:each="lh : ${lichTheoLop[lop.maLopHocPhan]}"
+                                 th:text="${lh.tenThu} + ', tiết ' + ${lh.tietBatDau} + '–' + ${lh.tietKetThuc}
+                                          + ' (' + ${lh.phongHoc?.maPhong} + ')'"></div>
+                            <span th:if="${lichTheoLop[lop.maLopHocPhan] == null}" class="text-muted">
+                                Chưa xếp lịch
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span th:text="${daCo} + ' / ' + ${lop.siSoToiDa}"
+                                  th:classappend="${day} ? 'text-danger fw-bold'"></span>
+                        </td>
+                        <td class="text-center">
+                            <span th:if="${daDk}" class="badge bg-success">Đã đăng ký</span>
+
+                            <span th:if="${!daDk and trungMon}" class="badge bg-secondary">
+                                Đã chọn lớp khác
+                            </span>
+
+                            <span th:if="${!daDk and !trungMon and day}" class="badge bg-danger">
+                                Đủ sĩ số
+                            </span>
+
+                            <form th:if="${!daDk and !trungMon and !day}"
+                                  th:action="@{/sinhvien/dangky/{id}(id=${lop.maLopHocPhan})}"
+                                  method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-primary"
+                                        th:disabled="${!hocKy.dangMoDangKy}">
+                                    <i class="fas fa-plus"></i> Đăng ký
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </th:block>
+</div>
+</body>
+</html>

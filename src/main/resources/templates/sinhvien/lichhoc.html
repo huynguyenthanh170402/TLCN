@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{sinhvien/layout}">
+<head>
+    <title>Lịch học</title>
+    <style>
+        .tkb th, .tkb td { border: 1px solid #dee2e6; vertical-align: middle; }
+        .tkb td { height: 42px; }
+        .tkb .o-hoc {
+            background: #e7f1ff;
+            border-left: 4px solid #0b3d91 !important;
+            font-size: .85rem;
+        }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Lịch học</h5>
+
+<div layout:fragment="content">
+
+    <div th:if="${sinhVien == null}" class="alert alert-warning">
+        Tài khoản này chưa được gắn với hồ sơ sinh viên nào.
+    </div>
+
+    <div th:if="${sinhVien != null and hocKy == null}" class="alert alert-secondary">
+        Hiện chưa có học kỳ nào đang diễn ra.
+    </div>
+
+    <th:block th:if="${sinhVien != null and hocKy != null}">
+
+        <div class="alert alert-info py-2">
+            <strong th:text="${hocKy.tenHocKy}"></strong>
+            <span th:if="${hocKy.ngayBatDau != null}"
+                  th:text="' — từ ' + ${#temporals.format(hocKy.ngayBatDau, 'dd/MM/yyyy')}
+                           + ' đến ' + ${#temporals.format(hocKy.ngayKetThuc, 'dd/MM/yyyy')}"></span>
+        </div>
+
+        <div th:if="${dsLich.empty}" class="alert alert-secondary">
+            Bạn chưa đăng ký học phần nào trong học kỳ này.
+            <a th:href="@{/sinhvien/dangky}">Đi tới đăng ký học phần</a>
+        </div>
+
+        <!-- ===== Thời khóa biểu theo tuần ===== -->
+        <div class="card shadow-sm mb-4" th:unless="${dsLich.empty}">
+            <div class="card-header fw-bold">Thời khóa biểu tuần</div>
+            <div class="table-responsive">
+                <table class="table tkb mb-0 text-center">
+                    <thead class="table-light">
+                    <tr>
+                        <th style="width:90px">Tiết</th>
+                        <th>Thứ 2</th><th>Thứ 3</th><th>Thứ 4</th>
+                        <th>Thứ 5</th><th>Thứ 6</th><th>Thứ 7</th><th>CN</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="t : ${#numbers.sequence(1, 12)}">
+                        <th class="small">
+                            <span th:text="'Tiết ' + ${t}"></span><br>
+                            <span class="text-muted" th:text="${gioBatDau[t]}"></span>
+                        </th>
+                        <th:block th:each="thu : ${#numbers.sequence(2, 8)}"
+                                  th:with="key=${thu + '-' + t}, lh=${tkb.oBatDau[key]}">
+                            <!-- Ô bắt đầu một buổi học: kéo dài bằng số tiết -->
+                            <td th:if="${lh != null}" th:rowspan="${lh.soTiet}" class="o-hoc text-start">
+                                <div class="fw-bold" th:text="${lh.lopHocPhan.hocPhan.tenHocPhan}"></div>
+                                <div class="text-muted" th:text="${lh.lopHocPhan.maLop}"></div>
+                                <div>
+                                    <i class="fas fa-location-dot"></i>
+                                    <span th:text="${lh.phongHoc?.maPhong}"></span>
+                                </div>
+                            </td>
+                            <!-- Ô trống (không bị buổi học phía trên chiếm) -->
+                            <td th:if="${lh == null and !tkb.oBiChiem.contains(key)}"></td>
+                        </th:block>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== Danh sách buổi học ===== -->
+        <div class="card shadow-sm" th:unless="${dsLich.empty}">
+            <div class="card-header fw-bold">Chi tiết lịch học</div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Mã lớp</th>
+                        <th>Tên học phần</th>
+                        <th class="text-center">Thứ</th>
+                        <th class="text-center">Tiết</th>
+                        <th class="text-center">Giờ bắt đầu</th>
+                        <th class="text-center">Phòng</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="lh : ${dsLich}">
+                        <td th:text="${lh.lopHocPhan.maLop}"></td>
+                        <td th:text="${lh.lopHocPhan.hocPhan.tenHocPhan}"></td>
+                        <td class="text-center" th:text="${lh.tenThu}"></td>
+                        <td class="text-center" th:text="${lh.tietBatDau} + ' – ' + ${lh.tietKetThuc}"></td>
+                        <td class="text-center" th:text="${gioBatDau[lh.tietBatDau]}"></td>
+                        <td class="text-center" th:text="${lh.phongHoc?.maPhong}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </th:block>
+</div>
+</body>
+</html>
