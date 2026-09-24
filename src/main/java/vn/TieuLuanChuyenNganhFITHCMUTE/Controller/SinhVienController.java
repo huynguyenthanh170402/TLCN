@@ -111,11 +111,18 @@ public class SinhVienController {
 		List<LopHocPhan> dsLop = dangKyHocPhanService.dsLopDangMo(hk);
 		List<DangKyHocPhan> daDangKy = dangKyHocPhanService.dsDaDangKy(sv, hk);
 
+		java.util.Map<Integer, Long> siSo = dangKyHocPhanService.siSoCacLop(dsLop);
+		var bc = dangKyHocPhanService.boiCanh(sv, hk);
+
 		model.addAttribute("dsLop", dsLop);
-		model.addAttribute("siSo", dangKyHocPhanService.siSoCacLop(dsLop));
+		model.addAttribute("siSo", siSo);
 		model.addAttribute("daDangKy", daDangKy);
 		model.addAttribute("tongTinChi", dangKyHocPhanService.tongTinChi(daDangKy));
-		model.addAttribute("tinChiToiDa", DangKyHocPhanService.TIN_CHI_TOI_DA);
+		model.addAttribute("tinChiToiDa", bc.getGioiHanTinChi());
+		// Lý do không đăng ký được của từng lớp, null nghĩa là đăng ký được
+		model.addAttribute("lyDo", dangKyHocPhanService.lyDoTungLop(bc, dsLop, siSo));
+		model.addAttribute("hocKyThu", bc.getHocKyThu());
+		model.addAttribute("loiChung", bc.getLoiChung());
 
 		// Lịch học của từng lớp đang mở, để sinh viên xem trước khi đăng ký
 		model.addAttribute("lichTheoLop", lichHocService.lichTheoLop(

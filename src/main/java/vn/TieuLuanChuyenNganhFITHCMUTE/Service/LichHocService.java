@@ -48,6 +48,11 @@ public class LichHocService {
 				.collect(Collectors.groupingBy(lh -> lh.getLopHocPhan().getMaLopHocPhan()));
 	}
 
+	/** Các buổi học của một lớp */
+	public List<LichHoc> lichCuaLop(Integer maLopHocPhan) {
+		return lichHocRepository.findByLopHocPhan_MaLopHocPhanIn(List.of(maLopHocPhan));
+	}
+
 	/** Toàn bộ buổi học của các lớp đã đăng ký, xếp theo thứ rồi theo tiết */
 	public List<LichHoc> lichCuaCacDangKy(List<DangKyHocPhan> dsDangKy) {
 		if (dsDangKy == null || dsDangKy.isEmpty()) return List.of();

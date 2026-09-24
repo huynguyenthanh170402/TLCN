@@ -3,6 +3,7 @@ package vn.TieuLuanChuyenNganhFITHCMUTE.Repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -22,9 +23,17 @@ public interface DangKyHocPhanRepository extends JpaRepository<DangKyHocPhan, In
 
 	/**
 	 * Lượt đăng ký (kể cả đã hủy) của sinh viên vào một lớp.
-	 * Cần vì bảng có ràng buộc UNIQUE (MaSinhVien, MaLopHocPhan):
-	 * đăng ký lại sau khi hủy phải cập nhật dòng cũ, không insert dòng mới.
+	 * Ràng buộc UNIQUE (MaSinhVien, MaLopHocPhan): đăng ký lại sau khi hủy
+	 * phải cập nhật dòng cũ, không insert dòng mới.
 	 */
 	Optional<DangKyHocPhan> findBySinhVien_MaSinhVienAndLopHocPhan_MaLopHocPhan(
 			Integer maSinhVien, Integer maLopHocPhan);
+
+	/** Danh sách sinh viên của một lớp (dùng cho bảng điểm giảng viên) */
+	@EntityGraph(attributePaths = {"sinhVien"})
+	List<DangKyHocPhan> findByLopHocPhan_MaLopHocPhanAndTrangThai(
+			Integer maLopHocPhan, Integer trangThai, Sort sort);
+	/** Mọi lượt đăng ký còn hiệu lực của sinh viên, dùng cho trang chương trình đào tạo */
+	@EntityGraph(attributePaths = {"lopHocPhan.hocPhan"})
+	List<DangKyHocPhan> findBySinhVien_MaSinhVienAndTrangThai(Integer maSinhVien, Integer trangThai);
 }

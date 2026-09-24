@@ -22,4 +22,7 @@ public interface NguoiNhanThongBaoRepository extends JpaRepository<NguoiNhanThon
 	       WHERE n.taiKhoan.maTaiKhoan = :maTaiKhoan AND n.trangThaiDoc = 1
 	       """)
 	List<Integer> timMaDaDoc(@Param("maTaiKhoan") Integer maTaiKhoan);
+
+	/** Số người đã đọc một thông báo */
+	long countByThongBao_MaThongBaoAndTrangThaiDoc(Integer maThongBao, Integer trangThaiDoc);
 }

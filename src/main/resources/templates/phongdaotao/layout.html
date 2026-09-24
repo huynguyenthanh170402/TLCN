@@ -44,14 +44,32 @@
            th:classappend="${menu == 'hocky'} ? 'active'">
             <i class="fas fa-calendar-check"></i> Học kỳ &amp; đăng ký
         </a>
-        <!-- Các mục sẽ làm ở bước sau -->
-        <a class="nav-link disabled" href="#">
+        <a class="nav-link" th:href="@{/quanly/lophocphan}"
+           th:classappend="${menu == 'lophocphan'} ? 'active'">
             <i class="fas fa-chalkboard"></i> Lớp học phần
         </a>
-        <a class="nav-link disabled" href="#">
+        <a class="nav-link" th:href="@{/quanly/molop}"
+           th:classappend="${menu == 'molop'} ? 'active'">
+            <i class="fas fa-layer-group"></i> Mở lớp theo kế hoạch
+        </a>
+        <a class="nav-link" th:href="@{/quanly/chuongtrinh}"
+           th:classappend="${menu == 'chuongtrinh'} ? 'active'">
+            <i class="fas fa-book"></i> Chương trình đào tạo
+        </a>
+        <a class="nav-link" th:href="@{/quanly/phancong}"
+           th:classappend="${menu == 'phancong'} ? 'active'">
+            <i class="fas fa-user-check"></i> Phân công giảng dạy
+        </a>
+        <a class="nav-link" th:href="@{/quanly/duyetdiem}"
+           th:classappend="${menu == 'duyetdiem'} ? 'active'">
+            <i class="fas fa-clipboard-check"></i> Duyệt điểm
+        </a>
+        <a class="nav-link" th:href="@{/quanly/thongbao}"
+           th:classappend="${menu == 'thongbao'} ? 'active'">
             <i class="fas fa-bullhorn"></i> Gửi thông báo
         </a>
-        <a class="nav-link disabled" href="#">
+        <a class="nav-link" th:href="@{/quanly/sinhvien}"
+           th:classappend="${menu == 'sinhvien'} ? 'active'">
             <i class="fas fa-user-graduate"></i> Sinh viên
         </a>
     </nav>

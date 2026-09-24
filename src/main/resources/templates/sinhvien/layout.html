@@ -53,6 +53,11 @@
            th:classappend="${menu == 'ketqua'} ? 'active'">
             <i class="fas fa-chart-line"></i> Kết quả học tập
         </a>
+        <!-- Mục mới: khung chương trình của ngành -->
+        <a class="nav-link" th:href="@{/sinhvien/chuongtrinh}"
+           th:classappend="${menu == 'chuongtrinh'} ? 'active'">
+            <i class="fas fa-book"></i> Chương trình đào tạo
+        </a>
         <a class="nav-link" th:href="@{/sinhvien/dangky}"
            th:classappend="${menu == 'dangky'} ? 'active'">
             <i class="fas fa-pen-to-square"></i> Đăng ký học phần

@@ -46,6 +46,19 @@
                   th:text="${hocKy.dangMoDangKy} ? 'Đang mở đăng ký' : 'Chưa mở / đã đóng đăng ký'"></span>
         </div>
 
+        <!-- Lỗi chặn toàn bộ, ví dụ nợ học phí hoặc trạng thái sinh viên -->
+        <div th:if="${loiChung != null}" class="alert alert-danger">
+            <i class="fas fa-ban"></i> <span th:text="${loiChung}"></span>
+        </div>
+
+        <div class="alert alert-light border small d-flex justify-content-between flex-wrap gap-2">
+            <span>
+                Bạn đang ở <strong th:text="'học kỳ thứ ' + ${hocKyThu}"></strong> của chương trình.
+                Chỉ đăng ký được học phần thuộc học kỳ này trở về trước.
+            </span>
+            <span th:text="'Giới hạn ' + ${tinChiToiDa} + ' tín chỉ'"></span>
+        </div>
+
         <!-- ===== Đã đăng ký ===== -->
         <div class="card shadow-sm mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -135,22 +148,23 @@
                             <span th:text="${daCo} + ' / ' + ${lop.siSoToiDa}"
                                   th:classappend="${day} ? 'text-danger fw-bold'"></span>
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" th:with="ly=${lyDo[lop.maLopHocPhan]}">
                             <span th:if="${daDk}" class="badge bg-success">Đã đăng ký</span>
 
                             <span th:if="${!daDk and trungMon}" class="badge bg-secondary">
                                 Đã chọn lớp khác
                             </span>
 
-                            <span th:if="${!daDk and !trungMon and day}" class="badge bg-danger">
-                                Đủ sĩ số
-                            </span>
+                            <!-- Không đăng ký được: hiện lý do cụ thể -->
+                            <span th:if="${!daDk and !trungMon and ly != null}"
+                                  class="badge bg-light text-dark border text-wrap"
+                                  style="max-width: 260px;"
+                                  th:text="${ly}"></span>
 
-                            <form th:if="${!daDk and !trungMon and !day}"
+                            <form th:if="${!daDk and !trungMon and ly == null}"
                                   th:action="@{/sinhvien/dangky/{id}(id=${lop.maLopHocPhan})}"
                                   method="post" class="d-inline">
-                                <button type="submit" class="btn btn-sm btn-primary"
-                                        th:disabled="${!hocKy.dangMoDangKy}">
+                                <button type="submit" class="btn btn-sm btn-primary">
                                     <i class="fas fa-plus"></i> Đăng ký
                                 </button>
                             </form>
