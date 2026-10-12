@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongdaotao/layout}">
+<head>
+    <title>Duyệt điểm</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Duyệt điểm</h5>
+
+<div layout:fragment="content">
+
+    <!-- Tab trạng thái -->
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${tt == 1} ? 'active'" th:href="@{/quanly/duyetdiem(tt=1)}">
+                Chờ duyệt <span class="badge bg-warning text-dark" th:text="${soChoDuyet}"></span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${tt == 2} ? 'active'" th:href="@{/quanly/duyetdiem(tt=2)}">
+                Đã duyệt, chưa công bố <span class="badge bg-info text-dark" th:text="${soDaDuyet}"></span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${tt == 3} ? 'active'" th:href="@{/quanly/duyetdiem(tt=3)}">
+                Đã công bố <span class="badge bg-success" th:text="${soCongBo}"></span>
+            </a>
+        </li>
+    </ul>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Học kỳ</th>
+                    <th>Mã lớp</th>
+                    <th>Học phần</th>
+                    <th class="text-center">TC</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${dsLop.empty}">
+                    <td colspan="5" class="text-center text-muted py-4">Không có bảng điểm nào ở trạng thái này.</td>
+                </tr>
+                <tr th:each="lop : ${dsLop}">
+                    <td class="small" th:text="${lop.hocKy.maHocKyCode}"></td>
+                    <td class="small fw-semibold" th:text="${lop.maLop}"></td>
+                    <td th:text="${lop.hocPhan.tenHocPhan}"></td>
+                    <td class="text-center" th:text="${lop.hocPhan.soTinChi}"></td>
+                    <td class="text-end">
+                        <a th:href="@{/quanly/duyetdiem/{id}(id=${lop.maLopHocPhan})}" class="btn btn-sm btn-outline-primary">
+                            Xem bảng điểm
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <p class="text-muted small mt-3" th:if="${tt == 3}">
+        Tab này chỉ hiện các lớp nhập điểm qua hệ thống. Điểm các học kỳ cũ được seed sẵn nên cũng nằm ở đây.
+    </p>
+</div>
+</body>
+</html>

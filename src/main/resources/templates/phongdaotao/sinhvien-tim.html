@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongdaotao/layout}">
+<head>
+    <title>Tìm sinh viên</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Tìm sinh viên</h5>
+
+<div layout:fragment="content">
+
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/quanly/sinhvien}">Khoa</a></li>
+            <li class="breadcrumb-item active">Kết quả tìm kiếm</li>
+        </ol>
+    </nav>
+
+    <form th:action="@{/quanly/sinhvien/tim}" method="get" class="card card-body shadow-sm mb-3">
+        <div class="d-flex gap-2">
+            <input type="text" name="tuKhoa" class="form-control"
+                   placeholder="MSSV hoặc họ tên" th:value="${tuKhoa}">
+            <button type="submit" class="btn btn-primary text-nowrap">
+                <i class="fas fa-magnifying-glass"></i> Tìm
+            </button>
+        </div>
+    </form>
+
+    <div th:if="${trang != null}" class="card shadow-sm">
+        <div class="card-header small text-muted"
+             th:text="'Tìm thấy ' + ${trang.totalElements} + ' sinh viên khớp với &quot;' + ${tuKhoa} + '&quot;'"></div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>MSSV</th>
+                    <th>Họ tên</th>
+                    <th>Ngành</th>
+                    <th>Khoa</th>
+                    <th class="text-center">Khóa</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${trang.empty}">
+                    <td colspan="6" class="text-center text-muted py-4">Không có sinh viên nào khớp.</td>
+                </tr>
+                <tr th:each="sv : ${trang.content}">
+                    <td class="fw-semibold" th:text="${sv.maSoSinhVien}"></td>
+                    <td th:text="${sv.hoTen}"></td>
+                    <td th:text="${sv.nganh?.tenNganh}"></td>
+                    <td class="small" th:text="${sv.nganh?.donVi?.tenDonVi}"></td>
+                    <td class="text-center" th:text="${sv.khoaTuyenSinh}"></td>
+                    <td class="text-end">
+                        <a th:href="@{/quanly/sinhvien/chitiet/{id}(id=${sv.maSinhVien})}"
+                           class="btn btn-sm btn-outline-primary">Xem</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Phân trang: cửa sổ 5 trang quanh trang hiện tại -->
+        <div class="card-footer d-flex justify-content-between align-items-center"
+             th:if="${trang.totalPages > 1}"
+             th:with="dau=${trang.number - 2 < 0 ? 0 : trang.number - 2},
+                      cuoi=${trang.number + 2 > trang.totalPages - 1 ? trang.totalPages - 1 : trang.number + 2}">
+            <small class="text-muted"
+                   th:text="'Trang ' + ${trang.number + 1} + ' / ' + ${trang.totalPages}"></small>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" th:classappend="${trang.first} ? 'disabled'">
+                    <a class="page-link" th:href="@{/quanly/sinhvien/tim(tuKhoa=${tuKhoa}, page=0)}">&laquo;</a>
+                </li>
+                <li class="page-item disabled" th:if="${dau > 0}"><span class="page-link">…</span></li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(dau, cuoi)}"
+                    th:classappend="${i == trang.number} ? 'active'">
+                    <a class="page-link" th:href="@{/quanly/sinhvien/tim(tuKhoa=${tuKhoa}, page=${i})}"
+                       th:text="${i + 1}"></a>
+                </li>
+                <li class="page-item disabled" th:if="${cuoi < trang.totalPages - 1}">
+                    <span class="page-link">…</span>
+                </li>
+                <li class="page-item" th:classappend="${trang.last} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/quanly/sinhvien/tim(tuKhoa=${tuKhoa}, page=${trang.totalPages - 1})}">&raquo;</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+</body>
+</html>

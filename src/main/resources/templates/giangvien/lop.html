@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{giangvien/layout}">
+<head>
+    <title>Lớp giảng dạy</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Lớp giảng dạy</h5>
+
+<div layout:fragment="content">
+
+    <div class="card shadow-sm" th:if="${giangVien != null}">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Học kỳ</th>
+                    <th>Mã lớp</th>
+                    <th>Học phần</th>
+                    <th class="text-center">TC</th>
+                    <th class="text-center">Sĩ số</th>
+                    <th class="text-center">Trạng thái lớp</th>
+                    <th class="text-center">Bảng điểm</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${dsPhanCong.empty}">
+                    <td colspan="8" class="text-center text-muted py-4">Bạn chưa được phân công lớp nào.</td>
+                </tr>
+                <tr th:each="pc : ${dsPhanCong}" th:with="lop=${pc.lopHocPhan}">
+                    <td class="small" th:text="${lop.hocKy.maHocKyCode}"></td>
+                    <td class="small fw-semibold" th:text="${lop.maLop}"></td>
+                    <td th:text="${lop.hocPhan.tenHocPhan}"></td>
+                    <td class="text-center" th:text="${lop.hocPhan.soTinChi}"></td>
+                    <td class="text-center" th:text="${siSo[lop.maLopHocPhan]}"></td>
+                    <td class="text-center">
+                        <span th:switch="${lop.trangThai}">
+                            <span th:case="0" class="badge bg-secondary">Chưa mở</span>
+                            <span th:case="1" class="badge bg-success">Mở đăng ký</span>
+                            <span th:case="2" class="badge bg-primary">Đang học</span>
+                            <span th:case="3" class="badge bg-dark">Đã kết thúc</span>
+                            <span th:case="4" class="badge bg-danger">Đã hủy</span>
+                        </span>
+                    </td>
+                    <td class="text-center small" th:text="${tinhTrang[lop.maLopHocPhan]}"></td>
+                    <td class="text-end">
+                        <a th:href="@{/giangvien/lop/{id}/diem(id=${lop.maLopHocPhan})}"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-pen"></i> Nhập điểm
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <p class="text-muted small mt-3">
+        Chỉ nhập điểm được khi lớp ở trạng thái <strong>Đang học</strong> hoặc <strong>Đã kết thúc</strong>.
+        Lớp còn mở đăng ký thì Phòng Đào tạo cần khóa đăng ký trước.
+    </p>
+</div>
+</body>
+</html>

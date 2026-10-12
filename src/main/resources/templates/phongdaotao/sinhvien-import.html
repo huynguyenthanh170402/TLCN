@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongdaotao/layout}">
+<head>
+    <title>Nhập sinh viên từ Excel</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Nhập sinh viên từ Excel</h5>
+
+<div layout:fragment="content">
+
+    <a th:href="@{/quanly/sinhvien}" class="btn btn-sm btn-outline-secondary mb-3">
+        <i class="fas fa-arrow-left"></i> Danh sách sinh viên
+    </a>
+
+    <div th:if="${loi}" class="alert alert-danger">
+        <i class="fas fa-circle-exclamation"></i> <span th:text="${loi}"></span>
+    </div>
+
+    <!-- ===== Kết quả sau khi nhập ===== -->
+    <div th:if="${kq != null}" class="card shadow-sm mb-4">
+        <div class="card-header fw-bold" th:text="'Kết quả nhập file ' + ${tenFile}"></div>
+        <div class="card-body">
+            <div class="row text-center g-3 mb-3">
+                <div class="col-md-4">
+                    <div class="border rounded py-3">
+                        <div class="fs-3 fw-bold" th:text="${kq.tongDong}"></div>
+                        <div class="text-muted small">Dòng đọc được</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border border-success rounded py-3">
+                        <div class="fs-3 fw-bold text-success" th:text="${kq.thanhCong}"></div>
+                        <div class="text-muted small">Thêm thành công</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border border-danger rounded py-3">
+                        <div class="fs-3 fw-bold text-danger" th:text="${kq.soLoi}"></div>
+                        <div class="text-muted small">Dòng bị bỏ qua</div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${kq.soLoi > 0}">
+                <div class="fw-semibold mb-2">Các dòng bị bỏ qua:</div>
+                <div class="border rounded p-2 small" style="max-height: 260px; overflow-y: auto;">
+                    <div th:each="d : ${kq.loi}" class="text-danger" th:text="${d}"></div>
+                </div>
+                <div class="form-text">
+                    Các dòng hợp lệ đã được lưu. Sửa những dòng trên rồi nhập lại file chỉ chứa các dòng đó.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- ===== Tải file mẫu ===== -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header fw-bold">1. Tải file mẫu</div>
+                <div class="card-body">
+                    <p class="small text-muted">
+                        File mẫu có sẵn dòng tiêu đề và một dòng ví dụ. Xóa dòng ví dụ rồi điền danh sách thật.
+                    </p>
+                    <a th:href="@{/quanly/sinhvien/import/mau}" class="btn btn-outline-success">
+                        <i class="fas fa-file-excel"></i> Tải file Excel mẫu
+                    </a>
+
+                    <hr>
+                    <div class="small">
+                        <div class="fw-semibold mb-1">Thứ tự cột:</div>
+                        <ol class="mb-2 ps-3">
+                            <li>MSSV <span class="text-danger">*</span></li>
+                            <li>Họ tên <span class="text-danger">*</span></li>
+                            <li>Ngày sinh (dd/MM/yyyy)</li>
+                            <li>Giới tính (Nam / Nữ)</li>
+                            <li>Tên ngành <span class="text-danger">*</span></li>
+                            <li>Khóa tuyển sinh</li>
+                            <li>Email trường</li>
+                            <li>Số điện thoại</li>
+                        </ol>
+                        <div class="text-muted">
+                            Tên ngành phải trùng khớp với ngành đang có trong hệ thống.
+                            Dữ liệu bắt đầu từ dòng 2.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== Tải file lên ===== -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm h-100">
+                <div class="card-header fw-bold">2. Tải file danh sách lên</div>
+                <form th:action="@{/quanly/sinhvien/import}" method="post" enctype="multipart/form-data">
+                    <div class="card-body">
+                        <label class="form-label fw-semibold">Chọn file .xlsx</label>
+                        <input type="file" name="file" accept=".xlsx" class="form-control" required>
+
+                        <div class="alert alert-light border mt-3 small mb-0">
+                            <div class="fw-semibold mb-1">Hệ thống sẽ tự động:</div>
+                            <ul class="mb-0 ps-3">
+                                <li>Tạo tài khoản đăng nhập cho từng sinh viên,
+                                    tên đăng nhập là <strong>MSSV</strong>,
+                                    mật khẩu <strong th:text="${matKhauMacDinh}"></strong></li>
+                                <li>Bỏ qua dòng trùng MSSV, thiếu dữ liệu bắt buộc hoặc sai tên ngành,
+                                    rồi liệt kê ra cho bạn sửa</li>
+                                <li>Đặt trạng thái sinh viên là <strong>Đang học</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-footer text-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Nhập danh sách
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

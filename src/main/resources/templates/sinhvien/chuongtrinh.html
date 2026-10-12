@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{sinhvien/layout}">
+<head>
+    <title>Chương trình đào tạo</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Chương trình đào tạo</h5>
+
+<div layout:fragment="content">
+
+    <div th:if="${sinhVien == null}" class="alert alert-warning">
+        Tài khoản này chưa được gắn với hồ sơ sinh viên nào.
+    </div>
+
+    <th:block th:if="${sinhVien != null}">
+
+        <div th:if="${ds.empty}" class="alert alert-secondary">
+            Ngành của bạn chưa có chương trình đào tạo trong hệ thống.
+        </div>
+
+        <th:block th:unless="${ds.empty}">
+
+            <!-- Tiến độ -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between flex-wrap gap-2 mb-2">
+                        <div>
+                            <h5 class="mb-0" th:text="${sinhVien.nganh?.tenNganh}"></h5>
+                            <small class="text-muted" th:text="${sinhVien.nganh?.donVi?.tenDonVi}"></small>
+                        </div>
+                        <div class="text-end">
+                            <div class="fs-4 fw-bold text-primary"
+                                 th:text="${tienDo.tinChiDat} + ' / ' + ${tienDo.tongTinChi} + ' tín chỉ'"></div>
+                            <small class="text-muted"
+                                   th:text="'Còn ' + ${tienDo.tinChiConLai} + ' tín chỉ để tốt nghiệp'"></small>
+                        </div>
+                    </div>
+
+                    <div class="progress" style="height: 22px;">
+                        <div class="progress-bar bg-success" th:style="'width:' + ${tienDo.phanTram} + '%'"
+                             th:text="${tienDo.phanTram} + '%'"></div>
+                    </div>
+
+                    <div class="row text-center mt-3 g-2">
+                        <div class="col-4">
+                            <div class="fw-bold text-success" th:text="${tienDo.soMonDat}"></div>
+                            <small class="text-muted">Môn đã đạt</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="fw-bold text-primary" th:text="${tienDo.soMonDangHoc}"></div>
+                            <small class="text-muted">Đang học</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="fw-bold text-muted" th:text="${tienDo.soMonChuaHoc}"></div>
+                            <small class="text-muted">Chưa học</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mỗi học kỳ một bảng, dữ liệu đã gom sẵn ở controller -->
+            <div class="card shadow-sm mb-3" th:each="e : ${nhom}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-bold" th:text="'Học kỳ ' + ${e.key}"></span>
+                    <span class="small text-muted" th:text="${e.value.size()} + ' học phần'"></span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th style="width:130px">Mã học phần</th>
+                            <th>Tên học phần</th>
+                            <th class="text-center" style="width:60px">TC</th>
+                            <th class="text-center" style="width:110px">Khối</th>
+                            <th class="text-center" style="width:100px">Loại</th>
+                            <th class="text-center" style="width:110px">Điểm</th>
+                            <th class="text-center" style="width:110px">Tình trạng</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="d : ${e.value}" th:with="ct=${d.chuongTrinh}">
+                            <td class="small fw-semibold" th:text="${ct.hocPhan.maHocPhan}"></td>
+                            <td th:text="${ct.hocPhan.tenHocPhan}"></td>
+                            <td class="text-center" th:text="${ct.hocPhan.soTinChi}"></td>
+                            <td class="text-center small text-muted" th:text="${ct.tenKhoiKienThuc}"></td>
+                            <td class="text-center small text-muted" th:text="${ct.tenLoaiHocPhan}"></td>
+                            <td class="text-center">
+                                <span th:if="${d.diemTongKet != null}"
+                                      th:text="${#numbers.formatDecimal(d.diemTongKet, 1, 1)} + ' (' + ${d.diemChu} + ')'"></span>
+                                <span th:if="${d.diemTongKet == null}" class="text-muted">—</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge" th:classappend="${d.mauBadge}" th:text="${d.trangThai}"></span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </th:block>
+    </th:block>
+</div>
+</body>
+</html>

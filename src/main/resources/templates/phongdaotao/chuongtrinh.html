@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongdaotao/layout}">
+<head>
+    <title>Chương trình đào tạo</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Chương trình đào tạo</h5>
+
+<div layout:fragment="content">
+
+    <div th:if="${loi}" class="alert alert-danger" th:text="${loi}"></div>
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <span class="text-muted small">
+            Bấm vào ngành để xem khung chương trình theo từng học kỳ.
+        </span>
+        <a th:href="@{/quanly/chuongtrinh/import}" class="btn btn-success">
+            <i class="fas fa-file-excel"></i> Nhập từ Excel
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Khoa</th>
+                    <th>Ngành</th>
+                    <th class="text-center">Số học phần</th>
+                    <th class="text-center">Tổng tín chỉ</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="n : ${dsNganh}">
+                    <td class="small text-muted" th:text="${n.tenKhoa}"></td>
+                    <td class="fw-semibold" th:text="${n.tenNganh}"></td>
+                    <td class="text-center">
+                        <span th:if="${n.soHocPhan > 0}" th:text="${n.soHocPhan}"></span>
+                        <span th:if="${n.soHocPhan == 0}" class="badge bg-warning text-dark">Chưa có</span>
+                    </td>
+                    <td class="text-center" th:text="${n.tongTinChi > 0} ? ${n.tongTinChi} : '—'"></td>
+                    <td class="text-end">
+                        <a th:href="@{/quanly/chuongtrinh/nganh/{id}(id=${n.maNganh})}"
+                           class="btn btn-sm btn-outline-primary">Xem</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

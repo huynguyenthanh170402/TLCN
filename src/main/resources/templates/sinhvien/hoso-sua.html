@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{sinhvien/layout}">
+<head>
+    <title>Cập nhật hồ sơ</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Cập nhật hồ sơ</h5>
+
+<div layout:fragment="content">
+
+    <a th:href="@{/sinhvien/hoso}" class="btn btn-sm btn-outline-secondary mb-3">
+        <i class="fas fa-arrow-left"></i> Xem hồ sơ
+    </a>
+
+    <div th:if="${thongBao}" class="alert alert-success alert-dismissible fade show">
+        <i class="fas fa-circle-check me-2"></i><span th:text="${thongBao}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${loi}" class="alert alert-danger alert-dismissible fade show">
+        <i class="fas fa-circle-exclamation me-2"></i><span th:text="${loi}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${sinhVien == null}" class="alert alert-warning">
+        Tài khoản này chưa được gắn với hồ sơ sinh viên nào.
+    </div>
+
+    <div th:if="${sinhVien != null}" class="row g-3">
+
+        <!-- ===== Thông tin cố định, chỉ xem ===== -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header fw-bold">Thông tin do nhà trường quản lý</div>
+                <table class="table table-sm mb-0">
+                    <tr><th style="width:45%">Mã số sinh viên</th>
+                        <td th:text="${sinhVien.maSoSinhVien}"></td></tr>
+                    <tr><th>Họ tên</th><td th:text="${sinhVien.hoTen}"></td></tr>
+                    <tr><th>Ngày sinh</th>
+                        <td th:text="${#temporals.format(sinhVien.ngaySinh, 'dd/MM/yyyy')}"></td></tr>
+                    <tr><th>Giới tính</th><td th:text="${sinhVien.tenGioiTinh}"></td></tr>
+                    <tr><th>Ngành</th><td th:text="${sinhVien.nganh?.tenNganh}"></td></tr>
+                    <tr><th>Khóa tuyển sinh</th><td th:text="${sinhVien.khoaTuyenSinh}"></td></tr>
+                    <tr><th>Ngày nhập học</th>
+                        <td th:text="${#temporals.format(sinhVien.ngayNhapHoc, 'dd/MM/yyyy')}"></td></tr>
+                    <tr><th>Email trường</th><td th:text="${sinhVien.emailTruong}"></td></tr>
+                    <tr><th>Trạng thái</th><td th:text="${sinhVien.tenTrangThai}"></td></tr>
+                </table>
+                <div class="card-footer small text-muted">
+                    Cần sửa các mục trên, liên hệ Phòng Công tác Sinh viên kèm giấy tờ chứng minh.
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== Thông tin sinh viên tự sửa ===== -->
+        <div class="col-lg-7">
+            <form th:action="@{/sinhvien/hoso/capnhat}" method="post" class="card shadow-sm">
+                <div class="card-header fw-bold">Thông tin liên hệ</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Email cá nhân</label>
+                            <input type="email" name="emailCaNhan" class="form-control"
+                                   maxlength="200" th:value="${sinhVien.emailCaNhan}"
+                                   placeholder="vidu@gmail.com">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Số điện thoại</label>
+                            <input type="text" name="soDienThoai" class="form-control"
+                                   maxlength="20" th:value="${sinhVien.soDienThoai}"
+                                   placeholder="0901234567">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Địa chỉ liên hệ hiện tại</label>
+                            <input type="text" name="diaChiLienHe" class="form-control"
+                                   maxlength="500" th:value="${sinhVien.diaChiLienHe}"
+                                   placeholder="Nơi ở hiện tại, ví dụ phòng trọ, ký túc xá">
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+                    <div class="fw-semibold mb-3">Người liên hệ khi cần</div>
+
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <label class="form-label">Họ tên</label>
+                            <input type="text" name="hoTenNguoiLienHe" class="form-control"
+                                   maxlength="200" th:value="${sinhVien.hoTenNguoiLienHe}">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Quan hệ</label>
+                            <input type="text" name="quanHeVoiSinhVien" class="form-control"
+                                   maxlength="50" th:value="${sinhVien.quanHeVoiSinhVien}"
+                                   placeholder="Cha, Mẹ, Anh, Chị...">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Số điện thoại</label>
+                            <input type="text" name="soDienThoaiNguoiLienHe" class="form-control"
+                                   maxlength="20" th:value="${sinhVien.soDienThoaiNguoiLienHe}">
+                        </div>
+                        <div class="col-md-7">
+                            <label class="form-label">Địa chỉ</label>
+                            <input type="text" name="diaChiNguoiLienHe" class="form-control"
+                                   maxlength="500" th:value="${sinhVien.diaChiNguoiLienHe}">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    <a th:href="@{/sinhvien/hoso/matkhau}" class="btn btn-sm btn-link text-decoration-none">
+                        <i class="fas fa-key me-1"></i> Đổi mật khẩu
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-floppy-disk"></i> Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

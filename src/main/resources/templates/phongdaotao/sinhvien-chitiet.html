@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongdaotao/layout}">
+<head>
+    <title>Hồ sơ sinh viên</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Hồ sơ sinh viên</h5>
+
+<div layout:fragment="content">
+
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/quanly/sinhvien}">Khoa</a></li>
+            <li class="breadcrumb-item" th:if="${sv.nganh != null}">
+                <a th:href="@{/quanly/sinhvien/khoa/{id}(id=${sv.nganh.donVi.maDonVi})}"
+                   th:text="${sv.nganh.donVi.tenDonVi}"></a>
+            </li>
+            <li class="breadcrumb-item" th:if="${sv.nganh != null}">
+                <a th:href="@{/quanly/sinhvien/nganh/{id}(id=${sv.nganh.maNganh})}"
+                   th:text="${sv.nganh.tenNganh}"></a>
+            </li>
+            <li class="breadcrumb-item" th:if="${sv.nganh != null and sv.khoaTuyenSinh != null}">
+                <a th:href="@{/quanly/sinhvien/nganh/{id}/khoa/{khoa}(id=${sv.nganh.maNganh}, khoa=${sv.khoaTuyenSinh})}"
+                   th:text="'Khóa ' + ${sv.khoaTuyenSinh}"></a>
+            </li>
+            <li class="breadcrumb-item active" th:text="${sv.maSoSinhVien}"></li>
+        </ol>
+    </nav>
+
+    <!-- ===== Thông tin chung ===== -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between flex-wrap gap-2 mb-3">
+                <div>
+                    <h4 class="mb-0" th:text="${sv.hoTen}"></h4>
+                    <span class="text-muted" th:text="'MSSV: ' + ${sv.maSoSinhVien}"></span>
+                </div>
+                <span class="badge bg-primary align-self-start fs-6" th:text="${sv.tenTrangThai}"></span>
+            </div>
+            <div class="row small">
+                <div class="col-md-4 mb-2"><span class="text-muted">Ngành:</span>
+                    <strong th:text="${sv.nganh?.tenNganh}"></strong></div>
+                <div class="col-md-4 mb-2"><span class="text-muted">Khoa:</span>
+                    <span th:text="${sv.nganh?.donVi?.tenDonVi}"></span></div>
+                <div class="col-md-4 mb-2"><span class="text-muted">Khóa tuyển sinh:</span>
+                    <span th:text="${sv.khoaTuyenSinh}"></span></div>
+                <div class="col-md-4 mb-2"><span class="text-muted">Giới tính:</span>
+                    <span th:text="${sv.tenGioiTinh}"></span></div>
+                <div class="col-md-4 mb-2"><span class="text-muted">Ngày sinh:</span>
+                    <span th:text="${#temporals.format(sv.ngaySinh, 'dd/MM/yyyy')}"></span></div>
+                <div class="col-md-4 mb-2"><span class="text-muted">Tài khoản:</span>
+                    <span th:text="${sv.taiKhoan?.tenDangNhap}"></span></div>
+                <div class="col-md-4 mb-2"><span class="text-muted">Email trường:</span>
+                    <span th:text="${sv.emailTruong}"></span></div>
+                <div class="col-md-4 mb-2"><span class="text-muted">Điện thoại:</span>
+                    <span th:text="${sv.soDienThoai}"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Tổng kết học tập ===== -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-start border-primary border-4"><div class="card-body">
+                <div class="text-muted small">GPA tích lũy</div>
+                <div class="fs-4 fw-bold text-primary" th:text="${#numbers.formatDecimal(tongKet.gpa, 1, 2)}"></div>
+                <span class="badge bg-primary" th:text="${tongKet.xepLoai}"></span>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-start border-success border-4"><div class="card-body">
+                <div class="text-muted small">Tín chỉ tích lũy</div>
+                <div class="fs-4 fw-bold text-success" th:text="${tongKet.tinChiTichLuy}"></div>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-start border-info border-4"><div class="card-body">
+                <div class="text-muted small">Số môn đã học</div>
+                <div class="fs-4 fw-bold text-info" th:text="${tongKet.soMonDaHoc}"></div>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-start border-danger border-4"><div class="card-body">
+                <div class="text-muted small">Môn chưa đạt</div>
+                <div class="fs-4 fw-bold text-danger" th:text="${tongKet.soMonDaHoc - tongKet.soMonDat}"></div>
+            </div></div>
+        </div>
+    </div>
+
+    <!-- ===== Bảng điểm ===== -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header fw-bold">Bảng điểm</div>
+        <div class="table-responsive" style="max-height: 420px;">
+            <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light sticky-top">
+                <tr class="text-center">
+                    <th class="text-start">Học kỳ</th>
+                    <th class="text-start">Học phần</th>
+                    <th>TC</th>
+                    <th>Tổng kết</th>
+                    <th>Chữ</th>
+                    <th>Hệ 4</th>
+                    <th>Kết quả</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${dsKetQua.empty}">
+                    <td colspan="7" class="text-center text-muted py-3">Chưa có kết quả.</td>
+                </tr>
+                <tr th:each="kq : ${dsKetQua}" class="text-center"
+                    th:with="lop=${kq.dangKyHocPhan.lopHocPhan}">
+                    <td class="text-start small" th:text="${lop.hocKy.maHocKyCode}"></td>
+                    <td class="text-start" th:text="${lop.hocPhan.tenHocPhan}"></td>
+                    <td th:text="${lop.hocPhan.soTinChi}"></td>
+                    <td class="fw-bold" th:text="${#numbers.formatDecimal(kq.diemTongKet, 1, 1)}"></td>
+                    <td th:text="${kq.diemChu}"></td>
+                    <td th:text="${#numbers.formatDecimal(kq.diemHe4, 1, 1)}"></td>
+                    <td>
+                        <span th:if="${kq.ketQua == 1}" class="badge bg-success">Đạt</span>
+                        <span th:if="${kq.ketQua == 0}" class="badge bg-danger">Không đạt</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ===== Học phí ===== -->
+    <div class="card shadow-sm">
+        <div class="card-header fw-bold">Công nợ học phí</div>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Học kỳ</th>
+                    <th class="text-end">Phải đóng</th>
+                    <th class="text-end">Đã đóng</th>
+                    <th class="text-end">Còn nợ</th>
+                    <th class="text-center">Trạng thái</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${dsCongNo.empty}">
+                    <td colspan="5" class="text-center text-muted py-3">Chưa có công nợ.</td>
+                </tr>
+                <tr th:each="cn : ${dsCongNo}">
+                    <td th:text="${cn.hocKy.maHocKyCode}"></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(cn.soTienPhaiDong, 1, 'POINT', 0, 'COMMA')}"></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(cn.soTienDaDong, 1, 'POINT', 0, 'COMMA')}"></td>
+                    <td class="text-end fw-bold text-danger" th:text="${#numbers.formatDecimal(cn.soTienConLai, 1, 'POINT', 0, 'COMMA')}"></td>
+                    <td class="text-center"><span class="badge bg-light text-dark border" th:text="${cn.tenTrangThai}"></span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

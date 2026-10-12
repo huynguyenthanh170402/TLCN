@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongdaotao/layout}">
+<head>
+    <title>Khóa tuyển sinh</title>
+    <style>
+        .the-khoa { transition: .15s; text-decoration: none; color: inherit; display: block; }
+        .the-khoa:hover { transform: translateY(-2px); box-shadow: 0 .4rem .9rem rgba(0,0,0,.12) !important; }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Khóa tuyển sinh</h5>
+
+<div layout:fragment="content">
+
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/quanly/sinhvien}">Khoa</a></li>
+            <li class="breadcrumb-item">
+                <a th:href="@{/quanly/sinhvien/khoa/{id}(id=${nganh.donVi.maDonVi})}"
+                   th:text="${nganh.donVi.tenDonVi}"></a>
+            </li>
+            <li class="breadcrumb-item active" th:text="${nganh.tenNganh}"></li>
+        </ol>
+    </nav>
+
+    <div class="row g-3">
+        <div th:if="${dsKhoaTuyenSinh.empty}" class="col-12">
+            <div class="alert alert-secondary mb-0">Ngành này chưa có sinh viên.</div>
+        </div>
+
+        <div class="col-6 col-md-4 col-xl-2" th:each="k : ${dsKhoaTuyenSinh}">
+            <a th:href="@{/quanly/sinhvien/nganh/{id}/khoa/{khoa}(id=${nganh.maNganh}, khoa=${k.ma})}"
+               class="the-khoa card shadow-sm text-center">
+                <div class="card-body">
+                    <div class="fs-4 fw-bold text-primary" th:text="${k.ma}"></div>
+                    <div class="small text-muted" th:text="${k.soLuong} + ' sinh viên'"></div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

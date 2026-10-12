@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongdaotao/layout}">
+<head>
+    <title>Nhập chương trình đào tạo</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Nhập chương trình đào tạo từ Excel</h5>
+
+<div layout:fragment="content">
+
+    <a th:href="@{/quanly/chuongtrinh}" class="btn btn-sm btn-outline-secondary mb-3">
+        <i class="fas fa-arrow-left"></i> Danh sách ngành
+    </a>
+
+    <div th:if="${loi}" class="alert alert-danger">
+        <i class="fas fa-circle-exclamation"></i> <span th:text="${loi}"></span>
+    </div>
+
+    <!-- Kết quả -->
+    <div th:if="${kq != null}" class="card shadow-sm mb-4">
+        <div class="card-header fw-bold" th:text="'Kết quả nhập file ' + ${tenFile}"></div>
+        <div class="card-body">
+            <div class="row text-center g-3 mb-3">
+                <div class="col-md-3">
+                    <div class="border rounded py-3">
+                        <div class="fs-4 fw-bold" th:text="${kq.tongDong}"></div>
+                        <div class="text-muted small">Dòng đọc được</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border border-success rounded py-3">
+                        <div class="fs-4 fw-bold text-success" th:text="${kq.thanhCong}"></div>
+                        <div class="text-muted small">Thêm vào chương trình</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border border-primary rounded py-3">
+                        <div class="fs-4 fw-bold text-primary" th:text="${kq.hocPhanMoi}"></div>
+                        <div class="text-muted small">Học phần tạo mới</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border border-warning rounded py-3">
+                        <div class="fs-4 fw-bold text-warning" th:text="${kq.boQuaTrung + kq.soLoi}"></div>
+                        <div class="text-muted small">Bỏ qua</div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${kq.boQuaTrung > 0}" class="alert alert-light border small mb-3">
+                <span th:text="${kq.boQuaTrung}"></span> dòng đã có sẵn trong chương trình nên được bỏ qua.
+                Nhập lại cùng một file không tạo dữ liệu trùng.
+            </div>
+
+            <div th:if="${kq.soLoi > 0}">
+                <div class="fw-semibold mb-2">Các dòng lỗi:</div>
+                <div class="border rounded p-2 small" style="max-height: 260px; overflow-y: auto;">
+                    <div th:each="d : ${kq.loi}" class="text-danger" th:text="${d}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header fw-bold">1. Tải file mẫu</div>
+                <div class="card-body">
+                    <a th:href="@{/quanly/chuongtrinh/import/mau}" class="btn btn-outline-success mb-3">
+                        <i class="fas fa-file-excel"></i> Tải file Excel mẫu
+                    </a>
+                    <div class="small">
+                        <div class="fw-semibold mb-1">Thứ tự cột:</div>
+                        <ol class="mb-2 ps-3">
+                            <li>Tên ngành <span class="text-danger">*</span></li>
+                            <li>Mã học phần <span class="text-danger">*</span></li>
+                            <li>Tên học phần <span class="text-danger">*</span></li>
+                            <li>Số tín chỉ <span class="text-danger">*</span></li>
+                            <li>Khoa phụ trách</li>
+                            <li>Học kỳ dự kiến (1–8)</li>
+                            <li>Khối kiến thức</li>
+                            <li>Loại học phần</li>
+                        </ol>
+                        <div class="text-muted">
+                            Khối kiến thức nhận: Đại cương, Cơ sở ngành, Chuyên ngành, Tốt nghiệp.
+                            Loại nhận: Bắt buộc hoặc Tự chọn.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card shadow-sm h-100">
+                <div class="card-header fw-bold">2. Tải file lên</div>
+                <form th:action="@{/quanly/chuongtrinh/import}" method="post" enctype="multipart/form-data">
+                    <div class="card-body">
+                        <label class="form-label fw-semibold">Chọn file .xlsx</label>
+                        <input type="file" name="file" accept=".xlsx" class="form-control" required>
+
+                        <div class="alert alert-light border mt-3 small mb-0">
+                            <div class="fw-semibold mb-1">Hệ thống sẽ:</div>
+                            <ul class="mb-0 ps-3">
+                                <li>Tạo học phần mới nếu mã chưa có, mã đã có thì dùng lại,
+                                    nhờ vậy môn chung như Anh văn chỉ tồn tại một bản</li>
+                                <li>Gắn học phần vào chương trình của ngành, kèm học kỳ dự kiến</li>
+                                <li>Bỏ qua dòng đã có sẵn, dòng sai ngành hoặc thiếu dữ liệu</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-footer text-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Nhập chương trình
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

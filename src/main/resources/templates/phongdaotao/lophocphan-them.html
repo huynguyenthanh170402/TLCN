@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongdaotao/layout}">
+<head>
+    <title>Mở lớp học phần</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Mở lớp học phần mới</h5>
+
+<div layout:fragment="content">
+
+    <a th:href="@{/quanly/lophocphan(hocKy=${maHocKy})}" class="btn btn-sm btn-outline-secondary mb-3">
+        <i class="fas fa-arrow-left"></i> Quay lại
+    </a>
+
+    <form th:action="@{/quanly/lophocphan/them}" method="post" class="card shadow-sm">
+        <div class="card-body">
+
+            <h6 class="text-primary mb-3">Thông tin lớp</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Học kỳ</label>
+                    <select name="maHocKy" class="form-select" required>
+                        <option th:each="hk : ${dsHocKy}"
+                                th:value="${hk.maHocKy}"
+                                th:text="${hk.tenHocKy}"
+                                th:selected="${hk.maHocKy == maHocKy}"></option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Học phần</label>
+
+                    <!-- Hai ô lọc, không gửi lên server, chỉ lọc danh sách bên dưới -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <select id="locNganh" class="form-select form-select-sm">
+                                <option value="">Mọi ngành</option>
+                                <option th:each="n : ${dsNganh}"
+                                        th:value="${n.maNganh}" th:text="${n.tenNganh}"></option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <input type="text" id="locTen" class="form-control form-control-sm"
+                                   placeholder="Gõ tên hoặc mã học phần">
+                        </div>
+                    </div>
+
+                    <select name="maHocPhan" id="oHocPhan" class="form-select" size="8" required>
+                        <option value="">— Chọn học phần —</option>
+                        <option th:each="hp : ${dsHocPhan}"
+                                th:value="${hp.maHocPhanId}"
+                                th:attr="data-nganh=${nganhCuaHocPhan[hp.maHocPhanId]}"
+                                th:text="${hp.maHocPhan} + ' – ' + ${hp.tenHocPhan} + ' (' + ${hp.soTinChi} + ' TC)'"
+                                th:selected="${hp.maHocPhanId == maHocPhan}"></option>
+                    </select>
+                    <div class="form-text" id="soKetQua"></div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Loại lớp</label>
+                    <select name="loaiLop" id="oLoaiLop" class="form-select">
+                        <option value="1" th:selected="${loaiLop == null or loaiLop == 1}">Chính khóa</option>
+                        <option value="2" th:selected="${loaiLop == 2}">Học lại / cải thiện</option>
+                        <option value="3" th:selected="${loaiLop == 3}">Học hè</option>
+                        <option value="4" th:selected="${loaiLop == 4}">Lớp tối</option>
+                    </select>
+                </div>
+                <div class="col-md-2" id="oKhoa">
+                    <label class="form-label fw-semibold">Khóa áp dụng</label>
+                    <input type="text" name="khoaApDung" class="form-control"
+                           placeholder="2024" maxlength="20" th:value="${khoaApDung}">
+                    <div class="form-text">Chỉ khóa này đăng ký được.</div>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">Nhóm</label>
+                    <input type="number" name="nhom" class="form-control" min="1" max="99" required
+                           th:value="${nhom != null} ? ${nhom} : 1">
+                    <div class="form-text">Mã lớp tự sinh.</div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Sĩ số tối đa</label>
+                    <input type="number" name="siSoToiDa" class="form-control" min="1" required
+                           th:value="${siSoToiDa != null} ? ${siSoToiDa} : 50">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Sĩ số tối thiểu</label>
+                    <input type="number" name="siSoToiThieu" class="form-control" min="0" required
+                           th:value="${siSoToiThieu != null} ? ${siSoToiThieu} : 15">
+                </div>
+            </div>
+
+            <h6 class="text-primary mb-3">Lịch học</h6>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Thứ</label>
+                    <select name="thu" class="form-select" required>
+                        <option th:each="t : ${#numbers.sequence(2, 8)}"
+                                th:value="${t}"
+                                th:text="${t == 8} ? 'Chủ nhật' : ('Thứ ' + ${t})"
+                                th:selected="${t == thu}"></option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Tiết bắt đầu</label>
+                    <select name="tietBatDau" class="form-select" required>
+                        <option th:each="t : ${#numbers.sequence(1, 12)}"
+                                th:value="${t}"
+                                th:text="'Tiết ' + ${t} + ' (' + ${gioBatDau[t]} + ')'"
+                                th:selected="${t == tietBatDau}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">Số tiết</label>
+                    <input type="number" name="soTiet" class="form-control" min="1" max="6" required
+                           th:value="${soTiet != null} ? ${soTiet} : 3">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Phòng</label>
+                    <select name="maPhong" class="form-select" required>
+                        <option th:each="p : ${dsPhong}"
+                                th:value="${p.maPhongHoc}"
+                                th:text="${p.maPhong} + ' – ' + ${p.sucChua} + ' chỗ'"
+                                th:selected="${p.maPhongHoc == maPhong}"></option>
+                    </select>
+                </div>
+            </div>
+
+            <p class="text-muted small mt-3 mb-0">
+                Hệ thống kiểm tra: phòng đủ chỗ cho sĩ số tối đa, và phòng chưa có lớp khác cùng thứ, cùng tiết
+                trong học kỳ này. Lớp mới tạo ở trạng thái <strong>Chưa mở</strong>.
+                Lớp <strong>chính khóa</strong> chỉ dành cho khóa đã ghi; lớp <strong>học lại</strong>,
+                <strong>học hè</strong>, <strong>lớp tối</strong> mở cho mọi khóa, và lớp học lại còn cho phép
+                sinh viên đã đạt đăng ký để cải thiện điểm.
+            </p>
+        </div>
+
+        <div class="card-footer d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-check"></i> Tạo lớp
+            </button>
+        </div>
+    </form>
+
+    <script>
+        // Lọc danh sách học phần ngay trên trình duyệt, không tải lại trang
+        const oHocPhan = document.getElementById('oHocPhan');
+        const locNganh = document.getElementById('locNganh');
+        const locTen   = document.getElementById('locTen');
+        const soKetQua = document.getElementById('soKetQua');
+
+        // Giữ bản gốc để lọc đi lọc lại không mất dữ liệu
+        const tatCa = Array.from(oHocPhan.options)
+                           .filter(o => o.value !== '')
+                           .map(o => ({
+                               value: o.value,
+                               text: o.text,
+                               nganh: o.dataset.nganh || '',
+                               chuThuong: o.text.toLowerCase()
+                           }));
+
+        function loc() {
+            const nganh = locNganh.value ? '|' + locNganh.value + '|' : '';
+            const tu = locTen.value.trim().toLowerCase();
+            const daChon = oHocPhan.value;
+
+            const hop = tatCa.filter(o =>
+                (nganh === '' || o.nganh.includes(nganh)) &&
+                (tu === '' || o.chuThuong.includes(tu))
+            );
+
+            oHocPhan.innerHTML = '';
+            const dong = document.createElement('option');
+            dong.value = '';
+            dong.text = hop.length ? '— Chọn học phần —' : '— Không có học phần nào khớp —';
+            oHocPhan.appendChild(dong);
+
+            hop.forEach(o => {
+                const op = document.createElement('option');
+                op.value = o.value;
+                op.text = o.text;
+                if (o.value === daChon) op.selected = true;
+                oHocPhan.appendChild(op);
+            });
+
+            soKetQua.textContent = hop.length + ' / ' + tatCa.length + ' học phần';
+        }
+
+        // Ô "Khóa áp dụng" chỉ cần cho lớp chính khóa
+        const oLoaiLop = document.getElementById('oLoaiLop');
+        const oKhoa = document.getElementById('oKhoa');
+        function capNhatOKhoa() {
+            oKhoa.style.display = oLoaiLop.value === '1' ? '' : 'none';
+        }
+        oLoaiLop.addEventListener('change', capNhatOKhoa);
+        capNhatOKhoa();
+
+        locNganh.addEventListener('change', loc);
+        locTen.addEventListener('input', loc);
+        loc();
+    </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongdaotao/layout}">
+<head>
+    <title>Soạn thông báo</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Soạn thông báo</h5>
+
+<div layout:fragment="content">
+
+    <a th:href="@{/quanly/thongbao}" class="btn btn-sm btn-outline-secondary mb-3">
+        <i class="fas fa-arrow-left"></i> Quay lại
+    </a>
+
+    <form th:action="@{/quanly/thongbao/soan}" method="post" class="card shadow-sm">
+        <div class="card-body">
+
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label fw-semibold">Tiêu đề <span class="text-danger">*</span></label>
+                    <input type="text" name="tieuDe" class="form-control" maxlength="300" required
+                           th:value="${tieuDe}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Loại thông báo</label>
+                    <select name="loai" class="form-select">
+                        <option value="1" th:selected="${loai == 1}">Chung</option>
+                        <option value="2" th:selected="${loai == 2}">Học vụ</option>
+                        <option value="3" th:selected="${loai == 3}">Học phí</option>
+                        <option value="4" th:selected="${loai == 4}">Sự kiện</option>
+                        <option value="5" th:selected="${loai == 5}">Khẩn</option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Nội dung <span class="text-danger">*</span></label>
+                    <textarea name="noiDung" class="form-control" rows="8" required
+                              th:text="${noiDung}"></textarea>
+                </div>
+
+                <div class="col-md-8">
+                    <label class="form-label fw-semibold">Đơn vị phát hành</label>
+                    <select name="maDonVi" class="form-select">
+                        <option value="">— Ban Giám hiệu / không ghi đơn vị —</option>
+                        <option th:each="dv : ${dsPhongBan}"
+                                th:value="${dv.maDonVi}"
+                                th:text="${dv.tenDonVi}"
+                                th:selected="${maDonVi == dv.maDonVi}"></option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Ngày hết hạn</label>
+                    <input type="date" name="ngayHetHan" class="form-control">
+                    <div class="form-text">Để trống nếu không hết hạn.</div>
+                </div>
+
+                <!-- Người nhận -->
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Gửi tới</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="cheDo" id="cheDo1" value="1"
+                               th:checked="${cheDo == null or cheDo == 1}">
+                        <label class="form-check-label" for="cheDo1">Toàn trường</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="cheDo" id="cheDo2" value="2"
+                               th:checked="${cheDo == 2}">
+                        <label class="form-check-label" for="cheDo2">Chỉ một số nhóm</label>
+                    </div>
+
+                    <div id="khungQuyen" class="border rounded p-3 mt-2 bg-light">
+                        <div class="small text-muted mb-2">Chọn nhóm người nhận:</div>
+                        <div class="form-check form-check-inline" th:each="q : ${dsQuyen}">
+                            <input class="form-check-input" type="checkbox" name="dsQuyen"
+                                   th:id="'q' + ${q.maQuyen}" th:value="${q.maQuyen}"
+                                   th:checked="${dsQuyenChon != null and dsQuyenChon.contains(q.maQuyen)}">
+                            <label class="form-check-label" th:for="'q' + ${q.maQuyen}"
+                                   th:text="${q.tenQuyen}"></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer d-flex justify-content-end gap-2">
+            <button type="submit" name="hanhDong" value="nhap" class="btn btn-outline-secondary">
+                <i class="fas fa-floppy-disk"></i> Lưu nháp
+            </button>
+            <button type="submit" name="hanhDong" value="dang" class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i> Đăng ngay
+            </button>
+        </div>
+    </form>
+
+    <script>
+        // Chỉ hiện ô chọn nhóm khi chọn "Chỉ một số nhóm"
+        const khung = document.getElementById('khungQuyen');
+        function capNhatKhung() {
+            khung.style.display = document.getElementById('cheDo2').checked ? 'block' : 'none';
+        }
+        document.querySelectorAll('input[name="cheDo"]').forEach(r => r.addEventListener('change', capNhatKhung));
+        capNhatKhung();
+    </script>
+</div>
+</body>
+</html>

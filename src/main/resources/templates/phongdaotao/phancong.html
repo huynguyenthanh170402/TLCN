@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongdaotao/layout}">
+<head>
+    <title>Phân công giảng dạy</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Phân công giảng dạy</h5>
+
+<div layout:fragment="content">
+
+    <!-- Lọc -->
+    <form th:action="@{/quanly/phancong}" method="get" class="card card-body shadow-sm mb-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label fw-semibold">Học kỳ</label>
+                <select name="hocKy" class="form-select">
+                    <option th:each="hk : ${dsHocKy}" th:value="${hk.maHocKy}"
+                            th:text="${hk.tenHocKy}" th:selected="${hk.maHocKy == hocKyChon}"></option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="chuaPhanCong"
+                           id="chuaPc" value="true" th:checked="${chuaPhanCong}">
+                    <label class="form-check-label" for="chuaPc">Chỉ lớp chưa có giảng viên</label>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Xem danh sách</button>
+            </div>
+        </div>
+    </form>
+
+    <div th:if="${ds != null}" class="card shadow-sm">
+        <div class="card-header small text-muted" th:text="${ds.size()} + ' lớp'"></div>
+
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Mã lớp</th>
+                    <th>Học phần</th>
+                    <th>Lịch học</th>
+                    <th style="width:320px">Giảng viên phụ trách</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${ds.empty}">
+                    <td colspan="4" class="text-center text-muted py-4">Không có lớp nào.</td>
+                </tr>
+                <tr th:each="d : ${ds}" th:with="lop=${d.lop}">
+                    <td>
+                        <div class="small fw-semibold" th:text="${lop.maLop}"></div>
+                        <span class="badge" th:classappend="${lop.mauLoaiLop}" th:text="${lop.tenLoaiLop}"></span>
+                    </td>
+                    <td>
+                        <div th:text="${lop.hocPhan.tenHocPhan}"></div>
+                        <small class="text-muted" th:text="${lop.hocPhan.soTinChi} + ' TC'"></small>
+                    </td>
+                    <td class="small">
+                        <div th:if="${d.lich.empty}" class="text-muted">Chưa xếp lịch</div>
+                        <div th:each="lh : ${d.lich}"
+                             th:text="${lh.tenThu} + ', tiết ' + ${lh.tietBatDau} + '–' + ${lh.tietKetThuc}
+                                      + ' · ' + (${lh.phongHoc != null} ? ${lh.phongHoc.maPhong} : 'chưa có phòng')">
+                        </div>
+                    </td>
+                    <td>
+                        <div class="mb-2">
+                            <span th:if="${d.giangVien != null}" class="fw-semibold"
+                                  th:text="${d.giangVien.tenHienThi} + ' (' + ${d.giangVien.maSoGiangVien} + ')'"></span>
+                            <span th:if="${d.giangVien == null}" class="badge bg-warning text-dark">
+                                Chưa phân công
+                            </span>
+                        </div>
+
+                        <form th:action="@{/quanly/phancong/{id}(id=${lop.maLopHocPhan})}" method="post"
+                              class="d-flex gap-2">
+                            <input type="hidden" name="hocKy" th:value="${hocKyChon}">
+                            <input type="hidden" name="chuaPhanCong" th:value="${chuaPhanCong}">
+                            <select name="maGiangVien" class="form-select form-select-sm" required>
+                                <option value="">— Chọn giảng viên —</option>
+                                <option th:each="gv : ${dsGv[lop.maLopHocPhan]}"
+                                        th:value="${gv.maGiangVien}"
+                                        th:text="${gv.maSoGiangVien} + ' – ' + ${gv.tenHienThi}"></option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-primary text-nowrap">
+                                <i class="fas fa-user-check"></i> Giao lớp
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <p class="text-muted small mt-3">
+        Ô chọn ưu tiên giảng viên thuộc khoa phụ trách học phần. Hệ thống chặn nếu giảng viên
+        đã có lớp khác trùng giờ trong học kỳ này. Phân công cũ được giữ lại ở trạng thái đã hủy
+        để tra lịch sử.
+    </p>
+</div>
+</body>
+</html>

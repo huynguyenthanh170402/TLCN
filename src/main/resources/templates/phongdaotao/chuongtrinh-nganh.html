@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongdaotao/layout}">
+<head>
+    <title>Khung chương trình</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Khung chương trình</h5>
+
+<div layout:fragment="content">
+
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/quanly/chuongtrinh}">Chương trình đào tạo</a></li>
+            <li class="breadcrumb-item active" th:text="${nganh.tenNganh}"></li>
+        </ol>
+    </nav>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-start border-primary border-4"><div class="card-body">
+                <div class="text-muted small">Tổng số tín chỉ</div>
+                <div class="fs-3 fw-bold text-primary" th:text="${tongTinChi}"></div>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-start border-success border-4"><div class="card-body">
+                <div class="text-muted small">Bắt buộc</div>
+                <div class="fs-3 fw-bold text-success" th:text="${tinChiBatBuoc}"></div>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-start border-info border-4"><div class="card-body">
+                <div class="text-muted small">Tự chọn</div>
+                <div class="fs-3 fw-bold text-info" th:text="${tinChiTuChon}"></div>
+            </div></div>
+        </div>
+    </div>
+
+    <div th:if="${ds.empty}" class="alert alert-secondary">
+        Ngành này chưa có chương trình đào tạo. Hãy nhập từ file Excel.
+    </div>
+
+    <!-- Mỗi học kỳ một bảng.
+         th:each và th:with đặt ở thẻ ngoài: Thymeleaf chạy th:if trước th:with,
+         nếu để chung một thẻ thì biến mon chưa tồn tại lúc xét điều kiện. -->
+    <th:block th:each="hk : ${#numbers.sequence(1, 8)}"
+              th:with="mon=${ds.?[hocKyDuKien == __${hk}__]}">
+    <div class="card shadow-sm mb-3" th:if="${mon != null and !mon.isEmpty()}">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-bold" th:text="'Học kỳ ' + ${hk}"></span>
+            <span class="small text-muted" th:text="${mon.size()} + ' học phần'"></span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th style="width:140px">Mã học phần</th>
+                    <th>Tên học phần</th>
+                    <th class="text-center" style="width:70px">TC</th>
+                    <th class="text-center" style="width:140px">Khối kiến thức</th>
+                    <th class="text-center" style="width:110px">Loại</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="ct : ${mon}">
+                    <td class="small fw-semibold" th:text="${ct.hocPhan.maHocPhan}"></td>
+                    <td th:text="${ct.hocPhan.tenHocPhan}"></td>
+                    <td class="text-center" th:text="${ct.hocPhan.soTinChi}"></td>
+                    <td class="text-center">
+                        <span class="badge bg-light text-dark border" th:text="${ct.tenKhoiKienThuc}"></span>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge"
+                              th:classappend="${ct.loaiHocPhan == 1} ? 'bg-secondary' : 'bg-info text-dark'"
+                              th:text="${ct.tenLoaiHocPhan}"></span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </th:block>
+</div>
+</body>
+</html>
