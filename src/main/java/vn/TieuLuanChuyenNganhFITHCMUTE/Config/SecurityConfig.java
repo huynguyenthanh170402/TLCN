@@ -23,6 +23,10 @@ public class SecurityConfig {
 				                 "/uploads/**", "/favicon.ico").permitAll()
 				.requestMatchers("/login", "/logout", "/403").permitAll()
 
+				// Quên mật khẩu: người chưa đăng nhập mới cần dùng,
+				// nên bắt buộc phải mở, không thì bấm vào bị đá về /login
+				.requestMatchers("/quenmatkhau", "/datlaimatkhau").permitAll()
+
 				// Khu vực riêng theo quyền
 				.requestMatchers("/sinhvien/**").hasRole("SINH_VIEN")
 				.requestMatchers("/giangvien/**").hasRole("GIANG_VIEN")
@@ -40,11 +44,18 @@ public class SecurityConfig {
 				.failureUrl("/login?error")
 				.permitAll()
 			)
+			// Ô "Ghi nhớ đăng nhập" trên trang login gửi lên tham số remember-me.
+			// Không khai báo khối này thì ô tích đó không có tác dụng gì.
+			.rememberMe(remember -> remember
+				.key("tlcn-hcmute-remember-me")
+				.rememberMeParameter("remember-me")
+				.tokenValiditySeconds(7 * 24 * 60 * 60)   // 7 ngày
+			)
 			.logout(logout -> logout
 				.logoutUrl("/logout")
 				.logoutSuccessUrl("/login?logout")
 				.invalidateHttpSession(true)
-				.deleteCookies("JSESSIONID")
+				.deleteCookies("JSESSIONID", "remember-me")
 				.permitAll()
 			)
 			.exceptionHandling(ex -> ex.accessDeniedPage("/403"));

@@ -1,4 +1,4 @@
-package vn.TieuLuanChuyenNganhFITHCMUTE.Controller;
+package vn.TieuLuanChuyenNganhFITHCMUTE.Controller.sinhvien;
 
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -74,27 +74,31 @@ public class SinhVienController {
 	// ===================== KẾT QUẢ HỌC TẬP =====================
 	@GetMapping("/ketqua")
 	public String ketQua(@ModelAttribute("sinhVien") SinhVien sv,
-	                     @RequestParam(defaultValue = "0") int page,
 	                     @RequestParam(required = false) Integer hocKy,
 	                     Model model) {
 		model.addAttribute("menu", "ketqua");
 		if (sv == null) return "sinhvien/ketqua";
 
 		List<KetQuaHocPhan> tatCa = ketQuaHocTapService.tatCa(sv.getMaSinhVien());
+
+		// Thống kê tích lũy: tính trên điểm được công nhận của mỗi học phần
 		model.addAttribute("tongKet", ketQuaHocTapService.tinhTongKet(tatCa));
 		model.addAttribute("dsHocKy", ketQuaHocTapService.dsHocKy(tatCa));
-
-		Page<KetQuaHocPhan> trang = ketQuaHocTapService.phanTrang(sv.getMaSinhVien(), hocKy, page);
-		model.addAttribute("trang", trang);
 		model.addAttribute("hocKyChon", hocKy);
 
-		if (hocKy != null) {
-			List<KetQuaHocPhan> cuaHocKy = tatCa.stream()
-					.filter(kq -> hocKy.equals(
-							kq.getDangKyHocPhan().getLopHocPhan().getHocKy().getMaHocKy()))
+		// Bảng điểm nhóm theo học kỳ, lọc nếu người dùng chọn một học kỳ
+		var nhom = ketQuaHocTapService.theoHocKy(tatCa);
+		if (hocKy != null)
+			nhom = nhom.stream()
+					.filter(n -> hocKy.equals(n.getHocKy().getMaHocKy()))
 					.toList();
-			model.addAttribute("tongKetHocKy", ketQuaHocTapService.tinhTongKet(cuaHocKy));
-		}
+		model.addAttribute("nhomHocKy", nhom);
+
+		// Bảng tổng hợp theo học phần, thấy rõ môn nào học lại mấy lần
+		model.addAttribute("tongHop", ketQuaHocTapService.tongHopTheoHocPhan(tatCa));
+		model.addAttribute("soLanToiDa", ketQuaHocTapService.tongHopTheoHocPhan(tatCa).stream()
+				.mapToInt(t -> t.getSoLan()).max().orElse(1));
+
 		return "sinhvien/ketqua";
 	}
 

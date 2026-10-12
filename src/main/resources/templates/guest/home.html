@@ -3,48 +3,161 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title th:text="#{home.title}">Home</title>
+    <title th:text="#{home.title}">Trang chủ</title>
+
+    <!-- ============================================================
+         Khu ảnh đầu trang (hero) - hiển thị TRỌN VẸN ảnh campus.jpg
+         Lớp 1 (::before): ảnh phóng to + làm mờ, lấp kín hai bên
+         Lớp 2 (::after) : ảnh thật, dùng contain nên không bị cắt
+         ============================================================ -->
+    <style>
+        /* ---------- Thanh menu: nền sáng, chữ đen, rê chuột thành trắng ---------- */
+        .navbar {
+            background-color: #f4f6f9 !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .navbar-brand {
+            color: #16213e !important;
+            font-weight: 700;
+        }
+
+        .navbar-nav .nav-link {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #000 !important;
+            padding: 0.55rem 0.95rem !important;
+            border-radius: 8px;
+            transition: color 0.2s ease, background-color 0.2s ease;
+        }
+
+        .navbar-nav .nav-link:hover,
+        .navbar-nav .nav-link:focus {
+            color: #fff !important;
+            background-color: #2c3e50;
+        }
+
+        .navbar-nav .nav-link.active {
+            color: #1565c0 !important;
+            font-weight: 700;
+        }
+
+        /* ---------- Khu ảnh đầu trang ---------- */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #fff;
+            overflow: hidden;
+            background: #0d1b33;
+            padding: 3rem 1rem;
+        }
+
+        /* Lớp nền mờ lấp đầy khoảng trống hai bên */
+        .hero::before {
+            content: "";
+            position: absolute;
+            inset: -40px;
+            background: url('/images/campus.jpg') center/cover no-repeat;
+            filter: blur(28px) brightness(0.5);
+        }
+
+        /* Ảnh thật, hiện nguyên vẹn, không cắt mất phần nào */
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: url('/images/campus.jpg') center/contain no-repeat;
+        }
+
+        /* Khối chữ nằm trên cùng, có nền mờ để đọc rõ trên nền ảnh sáng */
+        .hero .container {
+            position: relative;
+            z-index: 2;
+            max-width: 760px;
+            padding: 2.25rem 2rem;
+            border-radius: 16px;
+            background: rgba(12, 22, 42, 0.62);
+            backdrop-filter: blur(6px);
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+        }
+
+        .hero h1 {
+            color: #fff;
+            font-weight: 800;
+            margin-bottom: 0.75rem;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero p {
+            color: rgba(255, 255, 255, 0.93);
+            font-size: 1.15rem;
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 768px) {
+            .hero { min-height: 78vh; }
+            .hero .container { padding: 1.75rem 1.25rem; }
+        }
+
+        /* Thẻ chức năng: bỏ viền cứng, thêm hiệu ứng nhấc lên khi rê chuột */
+        .card-feature {
+            border: none;
+            border-radius: 14px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.07);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .card-feature:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 14px 32px rgba(0, 0, 0, 0.14);
+        }
+    </style>
 </head>
 <body>
 <main layout:fragment="content">
-    <!-- Hero Section -->
+
+    <!-- ============ Khối giới thiệu đầu trang ============ -->
     <section class="hero">
         <div class="container">
-            <h1 th:text="#{home.welcome}">Welcome to the School Management System</h1>
-            <p th:text="#{home.subtitle}">Comprehensive educational management platform</p>
+            <h1 th:text="#{home.welcome}">Chào mừng đến với Hệ thống Quản lý Trường học</h1>
+            <p th:text="#{home.subtitle}">Nền tảng quản lý tổng hợp cho giáo dục</p>
         </div>
     </section>
 
-    <!-- Features Section -->
+    <!-- ============ Tính năng & Dịch vụ ============ -->
     <section class="py-5">
         <div class="container">
-            <h2 class="section-heading" th:text="#{home.description}">Features & Services</h2>
-            
+            <h2 class="section-heading" th:text="#{home.features}">Tính năng &amp; Dịch vụ</h2>
+
             <div class="row mt-5">
                 <div class="col-md-4 mb-4">
-                    <div class="card">
+                    <div class="card card-feature h-100">
                         <div class="card-body text-center">
                             <i class="fas fa-graduation-cap fa-3x mb-3" style="color: #3498db;"></i>
-                            <h5 class="card-title">Student Management</h5>
-                            <p class="card-text">Comprehensive student records and academic progress tracking.</p>
+                            <h5 class="card-title" th:text="#{home.card1.title}">Quản lý sinh viên</h5>
+                            <p class="card-text" th:text="#{home.card1.desc}">Mô tả</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-4">
-                    <div class="card">
+                    <div class="card card-feature h-100">
                         <div class="card-body text-center">
                             <i class="fas fa-chalkboard-user fa-3x mb-3" style="color: #2ecc71;"></i>
-                            <h5 class="card-title">Faculty Directory</h5>
-                            <p class="card-text">Find and connect with teachers and faculty members easily.</p>
+                            <h5 class="card-title" th:text="#{home.card2.title}">Danh bạ giảng viên</h5>
+                            <p class="card-text" th:text="#{home.card2.desc}">Mô tả</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-4">
-                    <div class="card">
+                    <div class="card card-feature h-100">
                         <div class="card-body text-center">
                             <i class="fas fa-book fa-3x mb-3" style="color: #e74c3c;"></i>
-                            <h5 class="card-title">Course Information</h5>
-                            <p class="card-text">Explore available courses and academic programs offered.</p>
+                            <h5 class="card-title" th:text="#{home.card3.title}">Thông tin học phần</h5>
+                            <p class="card-text" th:text="#{home.card3.desc}">Mô tả</p>
                         </div>
                     </div>
                 </div>
@@ -52,29 +165,29 @@
 
             <div class="row mt-4">
                 <div class="col-md-4 mb-4">
-                    <div class="card">
+                    <div class="card card-feature h-100">
                         <div class="card-body text-center">
                             <i class="fas fa-newspaper fa-3x mb-3" style="color: #f39c12;"></i>
-                            <h5 class="card-title">News & Events</h5>
-                            <p class="card-text">Stay updated with latest campus news and upcoming events.</p>
+                            <h5 class="card-title" th:text="#{home.card4.title}">Tin tức &amp; Sự kiện</h5>
+                            <p class="card-text" th:text="#{home.card4.desc}">Mô tả</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-4">
-                    <div class="card">
+                    <div class="card card-feature h-100">
                         <div class="card-body text-center">
                             <i class="fas fa-microscope fa-3x mb-3" style="color: #9b59b6;"></i>
-                            <h5 class="card-title">Research Center</h5>
-                            <p class="card-text">Discover ongoing research projects and academic publications.</p>
+                            <h5 class="card-title" th:text="#{home.card5.title}">Trung tâm nghiên cứu</h5>
+                            <p class="card-text" th:text="#{home.card5.desc}">Mô tả</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-4">
-                    <div class="card">
+                    <div class="card card-feature h-100">
                         <div class="card-body text-center">
                             <i class="fas fa-building fa-3x mb-3" style="color: #1abc9c;"></i>
-                            <h5 class="card-title">Facilities & Centers</h5>
-                            <p class="card-text">Learn about our modern facilities and special research centers.</p>
+                            <h5 class="card-title" th:text="#{home.card6.title}">Cơ sở vật chất</h5>
+                            <p class="card-text" th:text="#{home.card6.desc}">Mô tả</p>
                         </div>
                     </div>
                 </div>
@@ -82,69 +195,75 @@
         </div>
     </section>
 
-    <!-- Quick Access Section -->
+    <!-- ============ Truy cập nhanh ============ -->
     <section class="bg-light py-5">
         <div class="container">
-            <h2 class="section-heading mb-5">Quick Access</h2>
+            <h2 class="section-heading mb-5" th:text="#{home.quickaccess}">Truy cập nhanh</h2>
             <div class="row text-center">
                 <div class="col-md-3 mb-3">
-                    <a th:href="@{/about}" class="btn btn-primary btn-lg btn-block w-100">
-                        <i class="fas fa-info-circle me-2"></i> <span th:text="#{nav.about}">About</span>
+                    <a th:href="@{/about}" class="btn btn-primary btn-lg w-100">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span th:text="#{nav.about}">Giới thiệu</span>
                     </a>
                 </div>
                 <div class="col-md-3 mb-3">
-                    <a th:href="@{/faculty}" class="btn btn-primary btn-lg btn-block w-100">
-                        <i class="fas fa-university me-2"></i> <span th:text="#{nav.faculty}">Faculty</span>
+                    <a th:href="@{/faculty}" class="btn btn-primary btn-lg w-100">
+                        <i class="fas fa-university me-2"></i>
+                        <span th:text="#{nav.faculty}">Khoa</span>
                     </a>
                 </div>
                 <div class="col-md-3 mb-3">
-                    <a th:href="@{/news}" class="btn btn-primary btn-lg btn-block w-100">
-                        <i class="fas fa-newspaper me-2"></i> <span th:text="#{nav.news}">News</span>
+                    <a th:href="@{/news}" class="btn btn-primary btn-lg w-100">
+                        <i class="fas fa-newspaper me-2"></i>
+                        <span th:text="#{nav.news}">Tin tức</span>
                     </a>
                 </div>
                 <div class="col-md-3 mb-3">
-                    <a th:href="@{/research}" class="btn btn-primary btn-lg btn-block w-100">
-                        <i class="fas fa-flask me-2"></i> <span th:text="#{nav.research}">Research</span>
+                    <a th:href="@{/research}" class="btn btn-primary btn-lg w-100">
+                        <i class="fas fa-flask me-2"></i>
+                        <span th:text="#{nav.research}">Nghiên cứu</span>
                     </a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Statistics Section -->
+    <!-- ============ Số liệu thống kê ============ -->
     <section class="py-5" style="background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); color: white;">
         <div class="container">
             <div class="row text-center">
                 <div class="col-md-3 mb-4">
-                    <h3 class="display-4 fw-bold">5000+</h3>
-                    <p class="fs-5">Students</p>
+                    <h3 class="display-4 fw-bold">14.000+</h3>
+                    <p class="fs-5" th:text="#{home.stat.students}">Sinh viên</p>
                 </div>
                 <div class="col-md-3 mb-4">
-                    <h3 class="display-4 fw-bold">300+</h3>
-                    <p class="fs-5">Faculty Members</p>
+                    <h3 class="display-4 fw-bold">100+</h3>
+                    <p class="fs-5" th:text="#{home.stat.lecturers}">Giảng viên</p>
                 </div>
                 <div class="col-md-3 mb-4">
-                    <h3 class="display-4 fw-bold">50+</h3>
-                    <p class="fs-5">Academic Programs</p>
+                    <h3 class="display-4 fw-bold">48</h3>
+                    <p class="fs-5" th:text="#{home.stat.programs}">Ngành đào tạo</p>
                 </div>
                 <div class="col-md-3 mb-4">
                     <h3 class="display-4 fw-bold">30</h3>
-                    <p class="fs-5">Research Centers</p>
+                    <p class="fs-5" th:text="#{home.stat.centers}">Trung tâm nghiên cứu</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Call to Action Section -->
+    <!-- ============ Kêu gọi đăng nhập ============ -->
     <section class="bg-light py-5">
         <div class="container text-center">
-            <h2 class="mb-4">Ready to Get Started?</h2>
-            <p class="lead mb-4">Login to access your personalized student portal and view your academic information.</p>
+            <h2 class="mb-4" th:text="#{home.cta.title}">Sẵn sàng bắt đầu?</h2>
+            <p class="lead mb-4" th:text="#{home.cta.desc}">Đăng nhập để vào trang cá nhân.</p>
             <a th:href="@{/login}" class="btn btn-primary btn-lg">
-                <i class="fas fa-sign-in-alt me-2"></i> Login Now
+                <i class="fas fa-sign-in-alt me-2"></i>
+                <span th:text="#{home.cta.button}">Đăng nhập ngay</span>
             </a>
         </div>
     </section>
+
 </main>
 </body>
 </html>

@@ -18,7 +18,48 @@ import vn.TieuLuanChuyenNganhFITHCMUTE.Entity.LopHocPhan;
 @Repository
 public interface KetQuaHocPhanRepository extends JpaRepository<KetQuaHocPhan, Integer> {
 
-	/** Tất cả học kỳ, có phân trang (trang kết quả của sinh viên) */
+	/**
+	 * Kết quả đã công bố của một sinh viên, có phân trang.
+	 * maHocKy = null thì lấy tất cả học kỳ.
+	 * countQuery tách riêng vì JOIN FETCH không dùng được trong câu đếm.
+	 */
+	@Query(value = """
+	        SELECT kq FROM KetQuaHocPhan kq
+	        JOIN FETCH kq.dangKyHocPhan dk
+	        JOIN FETCH dk.lopHocPhan lop
+	        JOIN FETCH lop.hocPhan hp
+	        JOIN FETCH lop.hocKy hk
+	        WHERE dk.sinhVien.maSinhVien = :maSv
+	          AND kq.trangThai = 3
+	          AND (:maHocKy IS NULL OR hk.maHocKy = :maHocKy)
+	        ORDER BY hk.ngayBatDau DESC, hp.maHocPhan
+	        """,
+	       countQuery = """
+	        SELECT COUNT(kq) FROM KetQuaHocPhan kq
+	        JOIN kq.dangKyHocPhan dk
+	        JOIN dk.lopHocPhan lop
+	        WHERE dk.sinhVien.maSinhVien = :maSv
+	          AND kq.trangThai = 3
+	          AND (:maHocKy IS NULL OR lop.hocKy.maHocKy = :maHocKy)
+	        """)
+	Page<KetQuaHocPhan> timKetQuaCongBo(@Param("maSv") Integer maSv,
+	                                    @Param("maHocKy") Integer maHocKy,
+	                                    Pageable pageable);
+
+	/** Toàn bộ kết quả đã công bố, dùng để tính GPA và gom theo học kỳ */
+	@Query("""
+	        SELECT kq FROM KetQuaHocPhan kq
+	        JOIN FETCH kq.dangKyHocPhan dk
+	        JOIN FETCH dk.lopHocPhan lop
+	        JOIN FETCH lop.hocPhan hp
+	        JOIN FETCH lop.hocKy hk
+	        WHERE dk.sinhVien.maSinhVien = :maSv
+	          AND kq.trangThai = 3
+	        ORDER BY hk.ngayBatDau DESC
+	        """)
+	List<KetQuaHocPhan> timTatCaKetQuaCongBo(@Param("maSv") Integer maSv);
+
+	/** Kết quả theo trạng thái, có phân trang (dùng ở các trang khác) */
 	@EntityGraph(attributePaths = {
 		"dangKyHocPhan.lopHocPhan.hocPhan",
 		"dangKyHocPhan.lopHocPhan.hocKy"
@@ -26,15 +67,7 @@ public interface KetQuaHocPhanRepository extends JpaRepository<KetQuaHocPhan, In
 	Page<KetQuaHocPhan> findByDangKyHocPhan_SinhVien_MaSinhVienAndTrangThai(
 			Integer maSinhVien, Integer trangThai, Pageable pageable);
 
-	/** Một học kỳ, có phân trang */
-	@EntityGraph(attributePaths = {
-		"dangKyHocPhan.lopHocPhan.hocPhan",
-		"dangKyHocPhan.lopHocPhan.hocKy"
-	})
-	Page<KetQuaHocPhan> findByDangKyHocPhan_SinhVien_MaSinhVienAndTrangThaiAndDangKyHocPhan_LopHocPhan_HocKy_MaHocKy(
-			Integer maSinhVien, Integer trangThai, Integer maHocKy, Pageable pageable);
-
-	/** Toàn bộ, không phân trang — dùng tính GPA */
+	/** Kết quả theo trạng thái, không phân trang */
 	@EntityGraph(attributePaths = {
 		"dangKyHocPhan.lopHocPhan.hocPhan",
 		"dangKyHocPhan.lopHocPhan.hocKy"

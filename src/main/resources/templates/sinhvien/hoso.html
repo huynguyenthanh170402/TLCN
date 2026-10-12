@@ -11,31 +11,74 @@
 
 <div layout:fragment="content">
 
+    <div th:if="${thongBao}" class="alert alert-success alert-dismissible fade show">
+        <i class="fas fa-circle-check me-2"></i><span th:text="${thongBao}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${loi}" class="alert alert-danger alert-dismissible fade show">
+        <i class="fas fa-circle-exclamation me-2"></i><span th:text="${loi}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="d-flex justify-content-end mb-3" th:if="${sinhVien != null}">
+        <a th:href="@{/sinhvien/hoso/sua}" class="btn btn-primary">
+            <i class="fas fa-pen"></i> Cập nhật hồ sơ
+        </a>
+    </div>
     <div th:if="${sinhVien == null}" class="alert alert-warning">
         Tài khoản này chưa được gắn với hồ sơ sinh viên nào.
     </div>
 
     <div th:if="${sinhVien != null}" class="row">
 
+        <!-- ===================== Thẻ ảnh đại diện ===================== -->
         <div class="col-lg-4 mb-4">
             <div class="card text-center shadow-sm">
                 <div class="card-body">
-                    <img th:if="${sinhVien.anhDaiDien != null}"
+
+                    <img th:if="${sinhVien.anhDaiDien != null and !sinhVien.anhDaiDien.isEmpty()}"
                          th:src="@{'/uploads/' + ${sinhVien.anhDaiDien}}"
                          class="rounded-circle mb-3"
-                         style="width:140px;height:140px;object-fit:cover" alt="">
-                    <i th:unless="${sinhVien.anhDaiDien != null}"
+                         style="width:140px;height:140px;object-fit:cover;border:3px solid #e9ecef"
+                         alt="Ảnh đại diện">
+                    <i th:unless="${sinhVien.anhDaiDien != null and !sinhVien.anhDaiDien.isEmpty()}"
                        class="fas fa-user-circle fa-7x mb-3 text-secondary"></i>
 
                     <h5 th:text="${sinhVien.hoTen}"></h5>
                     <p class="text-muted mb-2" th:text="${sinhVien.maSoSinhVien}"></p>
-                    <span class="badge"
+                    <span class="badge mb-3"
                           th:classappend="${sinhVien.trangThai == 1} ? 'bg-success' : 'bg-secondary'"
                           th:text="${sinhVien.tenTrangThai}"></span>
+
+                    <!-- Biểu mẫu tải ảnh. enctype là bắt buộc, thiếu thì file không gửi lên được -->
+                    <form th:action="@{/sinhvien/hoso/anh}" method="post"
+                          enctype="multipart/form-data" id="formAnh">
+                        <input type="file" name="file" id="chonAnh"
+                               accept="image/jpeg,image/png,image/webp"
+                               class="d-none"
+                               onchange="document.getElementById('formAnh').submit()">
+
+                        <button type="button" class="btn btn-sm btn-outline-primary w-100"
+                                onclick="document.getElementById('chonAnh').click()">
+                            <i class="fas fa-camera me-1"></i> Đổi ảnh đại diện
+                        </button>
+                    </form>
+
+                    <form th:if="${sinhVien.anhDaiDien != null and !sinhVien.anhDaiDien.isEmpty()}"
+                          th:action="@{/sinhvien/hoso/anh/xoa}" method="post" class="mt-2">
+                        <button type="submit" class="btn btn-sm btn-outline-danger w-100"
+                                onclick="return confirm('Xóa ảnh đại diện?')">
+                            <i class="fas fa-trash me-1"></i> Xóa ảnh
+                        </button>
+                    </form>
+
+                    
+
                 </div>
             </div>
         </div>
 
+        <!-- ===================== Thông tin ===================== -->
         <div class="col-lg-8">
 
             <div class="card shadow-sm mb-4">

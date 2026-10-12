@@ -3,48 +3,194 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title>Đăng nhập</title>
+    <title th:text="#{login.title}">Đăng nhập</title>
+
+    <style>
+        /* ===== Khung trang xác thực, dùng chung cho đăng nhập và quên mật khẩu ===== */
+        .auth-wrap {
+            min-height: calc(100vh - 70px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 1rem;
+            background:
+                linear-gradient(rgba(12, 22, 42, 0.72), rgba(12, 22, 42, 0.82)),
+                url('/images/campus.jpg') center/cover no-repeat fixed;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 440px;
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        .auth-head {
+            background: linear-gradient(135deg, #0b3d91 0%, #1565c0 100%);
+            color: #fff;
+            padding: 2rem 2rem 1.5rem;
+            text-align: center;
+        }
+
+        .auth-head .auth-logo {
+            width: 62px; height: 62px;
+            margin: 0 auto 0.9rem;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.16);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.7rem;
+        }
+
+        .auth-head h4 { margin: 0; font-weight: 700; letter-spacing: .3px; }
+        .auth-head p  { margin: .35rem 0 0; font-size: .88rem; opacity: .85; }
+
+        .auth-body { padding: 1.75rem 2rem 2rem; background: #fff; }
+
+        /* Ô nhập có icon bên trái */
+        .auth-body .input-group-text {
+            background: #f1f3f7;
+            border-right: 0;
+            color: #5a6b85;
+            width: 44px;
+            justify-content: center;
+        }
+        .auth-body .form-control {
+            border-left: 0;
+            padding-top: .65rem;
+            padding-bottom: .65rem;
+        }
+        .auth-body .form-control:focus {
+            box-shadow: none;
+            border-color: #1565c0;
+        }
+        .auth-body .input-group:focus-within .input-group-text {
+            border-color: #1565c0;
+            color: #1565c0;
+        }
+
+        .btn-auth {
+            padding: .7rem;
+            font-weight: 600;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #0b3d91 0%, #1565c0 100%);
+            border: none;
+            color: #fff;
+        }
+        .btn-auth:hover { filter: brightness(1.08); color: #fff; }
+
+        .auth-foot {
+            background: #f8f9fb;
+            padding: .9rem 2rem;
+            text-align: center;
+            font-size: .875rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        @media (max-width: 576px) {
+            .auth-head, .auth-body { padding-left: 1.25rem; padding-right: 1.25rem; }
+        }
+    </style>
 </head>
 <body>
-<div layout:fragment="content">
-    <section class="py-5" style="margin-top: 120px;">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-md-5">
-                    <div class="card">
-                        <div class="card-body p-4">
+<main layout:fragment="content">
 
-                            <h4 class="mb-4 text-center">Đăng nhập hệ thống</h4>
+    <div class="auth-wrap">
+        <div class="card auth-card">
 
-                            <div th:if="${param.error}" class="alert alert-danger">
-                                Sai tên đăng nhập hoặc mật khẩu.
-                            </div>
-                            <div th:if="${param.logout}" class="alert alert-success">
-                                Bạn đã đăng xuất thành công.
-                            </div>
+            <div class="auth-head">
+                <div class="auth-logo"><i class="fas fa-graduation-cap"></i></div>
+                <h4 th:text="#{login.heading}">Đăng nhập hệ thống</h4>
+                <p th:text="#{app.name}">Trường Đại học Sư phạm Kỹ thuật TP. Hồ Chí Minh</p>
+            </div>
 
-                            <form th:action="@{/login}" method="post">
-                                <div class="mb-3">
-                                    <label class="form-label" for="username">Tên đăng nhập</label>
-                                    <input type="text" class="form-control" id="username"
-                                           name="username" required autofocus>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label" for="password">Mật khẩu</label>
-                                    <input type="password" class="form-control" id="password"
-                                           name="password" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
-                                </button>
-                            </form>
+            <div class="auth-body">
 
+                <!-- Sai tài khoản hoặc mật khẩu -->
+                <div th:if="${param.error}" class="alert alert-danger py-2 small">
+                    <i class="fas fa-circle-exclamation me-1"></i>
+                    <span th:text="#{login.error}">Tên đăng nhập hoặc mật khẩu không đúng</span>
+                </div>
+
+                <!-- Vừa đăng xuất -->
+                <div th:if="${param.logout}" class="alert alert-success py-2 small">
+                    <i class="fas fa-circle-check me-1"></i>
+                    <span th:text="#{login.logout}">Bạn đã đăng xuất thành công</span>
+                </div>
+
+                <!-- Vừa đặt lại mật khẩu xong -->
+                <div th:if="${thongBao}" class="alert alert-success py-2 small">
+                    <i class="fas fa-circle-check me-1"></i>
+                    <span th:text="${thongBao}"></span>
+                </div>
+
+                <form th:action="@{/login}" method="post">
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold" th:text="#{login.username}">Tên đăng nhập</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="text" name="username" class="form-control"
+                                   autocomplete="username" autofocus required>
                         </div>
                     </div>
-                </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold" th:text="#{login.password}">Mật khẩu</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input type="password" name="password" id="oMatKhau" class="form-control"
+                                   autocomplete="current-password" required>
+                            <button class="btn btn-outline-secondary" type="button" id="nutHienMatKhau"
+                                    tabindex="-1" title="Hiện mật khẩu">
+                                <i class="fas fa-eye" id="iconMat"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox"
+                                   name="remember-me" id="ghiNho">
+                            <label class="form-check-label small" for="ghiNho"
+                                   th:text="#{login.remember}">Ghi nhớ đăng nhập</label>
+                        </div>
+                        <a th:href="@{/quenmatkhau}" class="small text-decoration-none"
+                           th:text="#{login.forgot}">Quên mật khẩu?</a>
+                    </div>
+
+                    <button type="submit" class="btn btn-auth w-100">
+                        <i class="fas fa-right-to-bracket me-2"></i>
+                        <span th:text="#{login.button}">Đăng nhập</span>
+                    </button>
+                </form>
             </div>
+
+            <div class="auth-foot text-muted">
+                <i class="fas fa-circle-info me-1"></i>
+                <span th:text="#{login.help}">Chưa có tài khoản? Liên hệ Phòng Công tác Sinh viên.</span>
+            </div>
+
         </div>
-    </section>
-</div>
+    </div>
+
+    <script>
+        // Nút con mắt để xem lại mật khẩu vừa gõ
+        (function () {
+            var nut  = document.getElementById('nutHienMatKhau');
+            var o    = document.getElementById('oMatKhau');
+            var icon = document.getElementById('iconMat');
+            if (!nut) return;
+
+            nut.addEventListener('click', function () {
+                var dangAn = o.type === 'password';
+                o.type = dangAn ? 'text' : 'password';
+                icon.className = dangAn ? 'fas fa-eye-slash' : 'fas fa-eye';
+            });
+        })();
+    </script>
+
+</main>
 </body>
 </html>
