@@ -1,11 +1,16 @@
 package vn.TieuLuanChuyenNganhFITHCMUTE.Service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import vn.TieuLuanChuyenNganhFITHCMUTE.Entity.KetQuaHocPhan;
 import vn.TieuLuanChuyenNganhFITHCMUTE.Entity.LopHocPhan;
@@ -22,16 +27,92 @@ public class DuyetDiemService {
 	private static final int VAI_TRO_CHINH = 1;
 	private static final int HIEU_LUC = 1;
 
+	private static final int CHO_DUYET = 1;
+	private static final int DA_DUYET = 2;
+	private static final int DA_CONG_BO = 3;
+
 	private final KetQuaHocPhanRepository ketQuaRepository;
 	private final LopHocPhanRepository lopRepository;
 	private final PhanCongGiangDayRepository phanCongRepository;
 	private final NhapDiemService nhapDiemService;
 
+	/** Một ô trên màn hình chọn khoa */
+	@Getter
+	public static class TomTatKhoa {
+		private final Integer maDonVi;
+		private final String ten;
+		private int soChoDuyet;
+		private int soDaDuyet;
+		private int soCongBo;
+
+		TomTatKhoa(Integer maDonVi, String ten) { this.maDonVi = maDonVi; this.ten = ten; }
+
+		/** Việc còn phải làm: chờ duyệt cộng đã duyệt mà chưa công bố */
+		public int getSoCanXuLy() { return soChoDuyet + soDaDuyet; }
+
+		public boolean isXong() { return soCongBo > 0 && getSoCanXuLy() == 0; }
+	}
+
+	// ===================== CHIA VIỆC THEO KHOA =====================
+
+	/**
+	 * Số liệu cho màn hình chọn khoa.
+	 *
+	 * Bảng điểm thuộc về khoa phụ trách học phần, vì người chấm là giảng
+	 * viên của khoa đó và chuyên viên theo dõi cũng là người phụ trách khoa
+	 * đó. Chia theo khoa quản lý ngành sẽ cắt nhầm: một lớp đại cương có
+	 * sinh viên của cả chục ngành khác nhau.
+	 */
+	@Transactional(readOnly = true)
+	public List<TomTatKhoa> tomTatTheoKhoa() {
+		Map<Integer, TomTatKhoa> theoKhoa = new HashMap<>();
+
+		gom(theoKhoa, dsLop(CHO_DUYET),  t -> t.soChoDuyet++);
+		gom(theoKhoa, dsLop(DA_DUYET),   t -> t.soDaDuyet++);
+		gom(theoKhoa, dsLop(DA_CONG_BO), t -> t.soCongBo++);
+
+		List<TomTatKhoa> kq = new ArrayList<>(theoKhoa.values());
+		kq.sort(Comparator.comparing(TomTatKhoa::getTen));
+		return kq;
+	}
+
+	private void gom(Map<Integer, TomTatKhoa> theoKhoa, List<LopHocPhan> ds,
+	                 Consumer<TomTatKhoa> dem) {
+		for (LopHocPhan lop : ds) {
+			dem.accept(theoKhoa.computeIfAbsent(maKhoa(lop),
+					k -> new TomTatKhoa(k, tenKhoa(lop))));
+		}
+	}
+
+	/** Mã khoa phụ trách học phần của lớp; -1 khi học phần chưa gắn khoa */
+	public static Integer maKhoa(LopHocPhan lop) {
+		var donVi = lop.getHocPhan().getDonVi();
+		return (donVi == null) ? -1 : donVi.getMaDonVi();
+	}
+
+	public static String tenKhoa(LopHocPhan lop) {
+		var donVi = lop.getHocPhan().getDonVi();
+		return (donVi == null) ? "Chưa rõ khoa phụ trách" : donVi.getTenDonVi();
+	}
+
+	// ===================== DANH SÁCH =====================
+
 	/** Các lớp có bảng điểm ở trạng thái cho trước (1 chờ duyệt, 2 đã duyệt, 3 đã công bố) */
+	@Transactional(readOnly = true)
 	public List<LopHocPhan> dsLop(int trangThaiDiem) {
 		return ketQuaRepository.timLopTheoTrangThaiDiem(trangThaiDiem).stream()
 				.sorted(Comparator.comparing(LopHocPhan::getMaLop))
 				.toList();
+	}
+
+	/**
+	 * @param maDonVi để trống thì lấy cả trường, có thì chỉ lấy lớp của khoa đó
+	 */
+	@Transactional(readOnly = true)
+	public List<LopHocPhan> dsLop(int trangThaiDiem, Integer maDonVi) {
+		List<LopHocPhan> tatCa = dsLop(trangThaiDiem);
+		if (maDonVi == null) return tatCa;
+		return tatCa.stream().filter(lop -> maDonVi.equals(maKhoa(lop))).toList();
 	}
 
 	public LopHocPhan lop(Integer maLop) {

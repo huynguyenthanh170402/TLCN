@@ -3,73 +3,410 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title layout:title-pattern="$CONTENT_TITLE | Ban Giám hiệu">Ban Giám hiệu</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link th:href="@{/css/bang.css}" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
 
     <style>
-        body { background: #f4f6f9; }
-        .bgh-sidebar {
-            width: 250px; min-height: 100vh;
-            background: #4c1d95; color: #fff;
-            position: fixed; top: 0; left: 0;
+        :root { --bgh-sidebar-width: 250px; }
+
+        body { background: #f4f6f9; overflow-x: hidden; }
+
+        img, svg, video, iframe { max-width: 100%; height: auto; }
+        td, th, p, li, h1, h2, h3, h4, h5, h6 {
+            overflow-wrap: break-word; word-break: break-word;
         }
+        .table-responsive { -webkit-overflow-scrolling: touch; }
+
+        .bgh-shell { display: flex; min-height: 100vh; }
+        @supports (height: 100dvh) { .bgh-shell { min-height: 100dvh; } }
+
+        /* Đỏ sẫm cho Ban Giám hiệu. Năm khu năm màu: sinh viên xanh dương,
+           giảng viên xanh ngọc, tài chính xanh lá, công tác sinh viên tím,
+           ban giám hiệu đỏ sẫm. */
+        .bgh-sidebar { background: #7f1d1d; color: #fff; }
+
+        .bgh-sidebar.offcanvas-lg {
+            --bs-offcanvas-width: 270px;
+            background-color: #7f1d1d;
+            display: flex; flex-direction: column;
+        }
+        @media (min-width: 992px) {
+            .bgh-sidebar.offcanvas-lg {
+                position: sticky; top: 0; height: 100vh;
+                width: var(--bgh-sidebar-width);
+                flex: 0 0 var(--bgh-sidebar-width);
+                overflow-y: auto;
+                background-color: #7f1d1d !important;
+            }
+        }
+
         .bgh-sidebar .brand {
-            padding: 18px 20px; font-weight: 700;
+            padding: 16px 20px; font-weight: 700; line-height: 1.3;
             border-bottom: 1px solid rgba(255,255,255,.15);
         }
-        .bgh-sidebar .nav-link { color: rgba(255,255,255,.8); padding: 12px 20px; }
-        .bgh-sidebar .nav-link i { width: 22px; }
-        .bgh-sidebar .nav-link:hover { background: rgba(255,255,255,.08); color: #fff; }
-        .bgh-sidebar .nav-link.active { background: rgba(255,255,255,.2); color: #fff; font-weight: 600; }
-        .bgh-main { margin-left: 250px; }
-        .bgh-topbar { background: #fff; padding: 12px 24px; border-bottom: 1px solid #e3e6ea; }
-        @media (max-width: 768px) {
-            .bgh-sidebar { position: static; width: 100%; min-height: auto; }
-            .bgh-main { margin-left: 0; }
+        .bgh-sidebar .brand small { opacity: .75; font-weight: 400; }
+
+        .bgh-sidebar .nav-link {
+            color: rgba(255,255,255,.8); padding: 11px 20px;
+            display: flex; align-items: center; gap: 4px;
         }
+        .bgh-sidebar .nav-link i { width: 22px; flex: 0 0 22px; }
+        .bgh-sidebar .nav-link:hover { background: rgba(255,255,255,.08); color: #fff; }
+        .bgh-sidebar .nav-link.active {
+            background: rgba(255,255,255,.18); color: #fff; font-weight: 600;
+        }
+        .bgh-sidebar .nav-nhan {
+            padding: 14px 20px 6px; font-size: .72rem; text-transform: uppercase;
+            letter-spacing: .6px; opacity: .55;
+        }
+        .bgh-sidebar .offcanvas-header { border-bottom: 1px solid rgba(255,255,255,.15); }
+
+        .bgh-chan {
+            margin-top: auto;
+            border-top: 1px solid rgba(255,255,255,.15);
+            padding: 12px 20px 16px;
+        }
+        .bgh-chan .ten {
+            font-size: .9rem; font-weight: 600; line-height: 1.2;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .bgh-chan .vai-tro { font-size: .75rem; opacity: .6; }
+        .bgh-chan .btn-dangxuat {
+            --bs-btn-hover-bg: #b91c1c;
+            --bs-btn-hover-border-color: #b91c1c;
+        }
+
+        .bgh-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+
+        .bgh-topbar {
+            background: #fff; padding: 10px clamp(12px, 3vw, 24px);
+            border-bottom: 1px solid #e3e6ea;
+            position: sticky; top: 0; z-index: 1020; gap: 10px;
+        }
+        .bgh-topbar h5 {
+            font-size: clamp(1rem, 2.6vw, 1.25rem); margin: 0; min-width: 0;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .bgh-topbar .chi-doc {
+            font-size: .75rem; color: #52514e; white-space: nowrap;
+        }
+
+        .bgh-noidung { padding: clamp(12px, 3vw, 24px); }
+
+        @media (max-width: 991.98px) {
+            .btn, .bgh-sidebar .nav-link { min-height: 44px; }
+            .bgh-topbar .chi-doc { display: none; }
+        }
+
+        /* ===================== Dùng chung cho mọi trang báo cáo ===================== */
+        .the-so {
+            background: #fff; border-radius: 14px; height: 100%;
+            padding: clamp(.9rem, 2.4vw, 1.25rem);
+            box-shadow: 0 2px 10px rgba(0,0,0,.06);
+        }
+        .the-so .nhan {
+            font-size: .76rem; text-transform: uppercase; letter-spacing: .4px;
+            color: #898781; margin-bottom: .35rem;
+        }
+        .the-so .so {
+            font-size: clamp(1.5rem, 3.6vw, 2.1rem); font-weight: 700;
+            line-height: 1.1; color: #0b0b0b;
+        }
+        .the-so .phu { font-size: .8rem; color: #52514e; margin-top: .25rem; }
+
+        .khung-bd { background: #fff; border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+        .khung-bd .dau { padding: 14px 18px 0; }
+        .khung-bd .ten { font-weight: 600; color: #0b0b0b; margin: 0; }
+        .khung-bd .mo-ta { font-size: .82rem; color: #52514e; margin: .2rem 0 0; }
+        .khung-bd .than { padding: 12px 18px 18px; }
+
+        .o-ve { position: relative; height: 300px; }
+        .o-ve.cao { height: 380px; }
+
+        /* Màu nhạt trên nền trắng không đủ tương phản nên biểu đồ tròn luôn
+           kèm chú giải có tên và số; người xem không phải đoán màu nào là gì. */
+        .chu-giai { list-style: none; margin: 0; padding: 0; }
+        .chu-giai li {
+            display: flex; align-items: center; gap: .55rem;
+            padding: .35rem 0; font-size: .88rem; color: #52514e;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .chu-giai li:last-child { border-bottom: none; }
+        .chu-giai .cham { width: 12px; height: 12px; border-radius: 3px; flex: 0 0 12px; }
+        .chu-giai .ten-muc { flex-grow: 1; color: #0b0b0b; }
+        .chu-giai .gia-tri { font-weight: 600; font-variant-numeric: tabular-nums; }
+        .chu-giai .phan-tram { color: #898781; font-variant-numeric: tabular-nums; }
+
+        .tieu-muc {
+            text-transform: uppercase; letter-spacing: .5px; font-size: .78rem;
+            font-weight: 600; color: #898781; margin: 1.75rem 0 .85rem;
+        }
+
+        table.bang-so td, table.bang-so th { font-variant-numeric: tabular-nums; }
     </style>
 </head>
 <body>
 
-<aside class="bgh-sidebar">
-    <div class="brand">
-        <i class="fas fa-landmark me-2"></i>Ban Giám hiệu
-    </div>
-    <nav class="nav flex-column mt-2">
-        <a class="nav-link" th:href="@{/baocao}"
-           th:classappend="${menu == 'tongquan'} ? 'active'">
-            <i class="fas fa-chart-pie"></i> Báo cáo tổng quan
-        </a>
-    </nav>
-</aside>
+<div class="bgh-shell">
 
-<div class="bgh-main">
-    <header class="bgh-topbar d-flex justify-content-between align-items-center">
-        <h5 class="mb-0" layout:fragment="page-title">Ban Giám hiệu</h5>
+    <!-- ===================== Menu trái ===================== -->
+    <aside class="bgh-sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="bghSidebar">
 
-        <div class="d-flex align-items-center gap-3">
-            <span>
-                <i class="fas fa-user-tie me-1"></i>
-                <strong th:text="${tenDangNhap}"></strong>
-            </span>
+        <div class="offcanvas-header d-lg-none">
+            <h5 class="offcanvas-title text-white mb-0">
+                <i class="fas fa-landmark me-2"></i>Ban Giám hiệu
+            </h5>
+            <button type="button" class="btn-close btn-close-white"
+                    data-bs-dismiss="offcanvas" data-bs-target="#bghSidebar" aria-label="Đóng"></button>
+        </div>
+
+        <div class="brand d-none d-lg-block">
+            <i class="fas fa-landmark me-2"></i>Ban Giám hiệu<br>
+            <small>Báo cáo thống kê</small>
+        </div>
+
+        <!-- Chỉ có các trang báo cáo. Không dẫn sang màn hình nghiệp vụ của
+             Phòng Đào tạo, Tài chính hay Công tác Sinh viên: những khu đó có
+             nút thêm, sửa, xóa, duyệt, không thuộc việc của Ban Giám hiệu. -->
+        <nav class="nav flex-column mt-lg-2">
+            <div class="nav-nhan">Báo cáo</div>
+
+            <a class="nav-link" th:href="@{/baocao}"
+               th:classappend="${menu == 'tongquan'} ? 'active'">
+                <i class="fas fa-gauge-high"></i> Tổng quan
+            </a>
+            <a class="nav-link" th:href="@{/baocao/sinhvien}"
+               th:classappend="${menu == 'sinhvien'} ? 'active'">
+                <i class="fas fa-users"></i> Thống kê sinh viên
+            </a>
+            <a class="nav-link" th:href="@{/baocao/hoctap}"
+               th:classappend="${menu == 'hoctap'} ? 'active'">
+                <i class="fas fa-chart-column"></i> Kết quả học tập
+            </a>
+            <a class="nav-link" th:href="@{/baocao/taichinh}"
+               th:classappend="${menu == 'taichinh'} ? 'active'">
+                <i class="fas fa-coins"></i> Thu học phí
+            </a>
+        </nav>
+
+        <!-- ============ Khối tài khoản, luôn ở đáy ============ -->
+        <div class="bgh-chan">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="fas fa-user-tie fa-lg"></i>
+                <div class="min-w-0">
+                    <div class="ten" th:text="${#authentication.name}">tài khoản</div>
+                    <div class="vai-tro">Ban Giám hiệu</div>
+                </div>
+            </div>
+
             <form th:action="@{/logout}" method="post" class="m-0">
-                <button type="submit" class="btn btn-sm btn-outline-danger">
-                    <i class="fas fa-right-from-bracket"></i> Đăng xuất
+                <button type="submit" class="btn btn-sm btn-outline-light btn-dangxuat w-100">
+                    <i class="fas fa-right-from-bracket me-1"></i> Đăng xuất
                 </button>
             </form>
         </div>
-    </header>
+    </aside>
 
-    <main class="p-4">
-        <div layout:fragment="content"></div>
-    </main>
+    <!-- ===================== Nội dung ===================== -->
+    <div class="bgh-main">
+
+        <header class="bgh-topbar d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <button class="btn btn-outline-secondary btn-sm d-lg-none" type="button"
+                        data-bs-toggle="offcanvas" data-bs-target="#bghSidebar" aria-label="Mở menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h5 layout:fragment="page-title">Báo cáo</h5>
+            </div>
+            <span class="chi-doc">
+                <i class="fas fa-eye me-1"></i>Chỉ xem
+            </span>
+        </header>
+
+        <main class="bgh-noidung">
+            <div layout:fragment="content"></div>
+        </main>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/bang.js}"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<!-- Hàm dùng chung cho mọi trang báo cáo.
+     Đặt ở layout nên bốn trang con không phải chép lại phần cấu hình trục,
+     màu và chú giải. Đây là JavaScript thuần, Thymeleaf không đụng vào. -->
+<script>
+var BD = (function () {
+    'use strict';
+
+    /* Bảng màu đã qua kiểm tra mù màu: mọi cặp cạnh nhau đều phân biệt được */
+    var S1 = '#2a78d6', S2 = '#eb6834', S3 = '#1baf7a',
+        S4 = '#eda100', S5 = '#e87ba4', S6 = '#008300';
+    var VONG = [S1, S2, S3, S4, S5, S6];
+    var MUC_NHAT = '#898781', LUOI = '#e1e0d9', VIEN = '#c3c2b7';
+
+    function soVn(n) { return Number(n).toLocaleString('vi-VN'); }
+
+    /* Trục và lưới luôn mờ hơn dữ liệu, để mắt đọc cột trước, đọc trục sau */
+    function truc(tieuDe, anLuoi) {
+        var t = {
+            grid:   { color: LUOI, drawTicks: false, display: !anLuoi },
+            border: { color: VIEN },
+            ticks:  { color: MUC_NHAT, font: { size: 11 } }
+        };
+        if (tieuDe) {
+            t.title = { display: true, text: tieuDe, color: MUC_NHAT, font: { size: 11 } };
+        }
+        return t;
+    }
+
+    function tooltip(ham, hienMau) {
+        return {
+            backgroundColor: '#0b0b0b', padding: 10,
+            displayColors: !!hienMau,
+            titleFont: { size: 12 }, bodyFont: { size: 13 },
+            callbacks: { label: ham }
+        };
+    }
+
+    /* Cột bo tròn ở đầu mút, phẳng ở chân — chân cột là mốc 0 nên phải thẳng */
+    function cot(nhan, duLieu, mau) {
+        return {
+            label: nhan, data: duLieu, backgroundColor: mau,
+            borderRadius: 4, borderSkipped: 'start', borderWidth: 0
+        };
+    }
+
+    function caoTheoSoDong(id, soDong) {
+        var o = document.getElementById(id);
+        if (o) { o.parentElement.style.height = Math.max(300, soDong * 30 + 50) + 'px'; }
+    }
+
+    /** Cột ngang: dùng khi nhãn dài (tên khoa, tên học phần) */
+    function cotNgang(id, nhan, duLieu, tieuDeTruc, donVi) {
+        caoTheoSoDong(id, nhan.length);
+        return new Chart(document.getElementById(id), {
+            type: 'bar',
+            data: { labels: nhan, datasets: [cot(donVi, duLieu, S1)] },
+            options: {
+                maintainAspectRatio: false, indexAxis: 'y',
+                interaction: { mode: 'nearest', intersect: false },
+                scales: {
+                    x: Object.assign(truc(tieuDeTruc), { beginAtZero: true }),
+                    y: truc(null, true)
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: tooltip(function (c) { return soVn(c.parsed.x) + ' ' + donVi; })
+                }
+            }
+        });
+    }
+
+    /** Cột đứng: dùng khi nhãn ngắn (khóa tuyển sinh, điểm chữ) */
+    function cotDung(id, nhan, duLieu, tieuDeX, tieuDeY, donVi) {
+        return new Chart(document.getElementById(id), {
+            type: 'bar',
+            data: { labels: nhan, datasets: [cot(donVi, duLieu, S1)] },
+            options: {
+                maintainAspectRatio: false,
+                interaction: { mode: 'nearest', intersect: false },
+                scales: {
+                    x: truc(tieuDeX, true),
+                    y: Object.assign(truc(tieuDeY), { beginAtZero: true })
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: tooltip(function (c) { return soVn(c.parsed.y) + ' ' + donVi; })
+                }
+            }
+        });
+    }
+
+    /** Vành khuyên, viền trắng 2px tách các múi cho khỏi dính nhau */
+    function vanhKhuyen(id, nhan, duLieu) {
+        return new Chart(document.getElementById(id), {
+            type: 'doughnut',
+            data: { labels: nhan, datasets: [{
+                data: duLieu, backgroundColor: VONG,
+                borderColor: '#fff', borderWidth: 2
+            }] },
+            options: {
+                maintainAspectRatio: false, cutout: '58%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: tooltip(function (c) { return c.label + ': ' + soVn(c.parsed); })
+                }
+            }
+        });
+    }
+
+    /** Chú giải chữ cho biểu đồ tròn, dựng bằng DOM cho an toàn */
+    function chuGiai(idDanhSach, nhan, soLieu) {
+        var khung = document.getElementById(idDanhSach);
+        if (!khung) { return; }
+
+        var tong = 0, i;
+        for (i = 0; i < soLieu.length; i++) { tong += Number(soLieu[i]); }
+
+        for (i = 0; i < nhan.length; i++) {
+            var gt = Number(soLieu[i] || 0);
+            var pt = tong === 0 ? 0 : Math.round(gt * 1000 / tong) / 10;
+
+            var dong = document.createElement('li');
+
+            var cham = document.createElement('span');
+            cham.className = 'cham';
+            cham.style.background = VONG[i % VONG.length];
+
+            var ten = document.createElement('span');
+            ten.className = 'ten-muc';
+            ten.textContent = nhan[i];
+
+            var giaTri = document.createElement('span');
+            giaTri.className = 'gia-tri';
+            giaTri.textContent = soVn(gt);
+
+            var phanTram = document.createElement('span');
+            phanTram.className = 'phan-tram';
+            phanTram.textContent = pt + '%';
+
+            dong.appendChild(cham);
+            dong.appendChild(ten);
+            dong.appendChild(giaTri);
+            dong.appendChild(phanTram);
+            khung.appendChild(dong);
+        }
+    }
+
+    return {
+        S1: S1, S3: S3, VONG: VONG,
+        soVn: soVn, truc: truc, tooltip: tooltip, cot: cot,
+        caoTheoSoDong: caoTheoSoDong,
+        cotNgang: cotNgang, cotDung: cotDung,
+        vanhKhuyen: vanhKhuyen, chuGiai: chuGiai
+    };
+})();
+</script>
+
+<script>
+    // Bảng nhiều cột sẽ tràn trên điện thoại, bọc lại cho cuộn ngang riêng
+    document.querySelectorAll('table').forEach(function (bang) {
+        if (!bang.closest('.table-responsive')) {
+            var khung = document.createElement('div');
+            khung.className = 'table-responsive';
+            bang.parentNode.insertBefore(khung, bang);
+            khung.appendChild(bang);
+        }
+    });
+</script>
+
 <th:block layout:fragment="scripts"></th:block>
+
 </body>
 </html>

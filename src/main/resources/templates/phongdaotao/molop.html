@@ -4,6 +4,30 @@
       layout:decorate="~{phongdaotao/layout}">
 <head>
     <title>Mở lớp theo kế hoạch</title>
+    <style>
+        /* Ô chọn phạm vi: cả thẻ là một đường dẫn, bấm đâu cũng vào được */
+        .o-khoa {
+            display: block; height: 100%;
+            text-decoration: none; color: inherit;
+            border: 1px solid #dee2e6; border-radius: .6rem;
+            padding: 1rem 1.1rem; background: #fff;
+            transition: box-shadow .15s, border-color .15s, transform .15s;
+        }
+        .o-khoa:hover {
+            border-color: #0d6efd;
+            box-shadow: 0 .4rem 1rem rgba(13, 110, 253, .12);
+            transform: translateY(-2px);
+        }
+        .o-khoa.dai-cuong { border-left: 4px solid #6c757d; }
+        .o-khoa.con-thieu { border-left: 4px solid #0d6efd; }
+        .o-khoa.da-xong   { border-left: 4px solid #198754; }
+        .o-khoa.trong     { opacity: .62; }
+
+        .ten-khoa { font-weight: 600; line-height: 1.3; }
+        .so-lon   { font-size: 1.65rem; font-weight: 700; line-height: 1; }
+        .nhan-nho { font-size: .78rem; color: #6c757d; }
+        .ds-nganh { font-size: .78rem; color: #6c757d; }
+    </style>
 </head>
 <body>
 
@@ -11,96 +35,113 @@
 
 <div layout:fragment="content">
 
-    <div class="alert alert-light border small">
-        Hệ thống lấy các học phần đúng học kỳ trong chương trình đào tạo của từng khóa,
-        chia lớp theo sĩ số, tự chọn phòng còn trống và xếp lịch sao cho sinh viên cùng khóa
-        không bị trùng giờ. Lớp học lại, học hè hay lớp tối thì mở lẻ ở mục Lớp học phần.
+    <div class="alert alert-light border small mb-3">
+        <strong>Cách chia lớp.</strong>
+        Học phần khối <strong>đại cương</strong> gom chung toàn trường theo khóa — Anh văn
+        hay Toán cao cấp nằm trong chương trình của hầu hết các ngành, tách riêng từng
+        ngành sẽ ra hàng chục lớp mỗi lớp vài chục sinh viên. Học phần
+        <strong>cơ sở ngành, chuyên ngành và tốt nghiệp</strong> tách riêng theo ngành nên
+        thuộc về khoa quản lý ngành đó. Vì vậy đại cương có mục riêng, không nằm trong
+        khoa nào.
     </div>
 
-    <!-- Chọn học kỳ và ngành -->
-    <form th:action="@{/quanly/molop}" method="get" class="card card-body shadow-sm mb-3">
+    <!-- Chọn học kỳ -->
+    <form th:action="@{/quanly/molop}" method="get" class="card card-body shadow-sm mb-4">
         <div class="row g-2 align-items-end">
-            <div class="col-md-4">
+            <div class="col-12 col-md-5">
                 <label class="form-label fw-semibold">Học kỳ</label>
                 <select name="hocKy" class="form-select" required>
                     <option th:each="hk : ${dsHocKy}" th:value="${hk.maHocKy}"
                             th:text="${hk.tenHocKy}" th:selected="${hk.maHocKy == hocKyChon}"></option>
                 </select>
             </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">Ngành</label>
-                <select name="nganh" class="form-select" required>
-                    <option value="">— Chọn ngành —</option>
-                    <option th:each="n : ${dsNganh}" th:value="${n.maNganh}"
-                            th:text="${n.tenNganh}" th:selected="${n.maNganh == nganhChon}"></option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100">Xem kế hoạch</button>
+            <div class="col-12 col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Xem số liệu</button>
             </div>
         </div>
     </form>
 
-    <!-- Bảng kế hoạch -->
-    <div th:if="${keHoach != null}" class="card shadow-sm">
-        <div class="card-header fw-bold">Kế hoạch mở lớp</div>
-
-        <div class="table-responsive">
-            <table class="table table-sm align-middle mb-0">
-                <thead class="table-light">
-                <tr>
-                    <th class="text-center" style="width:80px">Khóa</th>
-                    <th class="text-center" style="width:90px">Học kỳ thứ</th>
-                    <th>Học phần</th>
-                    <th class="text-center" style="width:90px">Sinh viên</th>
-                    <th class="text-center" style="width:80px">Cần</th>
-                    <th class="text-center" style="width:80px">Đã có</th>
-                    <th class="text-center" style="width:90px">Mở thêm</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:if="${keHoach.empty}">
-                    <td colspan="7" class="text-center text-muted py-4">
-                        Không có học phần nào cần mở lớp trong học kỳ này.
-                    </td>
-                </tr>
-                <tr th:each="d : ${keHoach}" th:classappend="${d.soLopThieu == 0} ? 'table-light'">
-                    <td class="text-center fw-semibold" th:text="${d.khoa}"></td>
-                    <td class="text-center" th:text="${d.hocKyThu}"></td>
-                    <td>
-                        <span class="small text-muted" th:text="${d.hocPhan.maHocPhan}"></span>
-                        <span th:text="${d.hocPhan.tenHocPhan}"></span>
-                    </td>
-                    <td class="text-center" th:text="${d.soSinhVien}"></td>
-                    <td class="text-center" th:text="${d.soLopCan}"></td>
-                    <td class="text-center" th:text="${d.soLopDaCo}"></td>
-                    <td class="text-center">
-                        <span th:if="${d.soLopThieu > 0}" class="badge bg-primary" th:text="${d.soLopThieu}"></span>
-                        <span th:if="${d.soLopThieu == 0}" class="text-success"><i class="fas fa-check"></i></span>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="card-footer" th:unless="${keHoach.empty}">
-            <form th:action="@{/quanly/molop}" method="post"
-                  class="d-flex justify-content-end align-items-center gap-3"
-                  onsubmit="return confirm('Mở các lớp còn thiếu theo kế hoạch này?');">
-                <input type="hidden" name="hocKy" th:value="${hocKyChon}">
-                <input type="hidden" name="nganh" th:value="${nganhChon}">
-
-                <div class="form-check mb-0">
-                    <input class="form-check-input" type="checkbox" name="moDangKyNgay"
-                           id="moNgay" value="true" checked>
-                    <label class="form-check-label" for="moNgay">Mở đăng ký ngay</label>
-                </div>
-                <button type="submit" class="btn btn-success">
-                    <i class="fas fa-layer-group"></i> Mở các lớp còn thiếu
-                </button>
-            </form>
-        </div>
+    <div th:if="${dsTomTat == null and loi == null}" class="alert alert-secondary">
+        Chọn một học kỳ để xem còn phải mở bao nhiêu lớp.
     </div>
+
+    <th:block th:if="${dsTomTat != null}">
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <h6 class="mb-0 fw-bold">Chọn phần cần mở lớp</h6>
+            <span class="small text-muted">Bấm vào một ô để xem kế hoạch chi tiết và mở lớp.</span>
+        </div>
+
+    <form class="o-tim mb-3" role="search">
+        <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-magnifying-glass"></i></span>
+            <input type="search" class="form-control" placeholder="Tìm theo tên khoa hoặc tên ngành…"
+                   data-loc="#luoiKhoa"
+                   data-muc=":scope > div"
+                   data-trong="#khongThayKhoa">
+            <button class="btn btn-outline-secondary" type="submit">Tìm</button>
+        </div>
+    </form>
+
+    <div class="alert alert-secondary" id="khongThayKhoa" hidden>
+        Không có dòng nào khớp với từ khóa.
+    </div>
+
+        <div class="row g-3" id="luoiKhoa">
+            <div class="col-12 col-md-6 col-xl-4" th:each="t : ${dsTomTat}">
+
+                <a class="o-khoa"
+                   th:classappend="${t.daiCuong} ? 'dai-cuong'
+                                   : (${t.soHocPhan == 0} ? 'trong'
+                                      : (${t.soLopThieu gt 0} ? 'con-thieu' : 'da-xong'))"
+                   th:href="${t.daiCuong}
+                            ? @{/quanly/molop/daicuong(hocKy=${hocKyChon})}
+                            : @{/quanly/molop/khoa/{id}(id=${t.maDonVi}, hocKy=${hocKyChon})}">
+
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                        <div>
+                            <div class="ten-khoa" th:text="${t.ten}"></div>
+                            <div class="nhan-nho">
+                                <span th:if="${t.daiCuong}">Gom chung toàn trường</span>
+                                <span th:unless="${t.daiCuong}"
+                                      th:text="${t.soNganh} + ' ngành'"></span>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
+                    </div>
+
+                    <div class="d-flex align-items-end gap-3">
+                        <div>
+                            <div class="so-lon"
+                                 th:classappend="${t.soLopThieu gt 0} ? 'text-primary' : 'text-success'"
+                                 th:text="${t.soLopThieu}"></div>
+                            <div class="nhan-nho">lớp cần mở thêm</div>
+                        </div>
+                        <div class="ms-auto text-end nhan-nho">
+                            <div th:text="${t.soHocPhan} + ' học phần'"></div>
+                            <div th:text="'đã có ' + ${t.soLopDaCo} + ' / ' + ${t.soLopCan} + ' lớp'"></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-2">
+                        <span th:if="${t.soHocPhan == 0}" class="badge bg-light text-dark border">
+                            Học kỳ này không có học phần nào tới lượt
+                        </span>
+                        <span th:if="${t.xong}" class="badge bg-success">
+                            <i class="fas fa-check me-1"></i>Đã mở đủ
+                        </span>
+                        <span th:if="${t.soLopThieu gt 0}" class="badge bg-primary">
+                            Còn thiếu lớp
+                        </span>
+                    </div>
+
+                    <div class="ds-nganh mt-2" th:if="${!t.daiCuong and t.soNganh gt 0}"
+                         th:text="${#strings.abbreviate(#strings.listJoin(t.dsNganh, ', '), 90)}"></div>
+                </a>
+            </div>
+        </div>
+
+    </th:block>
 </div>
 </body>
 </html>

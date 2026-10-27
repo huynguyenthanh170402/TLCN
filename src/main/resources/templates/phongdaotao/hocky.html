@@ -18,7 +18,21 @@
 
     <div class="card shadow-sm">
         <div class="table-responsive">
-            <table class="table align-middle mb-0">
+    <form class="o-tim mb-3" role="search">
+        <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-magnifying-glass"></i></span>
+            <input type="search" class="form-control" placeholder="Tìm theo tên học kỳ, mã học kỳ, năm học…"
+                   data-loc="#bangHocKy"
+                   data-trong="#khongThayHocKy">
+            <button class="btn btn-outline-secondary" type="submit">Tìm</button>
+        </div>
+    </form>
+
+    <div class="alert alert-secondary" id="khongThayHocKy" hidden>
+        Không có dòng nào khớp với từ khóa.
+    </div>
+
+            <table class="table align-middle mb-0" id="bangHocKy">
                 <thead class="table-light">
                 <tr>
                     <th>Học kỳ</th>

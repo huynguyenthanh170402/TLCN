@@ -1,6 +1,7 @@
 package vn.TieuLuanChuyenNganhFITHCMUTE.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -18,4 +19,13 @@ public interface ChuongTrinhDaoTaoRepository extends JpaRepository<ChuongTrinhDa
 
 	/** Học phần này đã nằm trong chương trình của ngành chưa */
 	boolean existsByNganh_MaNganhAndHocPhan_MaHocPhanId(Integer maNganh, Integer maHocPhanId);
+
+	/**
+	 * Dòng khung của một cặp ngành và học phần, kể cả dòng đã ngừng áp dụng.
+	 *
+	 * Bảng có ràng buộc duy nhất trên cặp này nên khi thêm lại một học phần
+	 * từng bị gỡ, phải tìm ra dòng cũ để bật lại thay vì chèn dòng mới.
+	 */
+	Optional<ChuongTrinhDaoTao> findByNganh_MaNganhAndHocPhan_MaHocPhanId(
+			Integer maNganh, Integer maHocPhanId);
 }

@@ -5,137 +5,172 @@
 <head>
     <title th:text="#{home.title}">Trang chủ</title>
 
-    <!-- ============================================================
-         Khu ảnh đầu trang (hero) - hiển thị TRỌN VẸN ảnh campus.jpg
-         Lớp 1 (::before): ảnh phóng to + làm mờ, lấp kín hai bên
-         Lớp 2 (::after) : ảnh thật, dùng contain nên không bị cắt
-         ============================================================ -->
+    <!-- Chỉ khai báo thứ CHỈ trang này dùng.
+         Không đặt lại .hero, .navbar, .card ở đây: phần <head> của trang con
+         được ghép vào SAU <head> của layout nên sẽ ghi đè layout. Đó chính là
+         lý do khối ảnh đầu trang trước đây không chịu đổi theo layout. -->
     <style>
-        /* ---------- Thanh menu: nền sáng, chữ đen, rê chuột thành trắng ---------- */
-        .navbar {
-            background-color: #f4f6f9 !important;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-        }
-
-        .navbar-brand {
-            color: #16213e !important;
+        /* Con số thống kê: co theo bề ngang màn hình.
+           Lớp display-4 của Bootstrap cố định 3.5rem, trên điện thoại
+           khi hai cột nằm cạnh nhau thì "14.000+" bị tràn ra ngoài ô. */
+        .so-lieu {
+            font-size: clamp(1.5rem, 5vw, 3.2rem);
             font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 0.25rem;
         }
 
-        .navbar-nav .nav-link {
-            font-size: 1.05rem;
-            font-weight: 600;
-            color: #000 !important;
-            padding: 0.55rem 0.95rem !important;
-            border-radius: 8px;
-            transition: color 0.2s ease, background-color 0.2s ease;
+        /* Khối ảnh đầu trang chủ không có chữ, nên bỏ luôn lớp phủ tối.
+           Lớp phủ đó sinh ra để chữ trắng đọc được trên nền ảnh sáng;
+           không còn chữ thì nó chỉ làm ảnh xỉn đi.
+           Các trang khác vẫn có chữ nên giữ nguyên lớp phủ trong layout. */
+        .hero.hero-anh::after {
+            display: none;
         }
 
-        .navbar-nav .nav-link:hover,
-        .navbar-nav .nav-link:focus {
-            color: #fff !important;
-            background-color: #2c3e50;
-        }
-
-        .navbar-nav .nav-link.active {
-            color: #1565c0 !important;
-            font-weight: 700;
-        }
-
-        /* ---------- Khu ảnh đầu trang ---------- */
-        .hero {
-            position: relative;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: #fff;
-            overflow: hidden;
-            background: #0d1b33;
-            padding: 3rem 1rem;
-        }
-
-        /* Lớp nền mờ lấp đầy khoảng trống hai bên */
-        .hero::before {
-            content: "";
-            position: absolute;
-            inset: -40px;
-            background: url('/images/campus.jpg') center/cover no-repeat;
-            filter: blur(28px) brightness(0.5);
-        }
-
-        /* Ảnh thật, hiện nguyên vẹn, không cắt mất phần nào */
-        .hero::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: url('/images/campus.jpg') center/contain no-repeat;
-        }
-
-        /* Khối chữ nằm trên cùng, có nền mờ để đọc rõ trên nền ảnh sáng */
-        .hero .container {
-            position: relative;
-            z-index: 2;
-            max-width: 760px;
-            padding: 2.25rem 2rem;
-            border-radius: 16px;
-            background: rgba(12, 22, 42, 0.62);
-            backdrop-filter: blur(6px);
-            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
-        }
-
-        .hero h1 {
-            color: #fff;
-            font-weight: 800;
-            margin-bottom: 0.75rem;
-            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
-        }
-
-        .hero p {
-            color: rgba(255, 255, 255, 0.93);
-            font-size: 1.15rem;
-            margin-bottom: 0;
-        }
-
-        @media (max-width: 768px) {
-            .hero { min-height: 78vh; }
-            .hero .container { padding: 1.75rem 1.25rem; }
-        }
-
-        /* Thẻ chức năng: bỏ viền cứng, thêm hiệu ứng nhấc lên khi rê chuột */
-        .card-feature {
-            border: none;
+        /* ===== Khối thông tin về trường ===== */
+        .o-thongtin {
+            background: #fff;
             border-radius: 14px;
-            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.07);
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            padding: clamp(0.9rem, 2.5vw, 1.25rem);
+            height: 100%;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+            border-left: 4px solid #1565c0;
         }
-
-        .card-feature:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 14px 32px rgba(0, 0, 0, 0.14);
+        .o-thongtin .nhan {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #6c757d;
+            margin-bottom: 0.3rem;
+        }
+        .o-thongtin .gia-tri {
+            font-weight: 600;
+            color: #16213e;
+            line-height: 1.45;
+        }
+        .o-thongtin i {
+            color: #1565c0;
+            margin-right: 0.45rem;
         }
     </style>
 </head>
 <body>
 <main layout:fragment="content">
 
-    <!-- ============ Khối giới thiệu đầu trang ============ -->
-    <section class="hero">
+    <!-- ============ Khối ảnh đầu trang ============
+         Chỉ hiển thị ảnh cổng trường, không có chữ đè lên. -->
+    <section class="hero hero-anh" aria-label="Cổng Trường Đại học Sư phạm Kỹ thuật TP. Hồ Chí Minh"></section>
+
+    <!-- ============ Đôi nét về Trường ============
+         Sáu ô thông tin hành chính. Trên điện thoại xếp một cột,
+         máy tính bảng hai cột, máy tính ba cột. -->
+    <section class="py-5">
         <div class="container">
-            <h1 th:text="#{home.welcome}">Chào mừng đến với Hệ thống Quản lý Trường học</h1>
-            <p th:text="#{home.subtitle}">Nền tảng quản lý tổng hợp cho giáo dục</p>
+            <h2 class="section-heading" th:text="#{home.info.heading}">Đôi nét về Trường</h2>
+
+            <div class="row g-3 mt-2">
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="o-thongtin">
+                        <div class="nhan" th:text="#{home.info.name.label}">Tên trường</div>
+                        <div class="gia-tri">
+                            <i class="fas fa-building-columns"></i>
+                            <span th:text="#{home.info.name.value}">Tên</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="o-thongtin">
+                        <div class="nhan" th:text="#{home.info.en.label}">Tên tiếng Anh</div>
+                        <div class="gia-tri">
+                            <i class="fas fa-globe"></i>
+                            <span th:text="#{home.info.en.value}">Tên</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="o-thongtin">
+                        <div class="nhan" th:text="#{home.info.founded.label}">Thành lập</div>
+                        <div class="gia-tri">
+                            <i class="fas fa-clock-rotate-left"></i>
+                            <span th:text="#{home.info.founded.value}">Năm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="o-thongtin">
+                        <div class="nhan" th:text="#{home.info.managed.label}">Cơ quan chủ quản</div>
+                        <div class="gia-tri">
+                            <i class="fas fa-landmark"></i>
+                            <span th:text="#{home.info.managed.value}">Bộ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="o-thongtin">
+                        <div class="nhan" th:text="#{home.info.address.label}">Trụ sở</div>
+                        <div class="gia-tri">
+                            <i class="fas fa-location-dot"></i>
+                            <span th:text="#{home.info.address.value}">Địa chỉ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="o-thongtin">
+                        <div class="nhan" th:text="#{home.info.website.label}">Website</div>
+                        <div class="gia-tri">
+                            <i class="fas fa-link"></i>
+                            <a href="https://hcmute.edu.vn" target="_blank" rel="noopener"
+                               th:text="#{home.info.website.value}">hcmute.edu.vn</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hai đoạn mô tả hướng đào tạo -->
+            <div class="row g-4 mt-3">
+                <div class="col-12 col-lg-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-3">
+                                <i class="fas fa-screwdriver-wrench me-2" style="color:#1565c0;"></i>
+                                <span th:text="#{home.info.focus.heading}">Hướng đào tạo</span>
+                            </h5>
+                            <p class="mb-0" th:text="#{home.info.focus.text}">Mô tả</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-3">
+                                <i class="fas fa-handshake me-2" style="color:#1565c0;"></i>
+                                <span th:text="#{home.info.industry.heading}">Gắn với doanh nghiệp</span>
+                            </h5>
+                            <p class="mb-0" th:text="#{home.info.industry.text}">Mô tả</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
-    <!-- ============ Tính năng & Dịch vụ ============ -->
-    <section class="py-5">
+    <!-- ============ Tính năng & Dịch vụ ============
+         col-12 điện thoại  →  col-sm-6 máy tính bảng  →  col-lg-4 máy tính
+         Bản cũ chỉ có col-md-4: dưới 768px là một cột, từ 768px nhảy thẳng
+         ba cột, nên trên máy tính bảng dọc thẻ bị bóp rất hẹp. -->
+    <section class="bg-light py-5">
         <div class="container">
             <h2 class="section-heading" th:text="#{home.features}">Tính năng &amp; Dịch vụ</h2>
 
-            <div class="row mt-5">
-                <div class="col-md-4 mb-4">
-                    <div class="card card-feature h-100">
+            <div class="row g-4 mt-2">
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="card h-100">
                         <div class="card-body text-center">
                             <i class="fas fa-graduation-cap fa-3x mb-3" style="color: #3498db;"></i>
                             <h5 class="card-title" th:text="#{home.card1.title}">Quản lý sinh viên</h5>
@@ -143,8 +178,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-4">
-                    <div class="card card-feature h-100">
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="card h-100">
                         <div class="card-body text-center">
                             <i class="fas fa-chalkboard-user fa-3x mb-3" style="color: #2ecc71;"></i>
                             <h5 class="card-title" th:text="#{home.card2.title}">Danh bạ giảng viên</h5>
@@ -152,8 +187,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-4">
-                    <div class="card card-feature h-100">
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="card h-100">
                         <div class="card-body text-center">
                             <i class="fas fa-book fa-3x mb-3" style="color: #e74c3c;"></i>
                             <h5 class="card-title" th:text="#{home.card3.title}">Thông tin học phần</h5>
@@ -161,11 +196,8 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="row mt-4">
-                <div class="col-md-4 mb-4">
-                    <div class="card card-feature h-100">
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="card h-100">
                         <div class="card-body text-center">
                             <i class="fas fa-newspaper fa-3x mb-3" style="color: #f39c12;"></i>
                             <h5 class="card-title" th:text="#{home.card4.title}">Tin tức &amp; Sự kiện</h5>
@@ -173,8 +205,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-4">
-                    <div class="card card-feature h-100">
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="card h-100">
                         <div class="card-body text-center">
                             <i class="fas fa-microscope fa-3x mb-3" style="color: #9b59b6;"></i>
                             <h5 class="card-title" th:text="#{home.card5.title}">Trung tâm nghiên cứu</h5>
@@ -182,8 +214,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-4">
-                    <div class="card card-feature h-100">
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="card h-100">
                         <div class="card-body text-center">
                             <i class="fas fa-building fa-3x mb-3" style="color: #1abc9c;"></i>
                             <h5 class="card-title" th:text="#{home.card6.title}">Cơ sở vật chất</h5>
@@ -196,29 +228,29 @@
     </section>
 
     <!-- ============ Truy cập nhanh ============ -->
-    <section class="bg-light py-5">
+    <section class="py-5">
         <div class="container">
-            <h2 class="section-heading mb-5" th:text="#{home.quickaccess}">Truy cập nhanh</h2>
-            <div class="row text-center">
-                <div class="col-md-3 mb-3">
+            <h2 class="section-heading mb-4" th:text="#{home.quickaccess}">Truy cập nhanh</h2>
+            <div class="row g-3 text-center">
+                <div class="col-6 col-lg-3">
                     <a th:href="@{/about}" class="btn btn-primary btn-lg w-100">
                         <i class="fas fa-info-circle me-2"></i>
                         <span th:text="#{nav.about}">Giới thiệu</span>
                     </a>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-6 col-lg-3">
                     <a th:href="@{/faculty}" class="btn btn-primary btn-lg w-100">
                         <i class="fas fa-university me-2"></i>
                         <span th:text="#{nav.faculty}">Khoa</span>
                     </a>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-6 col-lg-3">
                     <a th:href="@{/news}" class="btn btn-primary btn-lg w-100">
                         <i class="fas fa-newspaper me-2"></i>
                         <span th:text="#{nav.news}">Tin tức</span>
                     </a>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-6 col-lg-3">
                     <a th:href="@{/research}" class="btn btn-primary btn-lg w-100">
                         <i class="fas fa-flask me-2"></i>
                         <span th:text="#{nav.research}">Nghiên cứu</span>
@@ -231,22 +263,22 @@
     <!-- ============ Số liệu thống kê ============ -->
     <section class="py-5" style="background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); color: white;">
         <div class="container">
-            <div class="row text-center">
-                <div class="col-md-3 mb-4">
-                    <h3 class="display-4 fw-bold">14.000+</h3>
-                    <p class="fs-5" th:text="#{home.stat.students}">Sinh viên</p>
+            <div class="row g-4 text-center">
+                <div class="col-6 col-lg-3">
+                    <div class="so-lieu">14.000+</div>
+                    <p class="mb-0" th:text="#{home.stat.students}">Sinh viên</p>
                 </div>
-                <div class="col-md-3 mb-4">
-                    <h3 class="display-4 fw-bold">100+</h3>
-                    <p class="fs-5" th:text="#{home.stat.lecturers}">Giảng viên</p>
+                <div class="col-6 col-lg-3">
+                    <div class="so-lieu">100+</div>
+                    <p class="mb-0" th:text="#{home.stat.lecturers}">Giảng viên</p>
                 </div>
-                <div class="col-md-3 mb-4">
-                    <h3 class="display-4 fw-bold">48</h3>
-                    <p class="fs-5" th:text="#{home.stat.programs}">Ngành đào tạo</p>
+                <div class="col-6 col-lg-3">
+                    <div class="so-lieu">48</div>
+                    <p class="mb-0" th:text="#{home.stat.programs}">Ngành đào tạo</p>
                 </div>
-                <div class="col-md-3 mb-4">
-                    <h3 class="display-4 fw-bold">30</h3>
-                    <p class="fs-5" th:text="#{home.stat.centers}">Trung tâm nghiên cứu</p>
+                <div class="col-6 col-lg-3">
+                    <div class="so-lieu">30</div>
+                    <p class="mb-0" th:text="#{home.stat.centers}">Trung tâm nghiên cứu</p>
                 </div>
             </div>
         </div>
@@ -255,7 +287,7 @@
     <!-- ============ Kêu gọi đăng nhập ============ -->
     <section class="bg-light py-5">
         <div class="container text-center">
-            <h2 class="mb-4" th:text="#{home.cta.title}">Sẵn sàng bắt đầu?</h2>
+            <h2 class="mb-3" th:text="#{home.cta.title}">Sẵn sàng bắt đầu?</h2>
             <p class="lead mb-4" th:text="#{home.cta.desc}">Đăng nhập để vào trang cá nhân.</p>
             <a th:href="@{/login}" class="btn btn-primary btn-lg">
                 <i class="fas fa-sign-in-alt me-2"></i>

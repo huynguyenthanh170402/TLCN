@@ -36,11 +36,22 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 		boolean hoatDong = tk.getTrangThai() != null && tk.getTrangThai() == 1;
 
+		/*
+		 * Mật khẩu tạm quá 5 phút thì coi như hết hiệu lực.
+		 *
+		 * Đánh dấu ở đây chứ không kiểm tra trong controller: Spring Security
+		 * sẽ ném CredentialsExpiredException ngay trong lúc xác thực, nên
+		 * không có đường nào lọt qua được. SecurityConfig bắt ngoại lệ đó rồi
+		 * đưa về trang đăng nhập kèm lời nhắn riêng.
+		 */
+		boolean matKhauConHan = !tk.dangDungMatKhauTam() || tk.matKhauTamConHieuLuc();
+
 		return User.builder()
 				.username(tk.getTenDangNhap())
 				.password(tk.getMatKhauBam())
 				.authorities(authorities)
 				.disabled(!hoatDong)
+				.credentialsExpired(!matKhauConHan)
 				.build();
 	}
 }

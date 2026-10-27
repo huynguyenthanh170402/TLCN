@@ -1,5 +1,7 @@
 package vn.TieuLuanChuyenNganhFITHCMUTE.Service;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import vn.TieuLuanChuyenNganhFITHCMUTE.Entity.HocKy;
 import vn.TieuLuanChuyenNganhFITHCMUTE.Entity.HocPhan;
@@ -53,6 +56,123 @@ public class LopHocPhanService {
 	public List<LopHocPhan> dsTheoHocKy(Integer maHocKy) {
 		return lopRepository.findByHocKy_MaHocKy(maHocKy, Sort.by("hocPhan.maHocPhan", "maLop"));
 	}
+
+	// ===================== CHIA VIỆC THEO KHOA VÀ NGÀNH =====================
+
+	/** Nhóm gom các lớp không gắn ngành nào */
+	public static final int NGANH_CHUNG = -1;
+
+	/** Một ô trên màn hình chọn khoa */
+	@Getter
+	public static class TomTatKhoa {
+		private final Integer maDonVi;
+		private final String ten;
+		private int soLop;
+		private int soChuaMo;
+		private int soDangMo;
+
+		TomTatKhoa(Integer maDonVi, String ten) { this.maDonVi = maDonVi; this.ten = ten; }
+
+		public boolean isXong() { return soLop > 0 && soChuaMo == 0; }
+	}
+
+	/** Một ô trên màn hình chọn ngành, bên trong một khoa */
+	@Getter
+	public static class TomTatNganh {
+		private final Integer maNganh;
+		private final String ten;
+		private int soLop;
+		private int soChuaMo;
+
+		TomTatNganh(Integer maNganh, String ten) { this.maNganh = maNganh; this.ten = ten; }
+
+		public boolean isChung() { return maNganh == NGANH_CHUNG; }
+		public boolean isXong()  { return soLop > 0 && soChuaMo == 0; }
+	}
+
+	/**
+	 * Khoa phụ trách học phần của lớp.
+	 *
+	 * Dùng khoa dạy môn chứ không dùng khoa quản lý ngành, để màn hình này
+	 * khớp với Phân công giảng dạy và Duyệt điểm — ba việc đó đều do người
+	 * phụ trách cùng một khoa làm. Cột MaDonVi của học phần không cho rỗng
+	 * nên mọi lớp đều có chỗ đứng, kể cả lớp học lại, học hè và lớp tối.
+	 */
+	public static Integer maKhoa(LopHocPhan lop) {
+		return lop.getHocPhan().getDonVi().getMaDonVi();
+	}
+
+	public static String tenKhoa(LopHocPhan lop) {
+		return lop.getHocPhan().getDonVi().getTenDonVi();
+	}
+
+	/**
+	 * Ngành mà lớp phục vụ; NGANH_CHUNG khi lớp không gắn ngành nào.
+	 *
+	 * Lớp đại cương, lớp học lại, học hè và lớp tối đều để trống cột ngành
+	 * vì chúng nhận sinh viên của nhiều ngành. Gom vào một nhóm riêng thay
+	 * vì bỏ qua, nếu không những lớp đó biến mất khỏi màn hình và không ai
+	 * sửa được trạng thái của chúng.
+	 */
+	public static Integer maNganhCuaLop(LopHocPhan lop) {
+		return lop.getNganh() == null ? NGANH_CHUNG : lop.getNganh().getMaNganh();
+	}
+
+	public static String tenNganhCuaLop(LopHocPhan lop) {
+		return lop.getNganh() == null
+				? "Lớp mở chung, không theo ngành" : lop.getNganh().getTenNganh();
+	}
+
+	@Transactional(readOnly = true)
+	public List<TomTatKhoa> tomTatTheoKhoa(Integer maHocKy) {
+		Map<Integer, TomTatKhoa> theoKhoa = new HashMap<>();
+
+		for (LopHocPhan lop : dsTheoHocKy(maHocKy)) {
+			TomTatKhoa t = theoKhoa.computeIfAbsent(maKhoa(lop),
+					k -> new TomTatKhoa(k, tenKhoa(lop)));
+			t.soLop++;
+			if (lop.getTrangThai() == CHUA_MO)    t.soChuaMo++;
+			if (lop.getTrangThai() == MO_DANG_KY) t.soDangMo++;
+		}
+
+		List<TomTatKhoa> kq = new ArrayList<>(theoKhoa.values());
+		kq.sort(Comparator.comparing(TomTatKhoa::getTen));
+		return kq;
+	}
+
+	@Transactional(readOnly = true)
+	public List<TomTatNganh> tomTatTheoNganh(Integer maHocKy, Integer maDonVi) {
+		Map<Integer, TomTatNganh> theoNganh = new HashMap<>();
+
+		for (LopHocPhan lop : dsTheoKhoa(maHocKy, maDonVi)) {
+			TomTatNganh t = theoNganh.computeIfAbsent(maNganhCuaLop(lop),
+					k -> new TomTatNganh(k, tenNganhCuaLop(lop)));
+			t.soLop++;
+			if (lop.getTrangThai() == CHUA_MO) t.soChuaMo++;
+		}
+
+		List<TomTatNganh> kq = new ArrayList<>(theoNganh.values());
+		// Nhóm lớp mở chung xếp đầu, phần còn lại theo tên ngành
+		kq.sort(Comparator.comparing(TomTatNganh::isChung).reversed()
+				.thenComparing(TomTatNganh::getTen));
+		return kq;
+	}
+
+	@Transactional(readOnly = true)
+	public List<LopHocPhan> dsTheoKhoa(Integer maHocKy, Integer maDonVi) {
+		return dsTheoHocKy(maHocKy).stream()
+				.filter(lop -> maDonVi.equals(maKhoa(lop)))
+				.toList();
+	}
+
+	@Transactional(readOnly = true)
+	public List<LopHocPhan> dsTheoNganh(Integer maHocKy, Integer maDonVi, Integer maNganh) {
+		return dsTheoKhoa(maHocKy, maDonVi).stream()
+				.filter(lop -> maNganh.equals(maNganhCuaLop(lop)))
+				.toList();
+	}
+
+	// ===================== DỮ LIỆU CHO FORM =====================
 
 	public List<HocPhan> dsHocPhan() {
 		return hocPhanRepository.findAll(Sort.by("maHocPhan"));

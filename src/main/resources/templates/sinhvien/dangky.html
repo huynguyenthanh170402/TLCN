@@ -4,6 +4,37 @@
       layout:decorate="~{sinhvien/layout}">
 <head>
     <title>Đăng ký học phần</title>
+
+    <style>
+        /* Dòng học phần bấm được: đổi con trỏ cho sinh viên biết là mở ra được */
+        .dong-mon { cursor: pointer; }
+        .dong-mon:hover { filter: brightness(0.97); }
+
+        /* Mũi tên xoay xuống khi đang mở phần chi tiết */
+        .mui-ten { transition: transform .15s; font-size: .75rem; opacity: .55; }
+        .dong-mon[aria-expanded="true"] .mui-ten { transform: rotate(90deg); }
+
+        /* Ô chi tiết nằm gọn trong dòng, bỏ viền trên cho liền mạch */
+        .o-chitiet > td { border-top: 0; background: #fbfcfe; padding: 0; }
+        .hop-chitiet { padding: .85rem 1rem 1rem 2.6rem; }
+
+        .ma-mon { font-family: ui-monospace, Consolas, monospace; font-size: .82rem; }
+
+        /* Chú thích màu ở đầu bảng */
+        .o-mau {
+            display: inline-block; width: 14px; height: 14px;
+            border-radius: 3px; border: 1px solid rgba(0,0,0,.12);
+            vertical-align: -2px; margin-right: .3rem;
+        }
+
+        /* Bảng lớp bên trong phần chi tiết: nhỏ hơn bảng ngoài một bậc */
+        .bang-lop { font-size: .85rem; }
+        .bang-lop th { font-weight: 600; color: #5a6b85; }
+
+        @media (max-width: 575.98px) {
+            .hop-chitiet { padding-left: 1rem; }
+        }
+    </style>
 </head>
 <body>
 
@@ -51,18 +82,10 @@
             <i class="fas fa-ban"></i> <span th:text="${loiChung}"></span>
         </div>
 
-        <div class="alert alert-light border small d-flex justify-content-between flex-wrap gap-2">
-            <span>
-                Bạn đang ở <strong th:text="'học kỳ thứ ' + ${hocKyThu}"></strong> của chương trình.
-                Chỉ đăng ký được học phần thuộc học kỳ này trở về trước.
-            </span>
-            <span th:text="'Giới hạn ' + ${tinChiToiDa} + ' tín chỉ'"></span>
-        </div>
-
         <!-- ===== Đã đăng ký ===== -->
         <div class="card shadow-sm mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span class="fw-bold">Học phần đã đăng ký</span>
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span class="fw-bold">Học phần đã đăng ký học kỳ này</span>
                 <span>
                     Tổng: <strong th:text="${tongTinChi}"></strong>
                     / <span th:text="${tinChiToiDa}"></span> tín chỉ
@@ -84,7 +107,7 @@
                         <td colspan="5" class="text-center text-muted py-3">Chưa đăng ký học phần nào.</td>
                     </tr>
                     <tr th:each="dk : ${daDangKy}">
-                        <td th:text="${dk.lopHocPhan.maLop}"></td>
+                        <td class="ma-mon" th:text="${dk.lopHocPhan.maLop}"></td>
                         <td th:text="${dk.lopHocPhan.hocPhan.tenHocPhan}"></td>
                         <td class="text-center" th:text="${dk.lopHocPhan.hocPhan.soTinChi}"></td>
                         <td class="small">
@@ -106,74 +129,258 @@
                     </tbody>
                 </table>
             </div>
-        </div>
 
-        <!-- ===== Lớp đang mở ===== -->
-        <div class="card shadow-sm">
-            <div class="card-header fw-bold">Danh sách lớp học phần đang mở</div>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                    <tr>
-                        <th>Mã lớp</th>
-                        <th>Tên học phần</th>
-                        <th class="text-center">TC</th>
-                        <th>Lịch học</th>
-                        <th class="text-center">Sĩ số</th>
-                        <th class="text-center">Thao tác</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:if="${dsLop.empty}">
-                        <td colspan="6" class="text-center text-muted py-3">Chưa có lớp nào mở.</td>
-                    </tr>
-                    <tr th:each="lop : ${dsLop}"
-                        th:with="daCo=${siSo[lop.maLopHocPhan]},
-                                 day=${lop.siSoToiDa != null and daCo >= lop.siSoToiDa},
-                                 daDk=${lopDaDangKy.contains(lop.maLopHocPhan)},
-                                 trungMon=${monDaDangKy.contains(lop.hocPhan.maHocPhanId)}"
-                        th:classappend="${daDk} ? 'table-success'">
-                        <td th:text="${lop.maLop}"></td>
-                        <td th:text="${lop.hocPhan.tenHocPhan}"></td>
-                        <td class="text-center" th:text="${lop.hocPhan.soTinChi}"></td>
-                        <td class="small">
-                            <div th:each="lh : ${lichTheoLop[lop.maLopHocPhan]}"
-                                 th:text="${lh.tenThu} + ', tiết ' + ${lh.tietBatDau} + '–' + ${lh.tietKetThuc}
-                                          + ' (' + ${lh.phongHoc?.maPhong} + ')'"></div>
-                            <span th:if="${lichTheoLop[lop.maLopHocPhan] == null}" class="text-muted">
-                                Chưa xếp lịch
-                            </span>
-                        </td>
-                        <td class="text-center">
-                            <span th:text="${daCo} + ' / ' + ${lop.siSoToiDa}"
-                                  th:classappend="${day} ? 'text-danger fw-bold'"></span>
-                        </td>
-                        <td class="text-center" th:with="ly=${lyDo[lop.maLopHocPhan]}">
-                            <span th:if="${daDk}" class="badge bg-success">Đã đăng ký</span>
-
-                            <span th:if="${!daDk and trungMon}" class="badge bg-secondary">
-                                Đã chọn lớp khác
-                            </span>
-
-                            <!-- Không đăng ký được: hiện lý do cụ thể -->
-                            <span th:if="${!daDk and !trungMon and ly != null}"
-                                  class="badge bg-light text-dark border text-wrap"
-                                  style="max-width: 260px;"
-                                  th:text="${ly}"></span>
-
-                            <form th:if="${!daDk and !trungMon and ly == null}"
-                                  th:action="@{/sinhvien/dangky/{id}(id=${lop.maLopHocPhan})}"
-                                  method="post" class="d-inline">
-                                <button type="submit" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-plus"></i> Đăng ký
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+            <!--
+                Gửi phiếu là việc riêng, không gộp vào nút Đăng ký từng lớp:
+                sinh viên chọn lớp nhiều lần rồi đổi tới đổi lui, gửi mỗi lần
+                bấm một thư thì hộp thư đầy thư vụn mà không thư nào là bản chốt.
+            -->
+            <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2"
+                 th:if="${!daDangKy.empty}">
+                <small class="text-muted">
+                    Xem lại danh sách phía trên, nếu đã đúng thì gửi phiếu xác nhận về email của bạn để lưu lại.
+                </small>
+                <form th:action="@{/sinhvien/dangky/xacnhan}" method="post" class="m-0">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-envelope-circle-check me-1"></i>
+                        Gửi phiếu xác nhận về email
+                    </button>
+                </form>
             </div>
         </div>
+
+        <!-- ===== Ngành chưa khai báo chương trình đào tạo ===== -->
+        <div th:if="${!keHoach.coChuongTrinh}" class="alert alert-warning">
+            <i class="fas fa-triangle-exclamation me-1"></i>
+            Ngành của bạn chưa được khai báo chương trình đào tạo nên chưa dựng được
+            danh sách học phần. Liên hệ Phòng Đào tạo.
+        </div>
+
+        <!-- ===== Chương trình đào tạo của ngành ===== -->
+        <th:block th:if="${keHoach.coChuongTrinh}">
+
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <span class="fw-bold">
+                            Chương trình đào tạo ngành
+                            <span th:text="${sinhVien.nganh?.tenNganh}"></span>
+                        </span>
+                        <span class="small text-muted">
+                            Đã đạt <strong th:text="${keHoach.soMonDaDat}"></strong>
+                            / <span th:text="${keHoach.tongSoMon}"></span> học phần
+                            (<span th:text="${keHoach.soTinChiDaDat}"></span> tín chỉ)
+                        </span>
+                    </div>
+
+                    <div class="small text-muted mt-2">
+                        Bạn đang ở <strong th:text="'học kỳ thứ ' + ${hocKyThu}"></strong> của chương trình.
+                        Bấm vào từng dòng để xem lớp đang mở hoặc lý do chưa đăng ký được.
+                    </div>
+
+                    <!-- Chú thích màu, không có thì sinh viên phải tự đoán ý nghĩa -->
+                    <div class="small mt-2 d-flex flex-wrap gap-3">
+                        <span><span class="o-mau" style="background:#d1e7dd"></span>Đăng ký được</span>
+                        <span><span class="o-mau" style="background:#cfe2ff"></span>Đã đăng ký</span>
+                        <span><span class="o-mau" style="background:#fff"></span>Chưa đủ điều kiện</span>
+                        <span><span class="o-mau" style="background:#f8f9fa"></span>Kỳ này không mở</span>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table data-trang="0" class="table align-middle mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th style="width: 2rem;"></th>
+                            <th>Mã học phần</th>
+                            <th>Tên học phần</th>
+                            <th class="text-center">TC</th>
+                            <th class="d-none d-md-table-cell">Khối kiến thức</th>
+                            <th class="text-center">Trạng thái</th>
+                        </tr>
+                        </thead>
+
+                        <tbody th:each="nhom : ${keHoach.dsNhom}">
+
+                        <!-- Dải phân cách theo học kỳ của chương trình -->
+                        <tr class="table-secondary" data-bo-qua>
+                            <td colspan="6" class="fw-semibold small">
+                                <span th:if="${nhom.hocKyDuKien gt 0}"
+                                      th:text="'Học kỳ ' + ${nhom.hocKyDuKien} + ' của chương trình'"></span>
+                                <span th:if="${nhom.hocKyDuKien == 0}">Chưa xếp học kỳ</span>
+                                <span class="fw-normal text-muted ms-2"
+                                      th:text="'(' + ${nhom.soMonConLai} + ' học phần, '
+                                               + ${nhom.soTinChi} + ' tín chỉ)'"></span>
+                                <span th:if="${nhom.soMonDangKyDuoc gt 0}"
+                                      class="badge bg-success ms-2"
+                                      th:text="${nhom.soMonDangKyDuoc} + ' môn đăng ký được'"></span>
+                            </td>
+                        </tr>
+
+                        <th:block th:each="muc, lap : ${nhom.dsMuc}"
+                                  th:with="idO='mon-' + ${nhom.hocKyDuKien} + '-' + ${lap.index}">
+
+                            <tr class="dong-mon" th:classappend="${muc.mauDong}"
+                                data-bs-toggle="collapse"
+                                th:attr="data-bs-target='#' + ${idO}, aria-controls=${idO}"
+                                aria-expanded="false">
+
+                                <td class="text-center">
+                                    <i class="fas fa-chevron-right mui-ten"></i>
+                                </td>
+                                <td class="ma-mon" th:text="${muc.hocPhan.maHocPhan}"></td>
+                                <td>
+                                    <span th:text="${muc.hocPhan.tenHocPhan}"></span>
+                                    <span th:if="${muc.ct.loaiHocPhan == 2}"
+                                          class="badge bg-light text-dark border ms-1">Tự chọn</span>
+                                </td>
+                                <td class="text-center" th:text="${muc.hocPhan.soTinChi}"></td>
+                                <td class="d-none d-md-table-cell small text-muted"
+                                    th:text="${muc.ct.tenKhoiKienThuc}"></td>
+
+                                <td class="text-center">
+                                    <span th:if="${muc.daDangKy}" class="badge bg-primary">
+                                        <i class="fas fa-check me-1"></i>Đã đăng ký
+                                    </span>
+                                    <span th:if="${muc.dangKyDuoc}" class="badge bg-success">
+                                        <i class="fas fa-circle-plus me-1"></i>Đăng ký được
+                                    </span>
+                                    <span th:if="${muc.vuongDieuKien}" class="badge bg-warning text-dark">
+                                        <i class="fas fa-lock me-1"></i>Chưa đủ điều kiện
+                                    </span>
+                                    <span th:if="${muc.chuaMo}" class="badge bg-light text-dark border">
+                                        <i class="fas fa-calendar-xmark me-1"></i>Kỳ này không mở
+                                    </span>
+                                </td>
+                            </tr>
+
+                            <!-- ===== Chi tiết, mở ra khi bấm vào dòng ===== -->
+                            <tr class="o-chitiet collapse" data-bo-qua th:id="${idO}">
+                                <td colspan="6">
+                                    <div class="hop-chitiet">
+
+                                        <!-- Không đăng ký được: nói rõ vì sao -->
+                                        <div th:if="${!muc.dangKyDuoc and !muc.daDangKy}"
+                                             class="alert alert-warning py-2 mb-0 small">
+                                            <i class="fas fa-circle-info me-1"></i>
+                                            <span th:text="${muc.giaiThich}"></span>
+                                        </div>
+
+                                        <!-- Đã đăng ký rồi: chỉ chỗ hủy -->
+                                        <div th:if="${muc.daDangKy}"
+                                             class="alert alert-primary py-2 mb-0 small">
+                                            <i class="fas fa-circle-check me-1"></i>
+                                            Bạn đã đăng ký lớp
+                                            <strong th:text="${muc.dangKy.lopHocPhan.maLop}"></strong>
+                                            của học phần này. Muốn đổi lớp thì hủy ở bảng
+                                            &quot;Học phần đã đăng ký&quot; phía trên rồi chọn lại.
+                                        </div>
+
+                                        <!-- Danh sách lớp đang mở của học phần -->
+                                        <div th:if="${!muc.dsLop.empty}"
+                                             th:classappend="${muc.dangKyDuoc} ? '' : 'mt-3'">
+                                            <div class="small fw-semibold text-muted mb-2">
+                                                Lớp đang mở trong học kỳ này
+                                            </div>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm bang-lop align-middle mb-0">
+                                                    <thead>
+                                                    <tr>
+                                                        <th>Mã lớp</th>
+                                                        <th>Loại lớp</th>
+                                                        <th>Lịch học</th>
+                                                        <th class="text-center">Sĩ số</th>
+                                                        <th class="text-center">Thao tác</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    <tr th:each="l : ${muc.dsLop}">
+                                                        <td class="ma-mon" th:text="${l.lop.maLop}"></td>
+                                                        <td>
+                                                            <span class="badge"
+                                                                  th:classappend="${l.lop.mauLoaiLop}"
+                                                                  th:text="${l.lop.tenLoaiLop}"></span>
+                                                        </td>
+                                                        <td>
+                                                            <div th:each="lh : ${lichTheoLop[l.lop.maLopHocPhan]}"
+                                                                 th:text="${lh.tenThu} + ', tiết ' + ${lh.tietBatDau}
+                                                                          + '–' + ${lh.tietKetThuc}
+                                                                          + ' (' + ${lh.phongHoc?.maPhong} + ')'"></div>
+                                                            <span th:if="${lichTheoLop[l.lop.maLopHocPhan] == null}"
+                                                                  class="text-muted">Chưa xếp lịch</span>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <span th:text="${l.siSo} + ' / ' + ${l.lop.siSoToiDa}"
+                                                                  th:classappend="${l.dayLop} ? 'text-danger fw-bold'"></span>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <form th:if="${l.dangKyDuoc}"
+                                                                  th:action="@{/sinhvien/dangky/{id}(id=${l.lop.maLopHocPhan})}"
+                                                                  method="post" class="d-inline">
+                                                                <button type="submit" class="btn btn-sm btn-primary">
+                                                                    <i class="fas fa-plus"></i> Đăng ký
+                                                                </button>
+                                                            </form>
+                                                            <span th:if="${!l.dangKyDuoc}"
+                                                                  class="badge bg-light text-dark border text-wrap"
+                                                                  style="max-width: 260px;"
+                                                                  th:text="${l.lyDo}"></span>
+                                                        </td>
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </td>
+                            </tr>
+
+                        </th:block>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ===== Môn đã hoàn thành, gom lại cho gọn ===== -->
+            <div class="card shadow-sm mt-4" th:if="${keHoach.soMonDaDat gt 0}">
+                <div class="card-header dong-mon d-flex justify-content-between align-items-center"
+                     data-bs-toggle="collapse" data-bs-target="#monDaDat"
+                     aria-controls="monDaDat" aria-expanded="false">
+                    <span class="fw-bold">
+                        <i class="fas fa-chevron-right mui-ten me-1"></i>
+                        Học phần đã hoàn thành
+                    </span>
+                    <span class="badge bg-success"
+                          th:text="${keHoach.soMonDaDat} + ' học phần · '
+                                   + ${keHoach.soTinChiDaDat} + ' tín chỉ'"></span>
+                </div>
+                <div class="collapse" id="monDaDat">
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Mã học phần</th>
+                                <th>Tên học phần</th>
+                                <th class="text-center">TC</th>
+                                <th class="d-none d-md-table-cell">Khối kiến thức</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="muc : ${keHoach.dsDaDat}" class="text-muted">
+                                <td class="ma-mon" th:text="${muc.hocPhan.maHocPhan}"></td>
+                                <td th:text="${muc.hocPhan.tenHocPhan}"></td>
+                                <td class="text-center" th:text="${muc.hocPhan.soTinChi}"></td>
+                                <td class="d-none d-md-table-cell small"
+                                    th:text="${muc.ct.tenKhoiKienThuc}"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </th:block>
 
     </th:block>
 </div>

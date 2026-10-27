@@ -1,270 +1,269 @@
 package vn.TieuLuanChuyenNganhFITHCMUTE.Service;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.persistence.EntityManager;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import vn.TieuLuanChuyenNganhFITHCMUTE.Entity.ChuongTrinhDaoTao;
-import vn.TieuLuanChuyenNganhFITHCMUTE.Entity.DonVi;
 import vn.TieuLuanChuyenNganhFITHCMUTE.Entity.HocPhan;
 import vn.TieuLuanChuyenNganhFITHCMUTE.Entity.Nganh;
 import vn.TieuLuanChuyenNganhFITHCMUTE.Repository.ChuongTrinhDaoTaoRepository;
-import vn.TieuLuanChuyenNganhFITHCMUTE.Repository.DonViRepository;
 import vn.TieuLuanChuyenNganhFITHCMUTE.Repository.HocPhanRepository;
 import vn.TieuLuanChuyenNganhFITHCMUTE.Repository.NganhRepository;
 
-/** Chương trình đào tạo: xem theo ngành và nhập từ file Excel */
+/**
+ * Chương trình đào tạo của các ngành: xem và chỉnh sửa trực tiếp.
+ *
+ * Chương trình đào tạo là gốc của gần như mọi thứ phía sau: sinh viên đăng
+ * ký được môn nào, Phòng Đào tạo phải mở bao nhiêu lớp ở học kỳ nào, học phí
+ * tính trên bao nhiêu tín chỉ. Sửa ở đây là sửa vào chỗ đó, nên mọi điều
+ * kiện đều kiểm ở tầng này chứ không giao cho giao diện.
+ */
 @Service
 @RequiredArgsConstructor
 public class ChuongTrinhService {
 
-	private static final String[] TIEU_DE = {
-		"Tên ngành", "Mã học phần", "Tên học phần", "Số tín chỉ",
-		"Khoa phụ trách", "Học kỳ dự kiến", "Khối kiến thức", "Loại học phần"
-	};
+	private static final int DANG_AP_DUNG = 1;
+	private static final int NGUNG_AP_DUNG = 0;
+
+	private static final int SO_HOC_KY_TOI_DA = 8;
 
 	private final EntityManager em;
 	private final NganhRepository nganhRepository;
 	private final HocPhanRepository hocPhanRepository;
-	private final DonViRepository donViRepository;
 	private final ChuongTrinhDaoTaoRepository chuongTrinhRepository;
 
 	/** Một dòng trong bảng tổng quan các ngành */
-	public record NganhThongKe(Integer maNganh, String tenNganh, String tenKhoa,
-	                           long soHocPhan, long tongTinChi) {}
+	public record NganhThongKe(Integer maNganh, String tenNganh,
+	                           Integer maDonVi, String tenKhoa,
+	                           long soHocPhan, long tongTinChi) {
 
-	@Getter
-	public static class KetQuaImport {
-		private int tongDong;
-		private int thanhCong;
-		private int hocPhanMoi;
-		private int boQuaTrung;
-		private final List<String> loi = new ArrayList<>();
-
-		public int getSoLoi() { return loi.size(); }
+		public boolean coChuongTrinh() { return soHocPhan > 0; }
 	}
+
+	/** Một ô trên màn hình chọn khoa */
+	@Getter
+	public static class KhoaThongKe {
+		private final Integer maDonVi;
+		private final String ten;
+
+		private int soNganh;
+		private int soNganhCoChuongTrinh;
+		private long tongHocPhan;
+
+		KhoaThongKe(Integer maDonVi, String ten) { this.maDonVi = maDonVi; this.ten = ten; }
+
+		public int getSoNganhChuaCo() { return soNganh - soNganhCoChuongTrinh; }
+		public boolean isXong()       { return soNganh > 0 && getSoNganhChuaCo() == 0; }
+	}
+
+	/** Kết quả một lần xóa, để màn hình nói đúng chuyện vừa xảy ra */
+	public record KetQuaXoa(boolean xoaHan, long soSinhVienDaHoc) {}
 
 	// ===================== XEM =====================
 
+	/**
+	 * Thống kê chương trình của từng ngành, kèm khoa quản lý.
+	 *
+	 * Nối LEFT tới đơn vị chứ không viết n.donVi.tenDonVi. Cách viết tắt đó
+	 * sinh ra phép nối trong, nên ngành chưa gắn khoa sẽ biến mất khỏi danh
+	 * sách — đúng những ngành đang thiếu dữ liệu lại là thứ không ai nhìn
+	 * thấy để sửa.
+	 */
 	@Transactional(readOnly = true)
 	public List<NganhThongKe> tongQuanCacNganh() {
 		return em.createQuery("""
-				SELECT n.maNganh, n.tenNganh, n.donVi.tenDonVi,
+				SELECT n.maNganh, n.tenNganh, dv.maDonVi, dv.tenDonVi,
 				       COUNT(ct), COALESCE(SUM(ct.hocPhan.soTinChi), 0)
-				FROM Nganh n LEFT JOIN ChuongTrinhDaoTao ct
+				FROM Nganh n
+				LEFT JOIN n.donVi dv
+				LEFT JOIN ChuongTrinhDaoTao ct
 				       ON ct.nganh = n AND ct.trangThai = 1
-				GROUP BY n.maNganh, n.tenNganh, n.donVi.tenDonVi
-				ORDER BY n.donVi.tenDonVi, n.tenNganh
+				GROUP BY n.maNganh, n.tenNganh, dv.maDonVi, dv.tenDonVi
+				ORDER BY dv.tenDonVi, n.tenNganh
 				""", Object[].class)
 				.getResultList().stream()
-				.map(r -> new NganhThongKe((Integer) r[0], (String) r[1], (String) r[2],
-						((Number) r[3]).longValue(), ((Number) r[4]).longValue()))
+				.map(r -> new NganhThongKe(
+						(Integer) r[0], (String) r[1],
+						(Integer) r[2], (String) r[3],
+						((Number) r[4]).longValue(), ((Number) r[5]).longValue()))
+				.toList();
+	}
+
+	/** Gom theo khoa cho màn hình chọn khoa */
+	@Transactional(readOnly = true)
+	public List<KhoaThongKe> tongQuanCacKhoa() {
+		Map<Integer, KhoaThongKe> theoKhoa = new LinkedHashMap<>();
+
+		for (NganhThongKe n : tongQuanCacNganh()) {
+			Integer ma = (n.maDonVi() == null) ? -1 : n.maDonVi();
+			String ten = (n.tenKhoa() == null) ? "Chưa gắn khoa" : n.tenKhoa();
+
+			KhoaThongKe k = theoKhoa.computeIfAbsent(ma, x -> new KhoaThongKe(x, ten));
+			k.soNganh++;
+			k.tongHocPhan += n.soHocPhan();
+			if (n.coChuongTrinh()) k.soNganhCoChuongTrinh++;
+		}
+		return new ArrayList<>(theoKhoa.values());
+	}
+
+	/** Các ngành của một khoa; mã -1 là nhóm ngành chưa gắn khoa */
+	@Transactional(readOnly = true)
+	public List<NganhThongKe> dsNganhCuaKhoa(Integer maDonVi) {
+		return tongQuanCacNganh().stream()
+				.filter(n -> {
+					Integer ma = (n.maDonVi() == null) ? -1 : n.maDonVi();
+					return ma.equals(maDonVi);
+				})
 				.toList();
 	}
 
 	@Transactional(readOnly = true)
 	public List<ChuongTrinhDaoTao> chiTiet(Integer maNganh) {
 		return chuongTrinhRepository.findByNganh_MaNganhAndTrangThai(
-				maNganh, 1, Sort.by("hocKyDuKien", "hocPhan.maHocPhan"));
+				maNganh, DANG_AP_DUNG, Sort.by("hocKyDuKien", "hocPhan.maHocPhan"));
 	}
 
-	// ===================== NHẬP EXCEL =====================
+	/**
+	 * Các học phần còn có thể thêm vào chương trình của ngành này.
+	 *
+	 * Chỉ loại ra những học phần đang áp dụng. Học phần từng bị gỡ khỏi
+	 * chương trình vẫn hiện lại trong danh sách, vì trường có thể đưa một
+	 * môn trở lại chương trình ở lần chỉnh khung tiếp theo.
+	 */
+	@Transactional(readOnly = true)
+	public List<HocPhan> hocPhanCoTheThem(Integer maNganh) {
+		return em.createQuery("""
+				SELECT hp FROM HocPhan hp
+				WHERE hp.trangThai = 1
+				  AND hp.maHocPhanId NOT IN (
+				      SELECT ct.hocPhan.maHocPhanId FROM ChuongTrinhDaoTao ct
+				      WHERE ct.nganh.maNganh = :maNganh AND ct.trangThai = 1
+				  )
+				ORDER BY hp.maHocPhan
+				""", HocPhan.class)
+				.setParameter("maNganh", maNganh)
+				.getResultList();
+	}
+
+	// ===================== THÊM =====================
 
 	@Transactional
-	public KetQuaImport nhapTuFile(MultipartFile file) {
-		KetQuaImport kq = new KetQuaImport();
+	public void them(Integer maNganh, Integer maHocPhanId, Integer hocKyDuKien,
+	                 Integer khoiKienThuc, Integer loaiHocPhan) {
 
-		if (file == null || file.isEmpty())
-			throw new IllegalStateException("Chưa chọn file Excel.");
-		String ten = file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase();
-		if (!ten.endsWith(".xlsx"))
-			throw new IllegalStateException("Chỉ nhận file .xlsx.");
+		Nganh nganh = nganhRepository.findById(maNganh)
+				.orElseThrow(() -> new IllegalStateException("Không tìm thấy ngành."));
+		HocPhan hp = hocPhanRepository.findById(maHocPhanId)
+				.orElseThrow(() -> new IllegalStateException("Không tìm thấy học phần."));
 
-		// Cặp ngành + học phần đã gặp trong chính file này
-		Set<String> daGapTrongFile = new HashSet<>();
+		kiemTraGiaTri(hocKyDuKien, khoiKienThuc, loaiHocPhan);
 
-		try (InputStream in = file.getInputStream(); Workbook wb = new XSSFWorkbook(in)) {
-			Sheet sheet = wb.getSheetAt(0);
+		/*
+		 * Bảng có ràng buộc duy nhất trên cặp (ngành, học phần), kể cả dòng
+		 * đã ngừng áp dụng. Nên khi học phần từng nằm trong chương trình rồi
+		 * bị gỡ, phải bật lại dòng cũ thay vì chèn dòng mới — chèn mới sẽ
+		 * vướng ràng buộc và văng lỗi cơ sở dữ liệu khó hiểu ra màn hình.
+		 */
+		ChuongTrinhDaoTao ct = chuongTrinhRepository
+				.findByNganh_MaNganhAndHocPhan_MaHocPhanId(maNganh, maHocPhanId)
+				.orElseGet(ChuongTrinhDaoTao::new);
 
-			for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-				Row row = sheet.getRow(i);
-				if (row == null || laDongTrong(row)) continue;
+		if (ct.getMaChuongTrinh() != null
+				&& Integer.valueOf(DANG_AP_DUNG).equals(ct.getTrangThai()))
+			throw new IllegalStateException(
+					"Học phần \"" + hp.getTenHocPhan() + "\" đã có trong chương trình của ngành này.");
 
-				kq.tongDong++;
-				try {
-					docMotDong(row, kq, daGapTrongFile);
-				} catch (IllegalStateException e) {
-					kq.getLoi().add("Dòng " + (i + 1) + ": " + e.getMessage());
-				}
-			}
-		} catch (IllegalStateException e) {
-			throw e;
-		} catch (Exception e) {
-			throw new IllegalStateException("Không đọc được file Excel: " + e.getMessage());
-		}
-
-		if (kq.getTongDong() == 0)
-			throw new IllegalStateException("File không có dòng dữ liệu nào.");
-		return kq;
-	}
-
-	private void docMotDong(Row row, KetQuaImport kq, Set<String> daGapTrongFile) {
-		String tenNganh = chuoi(row.getCell(0));
-		String maHp     = chuoi(row.getCell(1));
-		String tenHp    = chuoi(row.getCell(2));
-		String tinChiS  = chuoi(row.getCell(3));
-		String tenKhoa  = chuoi(row.getCell(4));
-		String hocKyS   = chuoi(row.getCell(5));
-		String khoiS    = chuoi(row.getCell(6));
-		String loaiS    = chuoi(row.getCell(7));
-
-		if (tenNganh.isBlank()) throw new IllegalStateException("thiếu tên ngành.");
-		if (maHp.isBlank())     throw new IllegalStateException("thiếu mã học phần.");
-		if (tenHp.isBlank())    throw new IllegalStateException("thiếu tên học phần.");
-
-		int tinChi = soNguyen(tinChiS, "số tín chỉ");
-		if (tinChi < 1 || tinChi > 15)
-			throw new IllegalStateException("số tín chỉ phải từ 1 đến 15.");
-
-		int hocKy = hocKyS.isBlank() ? 1 : soNguyen(hocKyS, "học kỳ dự kiến");
-		if (hocKy < 1 || hocKy > 8)
-			throw new IllegalStateException("học kỳ dự kiến phải từ 1 đến 8.");
-
-		Nganh nganh = nganhRepository.findByTenNganh(tenNganh)
-				.orElseThrow(() -> new IllegalStateException("không tìm thấy ngành \"" + tenNganh + "\"."));
-
-		if (!daGapTrongFile.add(nganh.getMaNganh() + "|" + maHp))
-			throw new IllegalStateException("cặp ngành và học phần " + maHp + " bị lặp trong file.");
-
-		// --- Học phần: có rồi thì dùng lại, chưa có thì tạo mới ---
-		HocPhan hp = hocPhanRepository.findByMaHocPhan(maHp).orElse(null);
-		if (hp == null) {
-			DonVi donVi = tenKhoa.isBlank() ? nganh.getDonVi()
-					: donViRepository.findByTenDonVi(tenKhoa).orElse(nganh.getDonVi());
-
-			hp = new HocPhan();
-			hp.setMaHocPhan(maHp);
-			hp.setTenHocPhan(tenHp);
-			hp.setSoTinChi(tinChi);
-			hp.setSoTietLyThuyet(tinChi * 15);
-			hp.setSoTietThucHanh(tinChi >= 3 ? 30 : 15);
-			hp.setDonVi(donVi);
-			hp.setTrangThai(1);
-			hp = hocPhanRepository.save(hp);
-			kq.hocPhanMoi++;
-		}
-
-		// --- Dòng chương trình đào tạo ---
-		if (chuongTrinhRepository.existsByNganh_MaNganhAndHocPhan_MaHocPhanId(
-				nganh.getMaNganh(), hp.getMaHocPhanId())) {
-			kq.boQuaTrung++;
-			return;
-		}
-
-		ChuongTrinhDaoTao ct = new ChuongTrinhDaoTao();
 		ct.setNganh(nganh);
 		ct.setHocPhan(hp);
-		ct.setHocKyDuKien(hocKy);
-		ct.setKhoiKienThuc(doiKhoi(khoiS));
-		ct.setLoaiHocPhan(loaiS.toLowerCase().startsWith("tự") ? 2 : 1);
-		ct.setTrangThai(1);
-		chuongTrinhRepository.save(ct);
-		kq.thanhCong++;
+		ct.setHocKyDuKien(hocKyDuKien);
+		ct.setKhoiKienThuc(khoiKienThuc);
+		ct.setLoaiHocPhan(loaiHocPhan);
+		ct.setTrangThai(DANG_AP_DUNG);
+		chuongTrinhRepository.saveAndFlush(ct);
 	}
 
-	// ===================== FILE MẪU =====================
+	// ===================== SỬA =====================
 
-	public byte[] taoFileMau() {
-		try (Workbook wb = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-			Sheet sheet = wb.createSheet("ChuongTrinhDaoTao");
+	@Transactional
+	public void sua(Integer maChuongTrinh, Integer hocKyDuKien,
+	                Integer khoiKienThuc, Integer loaiHocPhan) {
 
-			CellStyle kieuTieuDe = wb.createCellStyle();
-			Font chuDam = wb.createFont();
-			chuDam.setBold(true);
-			kieuTieuDe.setFont(chuDam);
+		ChuongTrinhDaoTao ct = chuongTrinhRepository.findById(maChuongTrinh)
+				.orElseThrow(() -> new IllegalStateException("Không tìm thấy dòng chương trình."));
 
-			Row tieuDe = sheet.createRow(0);
-			for (int i = 0; i < TIEU_DE.length; i++) {
-				Cell c = tieuDe.createCell(i);
-				c.setCellValue(TIEU_DE[i]);
-				c.setCellStyle(kieuTieuDe);
-			}
+		kiemTraGiaTri(hocKyDuKien, khoiKienThuc, loaiHocPhan);
 
-			String tenNganhMau = nganhRepository.findAll().stream()
-					.findFirst().map(Nganh::getTenNganh).orElse("Công nghệ thông tin");
-			Object[][] mau = {
-				{tenNganhMau, "LLCT130105", "Triết học Mác - Lênin", 3, "Khoa Chính trị và Luật", 1, "Đại cương", "Bắt buộc"},
-				{tenNganhMau, "CNTT05",     "Kỹ thuật lập trình nâng cao", 3, "", 5, "Chuyên ngành", "Tự chọn"},
-			};
-			for (int r = 0; r < mau.length; r++) {
-				Row row = sheet.createRow(r + 1);
-				for (int c = 0; c < mau[r].length; c++) {
-					Object v = mau[r][c];
-					if (v instanceof Integer n) row.createCell(c).setCellValue(n);
-					else row.createCell(c).setCellValue(String.valueOf(v));
-				}
-			}
-			for (int i = 0; i < TIEU_DE.length; i++) sheet.autoSizeColumn(i);
+		// Học phần và ngành không cho đổi: đổi hai thứ đó nghĩa là một dòng
+		// khác hẳn, nên gỡ dòng cũ rồi thêm dòng mới cho rõ ràng.
+		ct.setHocKyDuKien(hocKyDuKien);
+		ct.setKhoiKienThuc(khoiKienThuc);
+		ct.setLoaiHocPhan(loaiHocPhan);
+		chuongTrinhRepository.saveAndFlush(ct);
+	}
 
-			wb.write(out);
-			return out.toByteArray();
-		} catch (Exception e) {
-			throw new IllegalStateException("Không tạo được file mẫu: " + e.getMessage());
+	// ===================== XÓA =====================
+
+	/**
+	 * Gỡ một học phần khỏi chương trình.
+	 *
+	 * Chưa sinh viên nào của ngành học môn đó thì xóa hẳn dòng, vì nó chỉ là
+	 * một dòng khai báo khung chương trình, không có gì tham chiếu tới.
+	 *
+	 * Đã có sinh viên học thì chuyển sang ngừng áp dụng chứ không xóa. Điểm
+	 * và lượt đăng ký của họ gắn vào lớp học phần nên không mất, nhưng xóa
+	 * dòng khung đi thì không còn tra được "khóa đó học môn này ở học kỳ mấy,
+	 * bắt buộc hay tự chọn" — đúng thứ cần đến khi xét tốt nghiệp.
+	 */
+	@Transactional
+	public KetQuaXoa xoa(Integer maChuongTrinh) {
+		ChuongTrinhDaoTao ct = chuongTrinhRepository.findById(maChuongTrinh)
+				.orElseThrow(() -> new IllegalStateException("Không tìm thấy dòng chương trình."));
+
+		long daHoc = soSinhVienDaHoc(ct.getNganh().getMaNganh(),
+				ct.getHocPhan().getMaHocPhanId());
+
+		if (daHoc == 0) {
+			chuongTrinhRepository.delete(ct);
+			return new KetQuaXoa(true, 0);
 		}
+
+		ct.setTrangThai(NGUNG_AP_DUNG);
+		chuongTrinhRepository.saveAndFlush(ct);
+		return new KetQuaXoa(false, daHoc);
 	}
 
-	// ===================== ĐỌC Ô =====================
-
-	private boolean laDongTrong(Row row) {
-		for (int i = 0; i < TIEU_DE.length; i++) {
-			if (!chuoi(row.getCell(i)).isBlank()) return false;
-		}
-		return true;
+	/** Số lượt sinh viên của ngành này đã đăng ký học phần đó */
+	private long soSinhVienDaHoc(Integer maNganh, Integer maHocPhanId) {
+		return em.createQuery("""
+				SELECT COUNT(dk) FROM DangKyHocPhan dk
+				WHERE dk.lopHocPhan.hocPhan.maHocPhanId = :maHocPhanId
+				  AND dk.sinhVien.nganh.maNganh = :maNganh
+				""", Long.class)
+				.setParameter("maHocPhanId", maHocPhanId)
+				.setParameter("maNganh", maNganh)
+				.getSingleResult();
 	}
 
-	private String chuoi(Cell cell) {
-		if (cell == null) return "";
-		return switch (cell.getCellType()) {
-			case STRING -> cell.getStringCellValue().trim();
-			case NUMERIC -> String.valueOf((long) cell.getNumericCellValue());
-			case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
-			case FORMULA -> cell.getCellFormula();
-			default -> "";
-		};
-	}
+	// ===================== DÙNG CHUNG =====================
 
-	private int soNguyen(String s, String ten) {
-		try {
-			return Integer.parseInt(s.trim());
-		} catch (Exception e) {
-			throw new IllegalStateException(ten + " \"" + s + "\" không phải số.");
-		}
-	}
+	private void kiemTraGiaTri(Integer hocKyDuKien, Integer khoiKienThuc, Integer loaiHocPhan) {
+		if (hocKyDuKien == null || hocKyDuKien < 1 || hocKyDuKien > SO_HOC_KY_TOI_DA)
+			throw new IllegalStateException(
+					"Học kỳ dự kiến phải từ 1 đến " + SO_HOC_KY_TOI_DA + ".");
 
-	/** 1 đại cương, 2 cơ sở ngành, 3 chuyên ngành, 4 tốt nghiệp */
-	private int doiKhoi(String s) {
-		String k = s == null ? "" : s.toLowerCase();
-		if (k.startsWith("cơ sở") || k.startsWith("co so")) return 2;
-		if (k.startsWith("chuyên") || k.startsWith("chuyen")) return 3;
-		if (k.startsWith("tốt") || k.startsWith("tot")) return 4;
-		return 1;
+		if (khoiKienThuc == null || khoiKienThuc < 1 || khoiKienThuc > 4)
+			throw new IllegalStateException("Chưa chọn khối kiến thức.");
+
+		if (loaiHocPhan == null || (loaiHocPhan != 1 && loaiHocPhan != 2))
+			throw new IllegalStateException("Chưa chọn loại học phần.");
 	}
 }

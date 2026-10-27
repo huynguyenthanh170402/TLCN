@@ -9,9 +9,26 @@
 
 <h5 layout:fragment="page-title">Lớp giảng dạy</h5>
 
-<div layout:fragment="content">
+<div layout:fragment="content" th:if="${giangVien != null}">
 
-    <div class="card shadow-sm" th:if="${giangVien != null}">
+    <!-- ============ Chọn học kỳ ============ -->
+    <form method="get" th:action="@{/giangvien/lop}" class="mb-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-5 col-lg-4">
+                <label class="form-label small text-muted mb-1">Học kỳ</label>
+                <select name="maHocKy" class="form-select form-select-sm"
+                        onchange="this.form.submit()">
+                    <option value="">Tất cả học kỳ</option>
+                    <option th:each="hk : ${dsHocKy}"
+                            th:value="${hk.maHocKy}"
+                            th:text="${hk.tenHocKy}"
+                            th:selected="${maHocKy != null and maHocKy == hk.maHocKy}"></option>
+                </select>
+            </div>
+        </div>
+    </form>
+
+    <div class="card shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
@@ -20,6 +37,7 @@
                     <th>Mã lớp</th>
                     <th>Học phần</th>
                     <th class="text-center">TC</th>
+                    <th>Vai trò</th>
                     <th class="text-center">Sĩ số</th>
                     <th class="text-center">Trạng thái lớp</th>
                     <th class="text-center">Bảng điểm</th>
@@ -28,13 +46,20 @@
                 </thead>
                 <tbody>
                 <tr th:if="${dsPhanCong.empty}">
-                    <td colspan="8" class="text-center text-muted py-4">Bạn chưa được phân công lớp nào.</td>
+                    <td colspan="9" class="text-center text-muted py-4">
+                        Bạn chưa được phân công lớp nào trong học kỳ đã chọn.
+                    </td>
                 </tr>
                 <tr th:each="pc : ${dsPhanCong}" th:with="lop=${pc.lopHocPhan}">
                     <td class="small" th:text="${lop.hocKy.maHocKyCode}"></td>
                     <td class="small fw-semibold" th:text="${lop.maLop}"></td>
                     <td th:text="${lop.hocPhan.tenHocPhan}"></td>
                     <td class="text-center" th:text="${lop.hocPhan.soTinChi}"></td>
+                    <td class="small">
+                        <span class="badge"
+                              th:classappend="${pc.vaiTro == 1} ? 'bg-success' : 'bg-secondary'"
+                              th:text="${pc.tenVaiTro}">Vai trò</span>
+                    </td>
                     <td class="text-center" th:text="${siSo[lop.maLopHocPhan]}"></td>
                     <td class="text-center">
                         <span th:switch="${lop.trangThai}">
@@ -46,8 +71,13 @@
                         </span>
                     </td>
                     <td class="text-center small" th:text="${tinhTrang[lop.maLopHocPhan]}"></td>
-                    <td class="text-end">
-                        <a th:href="@{/giangvien/lop/{id}/diem(id=${lop.maLopHocPhan})}"
+                    <td class="text-end" style="white-space: nowrap;">
+                        <a th:href="@{/giangvien/lop/{id}(id=${lop.maLopHocPhan})}"
+                           class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-users"></i> Chi tiết
+                        </a>
+                        <a th:if="${pc.vaiTro == 1}"
+                           th:href="@{/giangvien/lop/{id}/diem(id=${lop.maLopHocPhan})}"
                            class="btn btn-sm btn-outline-primary">
                             <i class="fas fa-pen"></i> Nhập điểm
                         </a>
@@ -59,8 +89,13 @@
     </div>
 
     <p class="text-muted small mt-3">
-        Chỉ nhập điểm được khi lớp ở trạng thái <strong>Đang học</strong> hoặc <strong>Đã kết thúc</strong>.
-        Lớp còn mở đăng ký thì Phòng Đào tạo cần khóa đăng ký trước.
+        Chỉ <strong>giảng viên chính</strong> nhập được điểm. Trợ giảng và giảng viên
+        thực hành xem được danh sách sinh viên nhưng không sửa điểm, để một bảng điểm
+        chỉ có một người chịu trách nhiệm.
+    </p>
+    <p class="text-muted small">
+        Lớp còn ở trạng thái <strong>Mở đăng ký</strong> thì chưa nhập điểm được.
+        Phòng Đào tạo cần khóa đăng ký, chuyển lớp sang <strong>Đang học</strong> trước.
     </p>
 </div>
 </body>

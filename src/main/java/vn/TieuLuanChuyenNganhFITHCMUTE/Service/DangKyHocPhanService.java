@@ -172,11 +172,11 @@ public class DangKyHocPhanService {
 			}
 		}
 
-		// Giới hạn tín chỉ theo học lực
+		// Giới hạn tín chỉ theo học lực (chưa có điểm thì dùng mức mặc định)
 		BigDecimal gpa = ketQuaHocTapService.tinhTongKet(
-				ketQuaHocTapService.tatCa(sv.getMaSinhVien())).getGpa();
-		bc.gioiHanTinChi = (gpa.signum() > 0 && gpa.compareTo(GPA_CANH_BAO) < 0)
-				? TIN_CHI_HOC_LUC_YEU : TIN_CHI_TOI_DA;
+		        ketQuaHocTapService.tatCa(sv.getMaSinhVien())).getGpa();
+		boolean hocLucYeu = gpa != null && gpa.compareTo(GPA_CANH_BAO) < 0;
+		bc.gioiHanTinChi = hocLucYeu ? TIN_CHI_HOC_LUC_YEU : TIN_CHI_TOI_DA;
 
 		bc.lichDaDangKy = lichHocService.lichCuaCacDangKy(bc.daDangKy);
 		bc.loiChung = kiemTraChung(sv, hk);

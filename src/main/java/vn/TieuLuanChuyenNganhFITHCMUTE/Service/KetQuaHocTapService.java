@@ -180,8 +180,8 @@ public class KetQuaHocTapService {
 				}
 				if (Integer.valueOf(1).equals(kq.getKetQua())) tcDat += tc;
 			}
-			BigDecimal gpa = tcCoDiem == 0 ? BigDecimal.ZERO
-					: tongDiem.divide(BigDecimal.valueOf(tcCoDiem), 2, RoundingMode.HALF_UP);
+			BigDecimal gpa = tcCoDiem == 0 ? null
+			        : tongDiem.divide(BigDecimal.valueOf(tcCoDiem), 2, RoundingMode.HALF_UP);
 
 			kqNhom.add(new NhomHocKy(hocKy(trongKy.get(0)), dong, gpa, tcDangKy, tcDat));
 		}
@@ -195,30 +195,30 @@ public class KetQuaHocTapService {
 	 * nên môn học lại chỉ được tính một lần.
 	 */
 	public TongKet tinhTongKet(List<KetQuaHocPhan> ds) {
-		List<TongHopHocPhan> tongHop = tongHopTheoHocPhan(ds);
+	    List<TongHopHocPhan> tongHop = tongHopTheoHocPhan(ds);
 
-		BigDecimal tongDiem = BigDecimal.ZERO;
-		int tinChiDaHoc = 0, tinChiTichLuy = 0, soMonDat = 0;
+	    BigDecimal tongDiem = BigDecimal.ZERO;
+	    int tinChiDaHoc = 0, tinChiTichLuy = 0, soMonCoDiem = 0, soMonDat = 0;
 
-		for (TongHopHocPhan t : tongHop) {
-			KetQuaHocPhan kq = t.getDuocCongNhan();
-			if (kq == null) continue;
-			int tc = t.getHocPhan().getSoTinChi();
+	    for (TongHopHocPhan t : tongHop) {
+	        KetQuaHocPhan kq = t.getDuocCongNhan();
+	        if (kq == null || kq.getDiemHe4() == null) continue;   // chưa có điểm thì bỏ qua
+	        int tc = t.getHocPhan().getSoTinChi();
 
-			if (kq.getDiemHe4() != null) {
-				tongDiem = tongDiem.add(kq.getDiemHe4().multiply(BigDecimal.valueOf(tc)));
-				tinChiDaHoc += tc;
-			}
-			if (Integer.valueOf(1).equals(kq.getKetQua())) {
-				tinChiTichLuy += tc;
-				soMonDat++;
-			}
-		}
+	        tongDiem = tongDiem.add(kq.getDiemHe4().multiply(BigDecimal.valueOf(tc)));
+	        tinChiDaHoc += tc;
+	        soMonCoDiem++;
+	        if (Integer.valueOf(1).equals(kq.getKetQua())) {
+	            tinChiTichLuy += tc;
+	            soMonDat++;
+	        }
+	    }
 
-		BigDecimal gpa = tinChiDaHoc == 0 ? BigDecimal.ZERO
-				: tongDiem.divide(BigDecimal.valueOf(tinChiDaHoc), 2, RoundingMode.HALF_UP);
+	    BigDecimal gpa = tinChiDaHoc == 0 ? null
+	            : tongDiem.divide(BigDecimal.valueOf(tinChiDaHoc), 2, RoundingMode.HALF_UP);
 
-		return new TongKet(gpa, tinChiDaHoc, tinChiTichLuy, tongHop.size(), soMonDat, xepLoai(gpa));
+	    return new TongKet(gpa, tinChiDaHoc, tinChiTichLuy, soMonCoDiem, soMonDat,
+	            gpa == null ? null : xepLoai(gpa));
 	}
 
 	/** Các học kỳ có điểm, mới nhất trước — dùng cho ô lọc */
@@ -235,8 +235,8 @@ public class KetQuaHocTapService {
 		if (g >= 3.6) return "Xuất sắc";
 		if (g >= 3.2) return "Giỏi";
 		if (g >= 2.5) return "Khá";
-		if (g >= 2.0) return "Trung bình";
-		return "Yếu";
+		if (g >= 1.0) return "Yếu";
+		return "Kém";
 	}
 
 	// ===================== TIỆN ÍCH =====================

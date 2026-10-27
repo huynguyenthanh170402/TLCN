@@ -4,6 +4,10 @@
       layout:decorate="~{phongdaotao/layout}">
 <head>
     <title>Khung chương trình</title>
+    <style>
+        .ma-mon { font-family: ui-monospace, Consolas, monospace; font-size: .82rem; }
+        .cot-thaotac { width: 110px; }
+    </style>
 </head>
 <body>
 
@@ -13,12 +17,18 @@
 
     <nav>
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a th:href="@{/quanly/chuongtrinh}">Chương trình đào tạo</a></li>
+            <li class="breadcrumb-item">
+                <a th:href="@{/quanly/chuongtrinh}">Chương trình đào tạo</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a th:href="@{/quanly/chuongtrinh/khoa/{id}(id=${maDonVi})}"
+                   th:text="${tenKhoa}">Khoa</a>
+            </li>
             <li class="breadcrumb-item active" th:text="${nganh.tenNganh}"></li>
         </ol>
     </nav>
 
-    <div class="row g-3 mb-4">
+    <div class="row g-3 mb-3">
         <div class="col-md-4">
             <div class="card shadow-sm border-start border-primary border-4"><div class="card-body">
                 <div class="text-muted small">Tổng số tín chỉ</div>
@@ -39,8 +49,34 @@
         </div>
     </div>
 
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <span class="small text-muted">
+            Sửa khung chương trình là sửa thứ quyết định sinh viên đăng ký được môn nào
+            và Phòng Đào tạo phải mở lớp nào ở học kỳ nào.
+        </span>
+        <button type="button" class="btn btn-primary"
+                data-bs-toggle="modal" data-bs-target="#hopThem">
+            <i class="fas fa-plus me-1"></i> Thêm học phần
+        </button>
+    </div>
+
     <div th:if="${ds.empty}" class="alert alert-secondary">
-        Ngành này chưa có chương trình đào tạo. Hãy nhập từ file Excel.
+        Ngành này chưa có học phần nào trong chương trình. Bấm
+        <strong>Thêm học phần</strong> để bắt đầu dựng khung.
+    </div>
+
+    <form class="o-tim mb-3" role="search" th:unless="${ds.empty}">
+        <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-magnifying-glass"></i></span>
+            <input type="search" class="form-control"
+                   placeholder="Tìm theo mã học phần, tên học phần, khối kiến thức…"
+                   data-loc=".bang-mon" data-trong="#khongThayMon">
+            <button class="btn btn-outline-secondary" type="submit">Tìm</button>
+        </div>
+    </form>
+
+    <div class="alert alert-secondary" id="khongThayMon" hidden>
+        Không có học phần nào khớp với từ khóa.
     </div>
 
     <!-- Mỗi học kỳ một bảng.
@@ -48,13 +84,13 @@
          nếu để chung một thẻ thì biến mon chưa tồn tại lúc xét điều kiện. -->
     <th:block th:each="hk : ${#numbers.sequence(1, 8)}"
               th:with="mon=${ds.?[hocKyDuKien == __${hk}__]}">
-    <div class="card shadow-sm mb-3" th:if="${mon != null and !mon.isEmpty()}">
+    <div class="card shadow-sm mb-3" data-khoi th:if="${mon != null and !mon.isEmpty()}">
         <div class="card-header d-flex justify-content-between align-items-center">
             <span class="fw-bold" th:text="'Học kỳ ' + ${hk}"></span>
             <span class="small text-muted" th:text="${mon.size()} + ' học phần'"></span>
         </div>
         <div class="table-responsive">
-            <table class="table table-sm align-middle mb-0">
+            <table class="table table-sm align-middle mb-0 bang-mon">
                 <thead class="table-light">
                 <tr>
                     <th style="width:140px">Mã học phần</th>
@@ -62,11 +98,12 @@
                     <th class="text-center" style="width:70px">TC</th>
                     <th class="text-center" style="width:140px">Khối kiến thức</th>
                     <th class="text-center" style="width:110px">Loại</th>
+                    <th class="text-center cot-thaotac"></th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr th:each="ct : ${mon}">
-                    <td class="small fw-semibold" th:text="${ct.hocPhan.maHocPhan}"></td>
+                    <td class="ma-mon fw-semibold" th:text="${ct.hocPhan.maHocPhan}"></td>
                     <td th:text="${ct.hocPhan.tenHocPhan}"></td>
                     <td class="text-center" th:text="${ct.hocPhan.soTinChi}"></td>
                     <td class="text-center">
@@ -77,12 +114,219 @@
                               th:classappend="${ct.loaiHocPhan == 1} ? 'bg-secondary' : 'bg-info text-dark'"
                               th:text="${ct.tenLoaiHocPhan}"></span>
                     </td>
+                    <td class="text-center text-nowrap">
+                        <!-- Một hộp thoại sửa dùng chung, giá trị của dòng được
+                             gắn vào nút rồi đổ vào biểu mẫu lúc mở. Làm mỗi dòng
+                             một hộp thoại thì một ngành bốn mươi môn sẽ sinh ra
+                             bốn mươi khối HTML gần như giống hệt nhau. -->
+                        <button type="button" class="btn btn-sm btn-outline-secondary nut-sua"
+                                data-bs-toggle="modal" data-bs-target="#hopSua"
+                                th:attr="data-ma=${ct.maChuongTrinh},
+                                         data-ten=${ct.hocPhan.maHocPhan} + ' — ' + ${ct.hocPhan.tenHocPhan},
+                                         data-hocky=${ct.hocKyDuKien},
+                                         data-khoi=${ct.khoiKienThuc},
+                                         data-loai=${ct.loaiHocPhan}">
+                            <i class="fas fa-pen"></i>
+                        </button>
+
+                        <button type="button" class="btn btn-sm btn-outline-danger nut-xoa"
+                                data-bs-toggle="modal" data-bs-target="#hopXoa"
+                                th:attr="data-ma=${ct.maChuongTrinh},
+                                         data-ten=${ct.hocPhan.maHocPhan} + ' — ' + ${ct.hocPhan.tenHocPhan}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
                 </tr>
                 </tbody>
             </table>
         </div>
     </div>
     </th:block>
+
+    <!-- ===================== HỘP THOẠI THÊM ===================== -->
+    <div class="modal fade" id="hopThem" tabindex="-1">
+        <div class="modal-dialog">
+            <form class="modal-content" method="post"
+                  th:action="@{/quanly/chuongtrinh/nganh/{id}/them(id=${nganh.maNganh})}">
+                <div class="modal-header">
+                    <h6 class="modal-title">Thêm học phần vào chương trình</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+
+                    <div th:if="${dsHocPhanThem.empty}" class="alert alert-warning small mb-0">
+                        Mọi học phần đang hoạt động đều đã nằm trong chương trình của ngành này.
+                        Muốn thêm môn mới thì khai báo học phần trước.
+                    </div>
+
+                    <th:block th:unless="${dsHocPhanThem.empty}">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Học phần</label>
+                            <select name="maHocPhanId" class="form-select" required>
+                                <option value="">— Chọn học phần —</option>
+                                <option th:each="hp : ${dsHocPhanThem}"
+                                        th:value="${hp.maHocPhanId}"
+                                        th:text="${hp.maHocPhan} + ' — ' + ${hp.tenHocPhan}
+                                                 + ' (' + ${hp.soTinChi} + ' TC)'"></option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Học kỳ dự kiến</label>
+                            <select name="hocKyDuKien" class="form-select" required>
+                                <option th:each="i : ${#numbers.sequence(1, 8)}"
+                                        th:value="${i}" th:text="'Học kỳ ' + ${i}"></option>
+                            </select>
+                            <div class="form-text">
+                                Sinh viên chỉ đăng ký được khi đã tới học kỳ này của chương trình.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Khối kiến thức</label>
+                            <select name="khoiKienThuc" class="form-select" required>
+                                <option value="1">Đại cương</option>
+                                <option value="2">Cơ sở ngành</option>
+                                <option value="3">Chuyên ngành</option>
+                                <option value="4">Tốt nghiệp</option>
+                            </select>
+                            <div class="form-text">
+                                Chọn Đại cương thì khi mở lớp, học phần được gom chung toàn
+                                trường thay vì tách riêng theo ngành.
+                            </div>
+                        </div>
+
+                        <div class="mb-0">
+                            <label class="form-label small fw-semibold">Loại học phần</label>
+                            <select name="loaiHocPhan" class="form-select" required>
+                                <option value="1">Bắt buộc</option>
+                                <option value="2">Tự chọn</option>
+                            </select>
+                            <div class="form-text">
+                                Học phần tự chọn chỉ mở lớp theo ước tính 40% sinh viên đăng ký.
+                            </div>
+                        </div>
+                    </th:block>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary btn-sm"
+                            th:disabled="${dsHocPhanThem.empty}">Thêm vào chương trình</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================== HỘP THOẠI SỬA ===================== -->
+    <div class="modal fade" id="hopSua" tabindex="-1">
+        <div class="modal-dialog">
+            <form class="modal-content" method="post"
+                  th:action="@{/quanly/chuongtrinh/nganh/{id}/sua(id=${nganh.maNganh})}">
+                <input type="hidden" name="maChuongTrinh" id="suaMa">
+                <div class="modal-header">
+                    <h6 class="modal-title">Sửa học phần trong chương trình</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="fw-semibold mb-3" id="suaTen"></p>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Học kỳ dự kiến</label>
+                        <select name="hocKyDuKien" id="suaHocKy" class="form-select" required>
+                            <option th:each="i : ${#numbers.sequence(1, 8)}"
+                                    th:value="${i}" th:text="'Học kỳ ' + ${i}"></option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Khối kiến thức</label>
+                        <select name="khoiKienThuc" id="suaKhoi" class="form-select" required>
+                            <option value="1">Đại cương</option>
+                            <option value="2">Cơ sở ngành</option>
+                            <option value="3">Chuyên ngành</option>
+                            <option value="4">Tốt nghiệp</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-0">
+                        <label class="form-label small fw-semibold">Loại học phần</label>
+                        <select name="loaiHocPhan" id="suaLoai" class="form-select" required>
+                            <option value="1">Bắt buộc</option>
+                            <option value="2">Tự chọn</option>
+                        </select>
+                    </div>
+
+                    <div class="alert alert-light border small mt-3 mb-0">
+                        Muốn đổi sang học phần khác thì gỡ dòng này rồi thêm dòng mới,
+                        vì đổi cả học phần nghĩa là một dòng khung khác hẳn.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================== HỘP THOẠI XÓA ===================== -->
+    <div class="modal fade" id="hopXoa" tabindex="-1">
+        <div class="modal-dialog">
+            <form class="modal-content" method="post"
+                  th:action="@{/quanly/chuongtrinh/nganh/{id}/xoa(id=${nganh.maNganh})}">
+                <input type="hidden" name="maChuongTrinh" id="xoaMa">
+                <div class="modal-header">
+                    <h6 class="modal-title">Gỡ học phần khỏi chương trình</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="fw-semibold mb-3" id="xoaTen"></p>
+                    <p class="small mb-2">
+                        Sau khi gỡ, sinh viên ngành này không còn đăng ký được học phần đó,
+                        và Phòng Đào tạo cũng không mở lớp cho nó theo kế hoạch nữa.
+                    </p>
+                    <p class="small text-muted mb-0">
+                        Nếu đã có sinh viên của ngành từng đăng ký học phần này, hệ thống
+                        chỉ chuyển sang <strong>ngừng áp dụng</strong> chứ không xóa hẳn,
+                        để còn tra lại khung cũ khi xét tốt nghiệp. Điểm và lượt đăng ký
+                        của sinh viên không bị ảnh hưởng trong cả hai trường hợp.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-danger btn-sm">Gỡ khỏi chương trình</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script để trong vùng content vì layout của Phòng Đào tạo không có
+         vùng scripts riêng; đặt ngoài sẽ bị bỏ qua mà không báo lỗi. -->
+    <script>
+        // Đổ dữ liệu của dòng vừa bấm vào hộp thoại dùng chung
+        (function () {
+            function gan(idNut, xuLy) {
+                document.querySelectorAll(idNut).forEach(function (nut) {
+                    nut.addEventListener('click', function () { xuLy(nut.dataset); });
+                });
+            }
+
+            gan('.nut-sua', function (d) {
+                document.getElementById('suaMa').value = d.ma;
+                document.getElementById('suaTen').textContent = d.ten;
+                document.getElementById('suaHocKy').value = d.hocky;
+                document.getElementById('suaKhoi').value = d.khoi;
+                document.getElementById('suaLoai').value = d.loai;
+            });
+
+            gan('.nut-xoa', function (d) {
+                document.getElementById('xoaMa').value = d.ma;
+                document.getElementById('xoaTen').textContent = d.ten;
+            });
+        })();
+    </script>
+
 </div>
+
 </body>
 </html>

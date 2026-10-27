@@ -1,4 +1,4 @@
-package vn.TieuLuanChuyenNganhFITHCMUTE.Controller.phongdaodao;
+package vn.TieuLuanChuyenNganhFITHCMUTE.Controller.phongdaotao;
 import java.time.LocalDateTime;
 
 import org.springframework.format.annotation.DateTimeFormat;

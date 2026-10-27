@@ -1,11 +1,11 @@
 package vn.TieuLuanChuyenNganhFITHCMUTE.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,236 +16,211 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import vn.TieuLuanChuyenNganhFITHCMUTE.Entity.SinhVien;
 import vn.TieuLuanChuyenNganhFITHCMUTE.Entity.TaiKhoan;
-import vn.TieuLuanChuyenNganhFITHCMUTE.Entity.TokenDatLaiMatKhau;
-import vn.TieuLuanChuyenNganhFITHCMUTE.Repository.TokenDatLaiMatKhauRepository;
+import vn.TieuLuanChuyenNganhFITHCMUTE.Repository.TaiKhoanRepository;
 
 /**
- * Luồng quên mật khẩu:
+ * Quên mật khẩu: cấp một mật khẩu tạm, gửi về email cá nhân của sinh viên.
  *
- *  1. Sinh viên nhập email  ->  guiLienKet()
- *  2. Hệ thống sinh mã ngẫu nhiên, lưu vào bảng TokenDatLaiMatKhau,
- *     rồi IN ĐƯỜNG DẪN RA CỬA SỔ CONSOLE.
- *  3. Sinh viên bấm vào đường dẫn  ->  kiemTraToken()
- *  4. Nhập mật khẩu mới  ->  datLaiMatKhau()
+ * Trường thật gửi về email trường. Ở đây gửi về email cá nhân vì tiểu luận
+ * không có quyền dùng hệ thống thư của trường; luồng nghiệp vụ giữ nguyên.
  *
- * ===================================================================
- *  BẢN KHÔNG GỬI EMAIL THẬT
- *
- *  Không dùng JavaMailSender nên chạy được ngay, không cần thư viện
- *  spring-boot-starter-mail. Đường dẫn đặt lại mật khẩu in ra cửa sổ
- *  Console của STS, chép dán vào trình duyệt để thử.
- *
- *  Khi nào nạp được thư viện mail thì chỉ cần sửa phương thức
- *  phatHanhLienKet() ở cuối file, phần còn lại giữ nguyên.
- * ===================================================================
+ * Mật khẩu tạm chỉ sống 5 phút và chỉ dùng được một lần: đăng nhập xong là
+ * hệ thống buộc đổi ngay, không vào được trang nào khác cho tới khi đổi.
+ * Gửi thẳng mật khẩu qua thư vốn yếu hơn gửi liên kết dùng một lần, nên hai
+ * ràng buộc này là phần bù: kẻ đọc trộm thư chỉ có 5 phút, và chủ tài khoản
+ * biết ngay vì mật khẩu của họ đã bị đổi.
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class QuenMatKhauService {
 
-    private final TokenDatLaiMatKhauRepository tokenRepository;
+    /** Mật khẩu tạm sống 5 phút */
+    public static final int SO_PHUT_HIEU_LUC = 5;
+
+    /** Chặn bấm gửi liên tục: phải chờ bấy nhiêu phút mới xin được mã mới */
+    private static final int SO_PHUT_CHO_GUI_LAI = 1;
+
+    private static final int DO_DAI_MAT_KHAU = 10;
+
+    /**
+     * Bộ ký tự bỏ đi những chữ dễ nhìn nhầm nhau khi chép tay từ thư:
+     * số 0 với chữ O, số 1 với chữ l và I.
+     */
+    private static final String KY_TU =
+            "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+
+    private static final DateTimeFormatter DINH_DANG_GIO =
+            DateTimeFormatter.ofPattern("HH:mm 'ngày' dd/MM/yyyy");
+
+    private final TaiKhoanRepository taiKhoanRepository;
     private final PasswordEncoder passwordEncoder;
+
+    /** Việc gửi thư và phần in dự phòng ra Console nằm chung ở MailService */
+    private final MailService mailService;
 
     @PersistenceContext
     private EntityManager em;
 
-    @Value("${app.url-goc:http://localhost:8082}")
-    private String urlGoc;
-
-    /** Mã có hiệu lực trong 30 phút */
-    private static final int SO_PHUT_HIEU_LUC = 30;
-
-    /** Khoảng cách tối thiểu giữa hai lần gửi cho cùng một tài khoản */
-    private static final int SO_PHUT_CHO_GUI_LAI = 2;
-
     public record KetQua(boolean thanhCong, String thongBao) { }
 
-    // ==================================================================
-    //  Bước 1 và 2: nhận email, phát hành mã đặt lại
-    // ==================================================================
+    /**
+     * Thông báo trả về luôn giống nhau dù email có tồn tại hay không.
+     *
+     * Nếu báo "email không tồn tại", kẻ xấu chỉ cần thử lần lượt là dò ra
+     * danh sách email thật của trường. Đây là lỗi dò tài khoản, rất hay gặp
+     * ở màn hình quên mật khẩu.
+     */
+    private static final String THONG_BAO_CHUNG =
+            "Nếu email vừa nhập có trong hệ thống, mật khẩu tạm đã được gửi tới hộp thư đó. "
+            + "Mật khẩu tạm chỉ dùng được trong " + SO_PHUT_HIEU_LUC + " phút.";
+
+    // ===================== CẤP MẬT KHẨU TẠM =====================
 
     @Transactional
-    public KetQua guiLienKet(String email) {
-
-        if (email == null || email.isBlank()) {
-            return new KetQua(false, "Vui lòng nhập địa chỉ email.");
+    public KetQua capMatKhauTam(String email) {
+        String emailSach = (email == null) ? "" : email.trim().toLowerCase();
+        if (emailSach.isEmpty()) {
+            return new KetQua(false, "Vui lòng nhập email.");
         }
 
-        String emailSach = email.trim().toLowerCase();
-
-        // Thông báo dùng chung cho mọi trường hợp.
-        // Không tiết lộ email có tồn tại trong hệ thống hay không,
-        // nếu không người lạ có thể dò ra danh sách email thật của trường.
-        String thongBaoChung = "Nếu email này gắn với một tài khoản, "
-                + "hệ thống đã gửi hướng dẫn đặt lại mật khẩu. "
-                + "Vui lòng kiểm tra hộp thư, kể cả mục Spam.";
-
-        Optional<SinhVien> timThay = timSinhVienTheoEmail(emailSach);
-        if (timThay.isEmpty()) {
-            log.info("Yêu cầu đặt lại mật khẩu cho email không tồn tại: {}", emailSach);
-            return new KetQua(true, thongBaoChung);
+        Optional<SinhVien> oSv = timSinhVienTheoEmail(emailSach);
+        if (oSv.isEmpty()) {
+            log.info("Yêu cầu cấp mật khẩu tạm cho email không có trong hệ thống: {}", emailSach);
+            return new KetQua(true, THONG_BAO_CHUNG);
         }
 
-        SinhVien sv = timThay.get();
+        SinhVien sv = oSv.get();
         TaiKhoan tk = sv.getTaiKhoan();
+
         if (tk == null) {
             log.warn("Sinh viên {} chưa có tài khoản đăng nhập", sv.getMaSoSinhVien());
-            return new KetQua(true, thongBaoChung);
+            return new KetQua(true, THONG_BAO_CHUNG);
         }
-
-        // Tài khoản bị khóa thì không cho đặt lại mật khẩu
-        if (tk.getTrangThai() != null && tk.getTrangThai() == 0) {
-            log.warn("Tài khoản {} đang bị khóa, bỏ qua yêu cầu đặt lại mật khẩu",
+        if (tk.getTrangThai() == null || tk.getTrangThai() != 1) {
+            log.warn("Tài khoản {} đang bị khóa, bỏ qua yêu cầu cấp mật khẩu tạm",
                     tk.getTenDangNhap());
-            return new KetQua(true, thongBaoChung);
+            return new KetQua(true, THONG_BAO_CHUNG);
         }
 
-        // Chặn bấm gửi liên tục
-        List<TokenDatLaiMatKhau> dangCo =
-                tokenRepository.timConHieuLuc(tk.getMaTaiKhoan(), LocalDateTime.now());
-        if (!dangCo.isEmpty()) {
-            LocalDateTime lanGanNhat = dangCo.get(0).getThoiDiemTao();
-            if (lanGanNhat.isAfter(LocalDateTime.now().minusMinutes(SO_PHUT_CHO_GUI_LAI))) {
-                return new KetQua(false,
-                        "Bạn vừa gửi yêu cầu cách đây chưa tới " + SO_PHUT_CHO_GUI_LAI
-                      + " phút. Vui lòng kiểm tra hộp thư hoặc thử lại sau.");
-            }
+        // Vừa xin xong thì chờ một chút, tránh bấm liên tục làm đầy hộp thư
+        if (tk.matKhauTamConHieuLuc()
+                && tk.getHanMatKhauTam()
+                      .minusMinutes(SO_PHUT_HIEU_LUC - SO_PHUT_CHO_GUI_LAI)
+                      .isAfter(LocalDateTime.now())) {
+            return new KetQua(true, THONG_BAO_CHUNG);
         }
 
-        // Địa chỉ thật sự nhận thư.
-        // Ưu tiên email cá nhân vì email trường trong đồ án là dữ liệu mẫu,
-        // không có hộp thư thật nên gửi tới đó sẽ không ai nhận được.
         String emailNhan = chonEmailNhan(sv);
         if (emailNhan == null) {
-            log.warn("Sinh viên {} chưa khai email cá nhân, không có nơi nhận thư",
+            log.warn("Sinh viên {} chưa khai email nào, không có nơi nhận thư",
                     sv.getMaSoSinhVien());
-            return new KetQua(false,
-                    "Tài khoản này chưa khai email cá nhân nên hệ thống không gửi được "
-                  + "hướng dẫn đặt lại mật khẩu. Vui lòng liên hệ Phòng Công tác Sinh viên.");
+            return new KetQua(true, THONG_BAO_CHUNG);
         }
 
-        // Mã cũ hết hiệu lực ngay khi phát mã mới
-        tokenRepository.voHieuHoaMaCu(tk.getMaTaiKhoan());
+        String matKhauTam = sinhMatKhau();
+        LocalDateTime han = LocalDateTime.now().plusMinutes(SO_PHUT_HIEU_LUC);
 
-        TokenDatLaiMatKhau token = new TokenDatLaiMatKhau();
-        token.setToken(UUID.randomUUID().toString().replace("-", ""));
-        token.setTaiKhoan(tk);
-        token.setThoiDiemTao(LocalDateTime.now());
-        token.setThoiDiemHetHan(LocalDateTime.now().plusMinutes(SO_PHUT_HIEU_LUC));
-        token.setDaSuDung(false);
-        token.setEmailNhan(emailNhan);
-        tokenRepository.save(token);
+        // Ghi đè luôn mật khẩu cũ. Chủ tài khoản vì thế biết ngay có người
+        // vừa yêu cầu đặt lại, thay vì âm thầm tồn tại hai mật khẩu dùng được.
+        tk.setMatKhauBam(passwordEncoder.encode(matKhauTam));
+        tk.setMatKhauTamThoi(Boolean.TRUE);
+        tk.setHanMatKhauTam(han);
+        taiKhoanRepository.save(tk);
 
-        String lienKet = urlGoc + "/datlaimatkhau?token=" + token.getToken();
-        phatHanhLienKet(emailNhan, sv.getHoTen(), lienKet);
+        guiThu(emailNhan, sv.getHoTen(), tk.getTenDangNhap(), matKhauTam, han);
 
-        return new KetQua(true, thongBaoChung);
+        return new KetQua(true, THONG_BAO_CHUNG);
     }
 
-    /**
-     * Chọn hộp thư nhận: email cá nhân trước, email trường chỉ là phương án dự phòng.
-     * Trả về null khi sinh viên không có địa chỉ nào dùng được.
-     */
+    /** Ưu tiên email cá nhân, không có thì dùng email trường */
     private String chonEmailNhan(SinhVien sv) {
-        String caNhan = sv.getEmailCaNhan();
-        if (caNhan != null && !caNhan.isBlank()) {
-            return caNhan.trim();
-        }
-        String truong = sv.getEmailTruong();
-        if (truong != null && !truong.isBlank()) {
-            return truong.trim();
-        }
+        if (sv.getEmailCaNhan() != null && !sv.getEmailCaNhan().isBlank())
+            return sv.getEmailCaNhan().trim();
+        if (sv.getEmailTruong() != null && !sv.getEmailTruong().isBlank())
+            return sv.getEmailTruong().trim();
         return null;
     }
 
-    /** Tìm sinh viên theo email trường hoặc email cá nhân */
+    /** Tra theo cả email cá nhân lẫn email trường, không phân biệt hoa thường */
     private Optional<SinhVien> timSinhVienTheoEmail(String email) {
         List<SinhVien> ds = em.createQuery("""
-                    select sv from SinhVien sv
-                    where lower(sv.emailTruong) = :email
-                       or lower(sv.emailCaNhan) = :email
-                    """, SinhVien.class)
+                SELECT sv FROM SinhVien sv
+                LEFT JOIN FETCH sv.taiKhoan
+                WHERE LOWER(sv.emailCaNhan) = :email OR LOWER(sv.emailTruong) = :email
+                """, SinhVien.class)
                 .setParameter("email", email)
                 .setMaxResults(1)
                 .getResultList();
-
         return ds.isEmpty() ? Optional.empty() : Optional.of(ds.get(0));
     }
 
-    // ==================================================================
-    //  Bước 3: kiểm tra mã khi sinh viên bấm vào đường dẫn
-    // ==================================================================
-
-    public Optional<TokenDatLaiMatKhau> kiemTraToken(String token) {
-        if (token == null || token.isBlank()) {
-            return Optional.empty();
+    /** Mật khẩu ngẫu nhiên, dùng SecureRandom chứ không dùng Random thường */
+    private String sinhMatKhau() {
+        SecureRandom rd = new SecureRandom();
+        StringBuilder sb = new StringBuilder(DO_DAI_MAT_KHAU);
+        for (int i = 0; i < DO_DAI_MAT_KHAU; i++) {
+            sb.append(KY_TU.charAt(rd.nextInt(KY_TU.length())));
         }
-        return tokenRepository.findByToken(token)
-                .filter(TokenDatLaiMatKhau::conHieuLuc);
+        return sb.toString();
     }
 
-    // ==================================================================
-    //  Bước 4: đặt mật khẩu mới
-    // ==================================================================
+    // ===================== GỬI THƯ =====================
 
+    private void guiThu(String email, String hoTen, String tenDangNhap,
+                        String matKhauTam, LocalDateTime han) {
+
+        String tieuDe = "Mật khẩu tạm — Cổng thông tin sinh viên HCMUTE";
+        String noiDung = """
+                Chào %s,
+
+                Hệ thống vừa nhận yêu cầu đặt lại mật khẩu cho tài khoản của bạn.
+
+                    Tên đăng nhập : %s
+                    Mật khẩu tạm  : %s
+
+                Mật khẩu tạm này hết hiệu lực lúc %s, tức là sau %d phút.
+                Đăng nhập xong, hệ thống sẽ yêu cầu bạn đặt mật khẩu mới ngay
+                trước khi vào được bất kỳ trang nào.
+
+                Nếu không phải bạn yêu cầu, hãy báo Phòng Công tác Sinh viên:
+                mật khẩu cũ của bạn đã bị thay thế.
+
+                Đây là thư tự động, vui lòng không trả lời.
+                """.formatted(hoTen, tenDangNhap, matKhauTam,
+                              han.format(DINH_DANG_GIO), SO_PHUT_HIEU_LUC);
+
+        mailService.gui(email, tieuDe, noiDung);
+    }
+
+    // ===================== ĐỔI MẬT KHẨU TẠM =====================
+
+    /**
+     * Đổi mật khẩu tạm sang mật khẩu chính thức.
+     * Gọi từ màn hình bắt buộc đổi sau khi đăng nhập.
+     */
     @Transactional
-    public KetQua datLaiMatKhau(String token, String matKhauMoi, String xacNhan) {
-
-        Optional<TokenDatLaiMatKhau> tim = kiemTraToken(token);
-        if (tim.isEmpty()) {
-            return new KetQua(false,
-                    "Đường dẫn không hợp lệ hoặc đã hết hạn. Vui lòng gửi lại yêu cầu.");
+    public KetQua doiMatKhauTam(String tenDangNhap, String matKhauMoi, String xacNhan) {
+        TaiKhoan tk = taiKhoanRepository.findByTenDangNhap(tenDangNhap).orElse(null);
+        if (tk == null) {
+            return new KetQua(false, "Không tìm thấy tài khoản.");
         }
-
         if (matKhauMoi == null || matKhauMoi.length() < 6) {
             return new KetQua(false, "Mật khẩu mới phải có ít nhất 6 ký tự.");
         }
         if (!matKhauMoi.equals(xacNhan)) {
-            return new KetQua(false, "Hai lần nhập mật khẩu không khớp nhau.");
+            return new KetQua(false, "Hai ô mật khẩu mới không khớp nhau.");
+        }
+        if (passwordEncoder.matches(matKhauMoi, tk.getMatKhauBam())) {
+            return new KetQua(false, "Mật khẩu mới trùng với mật khẩu tạm vừa được cấp.");
         }
 
-        TokenDatLaiMatKhau t = tim.get();
-        TaiKhoan tk = t.getTaiKhoan();
-
         tk.setMatKhauBam(passwordEncoder.encode(matKhauMoi));
-        em.merge(tk);
+        tk.setMatKhauTamThoi(Boolean.FALSE);
+        tk.setHanMatKhauTam(null);
+        taiKhoanRepository.save(tk);
 
-        // Đánh dấu đã dùng để đường dẫn không xài lại được
-        t.setDaSuDung(true);
-        tokenRepository.save(t);
-
-        log.info("Tài khoản {} đã đặt lại mật khẩu thành công", tk.getTenDangNhap());
-        return new KetQua(true, "Đặt lại mật khẩu thành công. Bạn có thể đăng nhập ngay.");
-    }
-
-    // ==================================================================
-    //  Nơi duy nhất cần sửa khi chuyển sang gửi email thật
-    // ==================================================================
-
-    /**
-     * Hiện tại in đường dẫn ra Console thay cho gửi email.
-     *
-     * Khi nạp được spring-boot-starter-mail, thay thân phương thức này bằng:
-     *
-     *   SimpleMailMessage thu = new SimpleMailMessage();
-     *   thu.setTo(email);
-     *   thu.setSubject("Đặt lại mật khẩu - Cổng sinh viên HCMUTE");
-     *   thu.setText("Chào " + hoTen + ", bấm vào đây: " + lienKet);
-     *   mailSender.send(thu);
-     *
-     * và khai báo thêm trường:  private final JavaMailSender mailSender;
-     */
-    private void phatHanhLienKet(String email, String hoTen, String lienKet) {
-        log.info("""
-
-                ==========================================================
-                 ĐƯỜNG DẪN ĐẶT LẠI MẬT KHẨU (chế độ thử, chưa gửi email)
-                ----------------------------------------------------------
-                 Người nhận : {} <{}>
-                 Hiệu lực   : {} phút
-                 Đường dẫn  : {}
-                ==========================================================
-                """, hoTen, email, SO_PHUT_HIEU_LUC, lienKet);
+        log.info("Tài khoản {} đã đổi mật khẩu tạm sang mật khẩu chính thức", tenDangNhap);
+        return new KetQua(true, "Đã đổi mật khẩu. Từ giờ hãy dùng mật khẩu mới để đăng nhập.");
     }
 }

@@ -1,13 +1,19 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE" th:text="#{page.title}">Hệ thống Quản lý Trường học</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Thẻ này quyết định toàn bộ việc co giãn trên điện thoại.
+         Không có nó, trình duyệt di động giả lập màn hình rộng 980px
+         rồi thu nhỏ cả trang lại, chữ bé như kiến. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE" th:text="#{page.title}">Hệ thống Quản lý Đào tạo - HCMUTE</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link th:href="@{/css/bang.css}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
     <style>
         :root {
             --primary-color: #2c3e50;
@@ -16,34 +22,105 @@
             --navbar-height: 70px;
         }
 
+        /* ============================================================
+           NỀN TẢNG CO GIÃN
+           ============================================================ */
+
+        /* Chặn tràn ngang. Một phần tử rộng quá màn hình sẽ tạo thanh
+           cuộn ngang, kéo lệch toàn bộ trang trên điện thoại. */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #333;
+            background: #f4f6f9;
+            overflow-x: hidden;
         }
 
-        /* ===================== Thanh menu =====================
-           Nền sáng, chữ đen to và đậm; rê chuột đổi sang chữ trắng
-           trên nền xanh đậm.
-           ====================================================== */
+        /* Ảnh không bao giờ rộng hơn khung chứa */
+        img, svg, video, iframe {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* ============================================================
+           TRẢI RỘNG HẾT MÀN HÌNH
+
+           Bootstrap mặc định chặn .container ở 1320px, nên trên màn hình
+           1920px có hai dải trắng khá rộng hai bên. Ghi đè ở đây để mọi
+           .container chiếm trọn bề ngang, chỉ chừa lề.
+
+           Lề dùng clamp: 1rem trên điện thoại, nở dần tới 3rem trên màn
+           hình lớn. Sát mép màn hình quá thì chữ bị khuất ở góc bo của
+           điện thoại và rất khó đọc.
+
+           Sửa đúng khối này là tất cả trang con rộng ra theo, không phải
+           đụng vào file nào khác.
+           ============================================================ */
+        .container,
+        .container-sm, .container-md, .container-lg,
+        .container-xl, .container-xxl {
+            max-width: 100%;
+            padding-left: clamp(1rem, 3vw, 3rem);
+            padding-right: clamp(1rem, 3vw, 3rem);
+        }
+
+        /* Chuỗi dài không dấu cách (email, mã học phần, URL) sẽ xuống dòng
+           thay vì đẩy rộng ô và làm tràn bảng.
+           Không áp cho thanh menu: li ở đây gồm cả <li class="nav-item">,
+           và word-break cho phép ngắt giữa chừng một từ, nên khi chỗ hẹp thì
+           "Khoa" bị xé thành "K h o a" mỗi chữ một dòng. */
+        td, th, p, li, h1, h2, h3, h4, h5, h6 {
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+        .navbar li, .navbar p {
+            overflow-wrap: normal;
+            word-break: normal;
+        }
+
+        /* Bảng luôn cuộn ngang được trên màn hình hẹp.
+           Script ở cuối trang tự bọc mọi <table> vào lớp này. */
+        .table-responsive {
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* ============================================================
+           THANH MENU
+           ============================================================ */
         .navbar {
             background-color: #f4f6f9 !important;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
             min-height: var(--navbar-height);
         }
 
+        /* Tên trường rất dài. Cho xuống dòng thì nó chiếm hai dòng và đẩy
+           thanh menu hẹp lại; giữ một dòng và cắt bớt khi thiếu chỗ thì phần
+           còn lại của thanh menu luôn đủ rộng. */
         .navbar-brand {
             font-weight: 700;
-            font-size: 1.15rem;
+            font-size: clamp(0.85rem, 1.6vw, 1.1rem);
             color: #16213e !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.25;
+            max-width: min(46ch, 42vw);
+            flex-shrink: 1;
+            min-width: 0;
         }
 
+        /* Mỗi mục luôn nằm gọn một dòng. Cỡ chữ và khoảng đệm co theo bề
+           rộng màn hình để tám mục vẫn vừa khi người dùng phóng to trang. */
         .navbar-nav .nav-link {
             color: #000 !important;
-            font-size: 1.05rem;
+            font-size: clamp(0.88rem, 0.95vw, 1.05rem);
             font-weight: 600;
-            margin: 0 3px;
-            padding: 0.55rem 0.95rem !important;
+            margin: 0 2px;
+            padding: 0.5rem clamp(0.4rem, 0.7vw, 0.95rem) !important;
             border-radius: 8px;
+            white-space: nowrap;
+            overflow-wrap: normal;
+            word-break: normal;
+            hyphens: none;
             transition: color 0.2s ease, background-color 0.2s ease;
         }
 
@@ -58,10 +135,23 @@
             font-weight: 700;
         }
 
-        /* ===================== Nút đổi ngôn ngữ ===================== */
-        .lang-selector {
-            margin-left: auto;
+        /* Menu mở ra trên điện thoại: giới hạn chiều cao và cho cuộn,
+           không thì 8 mục đẩy dài quá màn hình, mục cuối không bấm được */
+        .navbar-collapse {
+            max-height: calc(100vh - var(--navbar-height));
+            overflow-y: auto;
         }
+
+        /* Từ cỡ xl trở lên thanh menu nằm ngang: cấm xuống dòng, thiếu chỗ
+           thì chữ co lại chứ không gãy hàng. Dưới cỡ đó đã có nút ba gạch. */
+        @media (min-width: 1200px) {
+            .navbar > .container { flex-wrap: nowrap; }
+            .navbar-collapse { overflow-y: visible; }
+            .navbar-nav { flex-wrap: nowrap; }
+        }
+
+        /* ===================== Nút đổi ngôn ngữ ===================== */
+        .lang-selector { margin-left: auto; }
 
         .lang-btn {
             padding: 6px 12px;
@@ -75,6 +165,7 @@
             font-size: 0.9rem;
             font-weight: 600;
             text-decoration: none;
+            white-space: nowrap;
         }
 
         .lang-btn:hover,
@@ -84,9 +175,8 @@
             border-color: var(--secondary-color);
         }
 
-        /* ===================== Khu ảnh đầu trang =====================
-           Dùng chung cho mọi trang khách. Ảnh phủ kín toàn khung,
-           phía trên có lớp tối để chữ trắng nổi rõ.
+        /* ============================================================
+           KHU ẢNH ĐẦU TRANG
            ============================================================ */
         .hero {
             position: relative;
@@ -97,20 +187,27 @@
             justify-content: center;
             text-align: center;
             overflow: hidden;
-            padding: 3rem 1rem;
+            padding: clamp(2rem, 6vw, 3rem) 1rem;
             background: #0d1b33;
         }
 
-        /* Ảnh nền phủ kín */
+        /* dvh tính cả phần thanh địa chỉ co lại trên di động.
+           Dùng vh đơn thuần thì trên iPhone khối hero bị hụt hoặc dư
+           một khoảng bằng chiều cao thanh địa chỉ. */
+        @supports (height: 100dvh) {
+            .hero { min-height: calc(100dvh - var(--navbar-height)); }
+        }
+
         .hero::before {
             content: "";
             position: absolute;
             inset: 0;
             z-index: 0;
-            background: url('/images/campus.jpg') center/cover no-repeat;
+            /* Không dùng background-attachment: fixed.
+               iOS Safari bỏ qua thuộc tính này và ảnh bị kéo giãn méo. */
+            background: url('/images/cong-truong.jpg') center/cover no-repeat;
         }
 
-        /* Lớp phủ tối */
         .hero::after {
             content: "";
             position: absolute;
@@ -119,57 +216,63 @@
             background: linear-gradient(rgba(18, 32, 58, 0.45), rgba(18, 32, 58, 0.62));
         }
 
-        /* Khối chữ nằm trên cùng */
         .hero .container {
             position: relative;
             z-index: 2;
-            max-width: 820px;
-            padding: 2.25rem 2rem;
+            max-width: min(820px, 92vw);
+            padding: clamp(1.25rem, 4vw, 2.25rem) clamp(1rem, 3vw, 2rem);
             border-radius: 16px;
             background: rgba(12, 22, 42, 0.55);
             backdrop-filter: blur(6px);
             box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
         }
 
+        /* clamp() = cỡ chữ tự co theo bề rộng màn hình,
+           có chặn dưới và chặn trên nên không bao giờ quá bé hay quá to */
         .hero h1 {
-            font-size: 3.2rem;
+            font-size: clamp(1.45rem, 5vw, 3.2rem);
             font-weight: 800;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
             color: #fff;
-            margin-bottom: 16px;
+            margin-bottom: 0.75rem;
+            line-height: 1.2;
             text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
             animation: fadeInDown 1s ease;
         }
 
         .hero p {
-            font-size: 1.25rem;
+            font-size: clamp(0.95rem, 2.2vw, 1.25rem);
             color: rgba(255, 255, 255, 0.93);
             margin-bottom: 0;
             animation: fadeInUp 1s ease;
         }
 
-        /* Biến thể thấp cho trang trong: class="hero hero-sm" */
-        .hero.hero-sm {
-            min-height: 60vh;
+        .hero.hero-sm { min-height: 60vh; }
+        @supports (height: 100dvh) {
+            .hero.hero-sm { min-height: 60dvh; }
         }
 
         @keyframes fadeInDown {
             from { opacity: 0; transform: translateY(-30px); }
             to   { opacity: 1; transform: translateY(0); }
         }
-
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(30px); }
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* ===================== Nội dung ===================== */
-        main {
-            min-height: calc(100vh - 200px);
+        /* Tắt hiệu ứng cho người bật chế độ giảm chuyển động */
+        @media (prefers-reduced-motion: reduce) {
+            .hero h1, .hero p { animation: none; }
+            * { transition: none !important; }
         }
 
-        /* ===================== Thẻ ===================== */
+        /* ============================================================
+           NỘI DUNG, THẺ, CHÂN TRANG
+           ============================================================ */
+        main { min-height: 50vh; }
+
         .card {
             border: none;
             border-radius: 14px;
@@ -183,13 +286,18 @@
             box-shadow: 0 14px 32px rgba(0, 0, 0, 0.14);
         }
 
+        /* Trên màn hình cảm ứng không có con trỏ, hiệu ứng nhấc lên
+           bị kẹt lại sau khi chạm. Chỉ bật cho thiết bị có chuột. */
+        @media (hover: none) {
+            .card:hover { transform: none; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.07); }
+        }
+
         .card-header {
             background-color: var(--secondary-color);
             color: #fff;
             border: none;
         }
 
-        /* ===================== Chân trang ===================== */
         footer {
             background-color: var(--primary-color);
             color: #fff;
@@ -203,15 +311,13 @@
             transition: color 0.3s ease;
         }
 
-        footer a:hover {
-            color: var(--secondary-color);
-        }
+        footer a:hover { color: var(--secondary-color); }
 
-        /* ===================== Tiêu đề mục ===================== */
         .section-heading {
             text-align: center;
             color: var(--primary-color);
             font-weight: 800;
+            font-size: clamp(1.25rem, 3.2vw, 2rem);
             margin-bottom: 40px;
             padding-bottom: 0.9rem;
             position: relative;
@@ -229,51 +335,56 @@
             background: linear-gradient(90deg, #1565c0, var(--secondary-color));
         }
 
-        /* ===================== Nút ===================== */
         .btn-primary {
             background-color: var(--secondary-color);
             border: none;
         }
-
-        .btn-primary:hover {
-            background-color: #2980b9;
-        }
+        .btn-primary:hover { background-color: #2980b9; }
 
         .btn-outline-primary {
             color: var(--secondary-color);
             border-color: var(--secondary-color);
         }
-
         .btn-outline-primary:hover {
             background-color: var(--secondary-color);
             border-color: var(--secondary-color);
         }
 
-        @media (max-width: 991px) {
+        /* Vùng chạm tối thiểu 44px theo khuyến nghị của Apple và Google.
+           Nút nhỏ hơn rất khó bấm trúng bằng ngón tay. */
+        @media (max-width: 1199.98px) {
+            .btn, .nav-link, .lang-btn {
+                min-height: 44px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 1199.98px) {
             :root { --navbar-height: 56px; }
-            .hero h1 { font-size: 2.3rem; }
         }
 
         @media (max-width: 768px) {
-            .hero { min-height: 70vh; padding: 2rem 1rem; }
+            .hero { min-height: 70vh; }
             .hero.hero-sm { min-height: 48vh; }
-            .hero .container { padding: 1.75rem 1.25rem; }
-            .hero h1 { font-size: 1.7rem; }
-            .hero p  { font-size: 1rem; }
             .lang-selector { margin-left: 0; margin-top: 10px; }
-            .lang-btn { padding: 6px 10px; font-size: 0.8rem; }
+            footer { padding: 28px 0 16px; margin-top: 36px; }
+            .section-heading { margin-bottom: 26px; }
         }
     </style>
 </head>
 <body>
 
 <!-- ===================== Thanh điều hướng ===================== -->
-<nav class="navbar navbar-expand-lg navbar-light fixed-top">
+<nav class="navbar navbar-expand-xl navbar-light fixed-top">
     <div class="container">
         <a class="navbar-brand" th:href="@{/}">
             <i class="fas fa-graduation-cap me-2"></i><span th:text="#{app.name}">HCMUTE</span>
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarNav" aria-controls="navbarNav"
+                aria-expanded="false" aria-label="Mở menu">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
@@ -303,7 +414,7 @@
                     <a class="nav-link" th:href="@{/login}" th:classappend="${page == 'login' ? 'active' : ''}" th:text="#{nav.login}">Đăng nhập</a>
                 </li>
             </ul>
-            <div class="lang-selector d-flex ms-3">
+            <div class="lang-selector d-flex ms-xl-3">
                 <a th:href="@{''(lang='vi')}" class="lang-btn"
                    th:classappend="${#locale.language == 'vi' ? 'active' : ''}">VN</a>
                 <a th:href="@{''(lang='en')}" class="lang-btn"
@@ -322,11 +433,11 @@
 <footer>
     <div class="container">
         <div class="row mb-4">
-            <div class="col-md-3">
+            <div class="col-md-6 col-lg-3 mb-4 mb-lg-0">
                 <h5 th:text="#{footer.about}">Về chúng tôi</h5>
                 <p th:text="#{footer.about_content}">Giới thiệu ngắn về nhà trường.</p>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-6 col-lg-3 mb-4 mb-lg-0">
                 <h5 th:text="#{footer.quicklinks}">Liên kết nhanh</h5>
                 <ul class="list-unstyled">
                     <li><a th:href="@{/}" th:text="#{nav.home}">Trang chủ</a></li>
@@ -335,33 +446,49 @@
                     <li><a th:href="@{/major}" th:text="#{nav.major}">Ngành học</a></li>
                 </ul>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-6 col-lg-3 mb-4 mb-lg-0">
                 <h5 th:text="#{footer.contact}">Liên hệ</h5>
                 <p th:text="#{footer.address}">Số 1 Võ Văn Ngân, Thủ Đức, TP. Hồ Chí Minh</p>
-                <p>
-                    <span th:text="#{footer.phone}">Điện thoại</span>: (028) 3896 8641
-                </p>
-                <p>
-                    <span th:text="#{footer.email}">Email</span>: info@hcmute.edu.vn
-                </p>
+                <p><span th:text="#{footer.phone}">Điện thoại</span>: (028) 3896 8641</p>
+                <p><span th:text="#{footer.email}">Email</span>: info@hcmute.edu.vn</p>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-6 col-lg-3">
                 <h5 th:text="#{footer.followus}">Theo dõi chúng tôi</h5>
                 <div>
-                    <a href="#" class="me-2"><i class="fab fa-facebook fa-lg"></i></a>
-                    <a href="#" class="me-2"><i class="fab fa-twitter fa-lg"></i></a>
-                    <a href="#" class="me-2"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="me-3"><i class="fab fa-facebook fa-lg"></i></a>
+                    <a href="#" class="me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="me-3"><i class="fab fa-youtube fa-lg"></i></a>
                     <a href="#"><i class="fab fa-linkedin fa-lg"></i></a>
                 </div>
             </div>
         </div>
         <hr>
         <div class="text-center">
-            <p class="mb-0" th:text="#{common.copyright}">&copy; 2026 HCMUTE</p>
+            <p class="mb-0 small" th:text="#{common.copyright}">&copy; 2026 HCMUTE</p>
         </div>
     </div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/bang.js}"></script>
+
+<script>
+    /* Tự bọc mọi bảng vào .table-responsive.
+       Bảng điểm, bảng học phần có 7-8 cột, trên điện thoại rộng 360px
+       chắc chắn tràn. Bọc lại thì bảng cuộn ngang trong khung của nó,
+       phần còn lại của trang vẫn đứng yên.
+       Làm ở đây nên không phải sửa từng file trang con. */
+    document.querySelectorAll('table').forEach(function (bang) {
+        if (!bang.closest('.table-responsive')) {
+            var khung = document.createElement('div');
+            khung.className = 'table-responsive';
+            bang.parentNode.insertBefore(khung, bang);
+            khung.appendChild(bang);
+        }
+    });
+</script>
+
+<th:block layout:fragment="scripts"></th:block>
+
 </body>
 </html>

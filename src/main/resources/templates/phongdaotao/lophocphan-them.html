@@ -11,11 +11,16 @@
 
 <div layout:fragment="content">
 
-    <a th:href="@{/quanly/lophocphan(hocKy=${maHocKy})}" class="btn btn-sm btn-outline-secondary mb-3">
+    <!-- Quay về đúng khoa và ngành vừa đứng, nếu tới đây từ một màn hình đó -->
+    <a th:href="${quayVe != null}
+                ? @{${quayVe}(hocKy=${maHocKy})}
+                : @{/quanly/lophocphan(hocKy=${maHocKy})}"
+       class="btn btn-sm btn-outline-secondary mb-3">
         <i class="fas fa-arrow-left"></i> Quay lại
     </a>
 
     <form th:action="@{/quanly/lophocphan/them}" method="post" class="card shadow-sm">
+        <input type="hidden" name="quayVe" th:value="${quayVe}" th:if="${quayVe != null}">
         <div class="card-body">
 
             <h6 class="text-primary mb-3">Thông tin lớp</h6>

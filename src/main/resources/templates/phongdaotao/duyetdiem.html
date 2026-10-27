@@ -4,6 +4,27 @@
       layout:decorate="~{phongdaotao/layout}">
 <head>
     <title>Duyệt điểm</title>
+    <style>
+        .o-khoa {
+            display: block; height: 100%;
+            text-decoration: none; color: inherit;
+            border: 1px solid #dee2e6; border-radius: .6rem;
+            padding: 1rem 1.1rem; background: #fff;
+            transition: box-shadow .15s, border-color .15s, transform .15s;
+        }
+        .o-khoa:hover {
+            border-color: #0d6efd;
+            box-shadow: 0 .4rem 1rem rgba(13, 110, 253, .12);
+            transform: translateY(-2px);
+        }
+        .o-khoa.can-lam { border-left: 4px solid #fd7e14; }
+        .o-khoa.da-xong { border-left: 4px solid #198754; }
+        .o-khoa.trong   { opacity: .62; }
+
+        .ten-khoa { font-weight: 600; line-height: 1.3; }
+        .so-lon   { font-size: 1.65rem; font-weight: 700; line-height: 1; }
+        .nhan-nho { font-size: .78rem; color: #6c757d; }
+    </style>
 </head>
 <body>
 
@@ -11,60 +32,75 @@
 
 <div layout:fragment="content">
 
-    <!-- Tab trạng thái -->
-    <ul class="nav nav-tabs mb-3">
-        <li class="nav-item">
-            <a class="nav-link" th:classappend="${tt == 1} ? 'active'" th:href="@{/quanly/duyetdiem(tt=1)}">
-                Chờ duyệt <span class="badge bg-warning text-dark" th:text="${soChoDuyet}"></span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" th:classappend="${tt == 2} ? 'active'" th:href="@{/quanly/duyetdiem(tt=2)}">
-                Đã duyệt, chưa công bố <span class="badge bg-info text-dark" th:text="${soDaDuyet}"></span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" th:classappend="${tt == 3} ? 'active'" th:href="@{/quanly/duyetdiem(tt=3)}">
-                Đã công bố <span class="badge bg-success" th:text="${soCongBo}"></span>
-            </a>
-        </li>
-    </ul>
-
-    <div class="card shadow-sm">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                <tr>
-                    <th>Học kỳ</th>
-                    <th>Mã lớp</th>
-                    <th>Học phần</th>
-                    <th class="text-center">TC</th>
-                    <th></th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:if="${dsLop.empty}">
-                    <td colspan="5" class="text-center text-muted py-4">Không có bảng điểm nào ở trạng thái này.</td>
-                </tr>
-                <tr th:each="lop : ${dsLop}">
-                    <td class="small" th:text="${lop.hocKy.maHocKyCode}"></td>
-                    <td class="small fw-semibold" th:text="${lop.maLop}"></td>
-                    <td th:text="${lop.hocPhan.tenHocPhan}"></td>
-                    <td class="text-center" th:text="${lop.hocPhan.soTinChi}"></td>
-                    <td class="text-end">
-                        <a th:href="@{/quanly/duyetdiem/{id}(id=${lop.maLopHocPhan})}" class="btn btn-sm btn-outline-primary">
-                            Xem bảng điểm
-                        </a>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
+    <div class="alert alert-light border small mb-3">
+        Bảng điểm thuộc về <strong>khoa phụ trách học phần</strong>, vì người chấm là
+        giảng viên của khoa đó. Chia theo khoa quản lý ngành sẽ cắt nhầm, do một lớp
+        đại cương có sinh viên của cả chục ngành khác nhau.
     </div>
 
-    <p class="text-muted small mt-3" th:if="${tt == 3}">
-        Tab này chỉ hiện các lớp nhập điểm qua hệ thống. Điểm các học kỳ cũ được seed sẵn nên cũng nằm ở đây.
-    </p>
+    <div th:if="${dsTomTat.empty}" class="alert alert-secondary">
+        Chưa có bảng điểm nào trong hệ thống.
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3"
+         th:unless="${dsTomTat.empty}">
+        <h6 class="mb-0 fw-bold">Chọn khoa phụ trách</h6>
+        <span class="small text-muted">Bấm vào một khoa để duyệt bảng điểm của khoa đó.</span>
+    </div>
+
+    <form class="o-tim mb-3" role="search">
+        <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-magnifying-glass"></i></span>
+            <input type="search" class="form-control" placeholder="Tìm theo tên khoa…"
+                   data-loc="#luoiKhoaDd"
+                   data-muc=":scope > div"
+                   data-trong="#khongThayKhoaDd">
+            <button class="btn btn-outline-secondary" type="submit">Tìm</button>
+        </div>
+    </form>
+
+    <div class="alert alert-secondary" id="khongThayKhoaDd" hidden>
+        Không có dòng nào khớp với từ khóa.
+    </div>
+
+    <div class="row g-3" id="luoiKhoaDd">
+        <div class="col-12 col-md-6 col-xl-4" th:each="t : ${dsTomTat}">
+
+            <a class="o-khoa"
+               th:classappend="${t.soCanXuLy gt 0} ? 'can-lam' : (${t.xong} ? 'da-xong' : 'trong')"
+               th:href="@{/quanly/duyetdiem/khoa/{id}(id=${t.maDonVi})}">
+
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                    <div class="ten-khoa" th:text="${t.ten}"></div>
+                    <i class="fas fa-chevron-right text-muted"></i>
+                </div>
+
+                <div class="d-flex align-items-end gap-3">
+                    <div>
+                        <div class="so-lon"
+                             th:classappend="${t.soCanXuLy gt 0} ? 'text-warning' : 'text-success'"
+                             th:text="${t.soCanXuLy}"></div>
+                        <div class="nhan-nho">bảng điểm cần xử lý</div>
+                    </div>
+                    <div class="ms-auto text-end nhan-nho">
+                        <div th:text="'chờ duyệt ' + ${t.soChoDuyet}"></div>
+                        <div th:text="'chờ công bố ' + ${t.soDaDuyet}"></div>
+                        <div th:text="'đã công bố ' + ${t.soCongBo}"></div>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <span th:if="${t.soChoDuyet gt 0}" class="badge bg-warning text-dark me-1"
+                          th:text="${t.soChoDuyet} + ' chờ duyệt'"></span>
+                    <span th:if="${t.soDaDuyet gt 0}" class="badge bg-info text-dark me-1"
+                          th:text="${t.soDaDuyet} + ' chờ công bố'"></span>
+                    <span th:if="${t.xong}" class="badge bg-success">
+                        <i class="fas fa-check me-1"></i>Đã xong
+                    </span>
+                </div>
+            </a>
+        </div>
+    </div>
 </div>
 </body>
 </html>

@@ -2,10 +2,9 @@ package vn.TieuLuanChuyenNganhFITHCMUTE.Controller.sinhvien;
 
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -30,8 +29,10 @@ import vn.TieuLuanChuyenNganhFITHCMUTE.Entity.ThongBao;
 import vn.TieuLuanChuyenNganhFITHCMUTE.Repository.SinhVienRepository;
 import vn.TieuLuanChuyenNganhFITHCMUTE.Service.DangKyHocPhanService;
 import vn.TieuLuanChuyenNganhFITHCMUTE.Service.HocPhiService;
+import vn.TieuLuanChuyenNganhFITHCMUTE.Service.KeHoachDangKyService;
 import vn.TieuLuanChuyenNganhFITHCMUTE.Service.KetQuaHocTapService;
 import vn.TieuLuanChuyenNganhFITHCMUTE.Service.LichHocService;
+import vn.TieuLuanChuyenNganhFITHCMUTE.Service.PhieuDangKyService;
 import vn.TieuLuanChuyenNganhFITHCMUTE.Service.ThongBaoService;
 
 @Controller
@@ -45,6 +46,8 @@ public class SinhVienController {
 	private final HocPhiService hocPhiService;
 	private final LichHocService lichHocService;
 	private final ThongBaoService thongBaoService;
+	private final PhieuDangKyService phieuDangKyService;
+	private final KeHoachDangKyService keHoachDangKyService;
 
 	@ModelAttribute("sinhVien")
 	public SinhVien sinhVienHienTai(Principal principal) {
@@ -112,32 +115,27 @@ public class SinhVienController {
 		model.addAttribute("hocKy", hk);
 		if (hk == null) return "sinhvien/dangky";
 
-		List<LopHocPhan> dsLop = dangKyHocPhanService.dsLopDangMo(hk);
-		List<DangKyHocPhan> daDangKy = dangKyHocPhanService.dsDaDangKy(sv, hk);
-
-		java.util.Map<Integer, Long> siSo = dangKyHocPhanService.siSoCacLop(dsLop);
+		// Bối cảnh gom sẵn mọi thứ cần để xét: điểm đã có, môn đã đạt, tiên
+		// quyết, tín chỉ đã đăng ký. Tính một lần rồi dùng lại cho cả trang.
 		var bc = dangKyHocPhanService.boiCanh(sv, hk);
+		List<DangKyHocPhan> daDangKy = bc.getDaDangKy();
 
-		model.addAttribute("dsLop", dsLop);
-		model.addAttribute("siSo", siSo);
 		model.addAttribute("daDangKy", daDangKy);
-		model.addAttribute("tongTinChi", dangKyHocPhanService.tongTinChi(daDangKy));
+		model.addAttribute("tongTinChi", bc.getTongTinChiDaDangKy());
 		model.addAttribute("tinChiToiDa", bc.getGioiHanTinChi());
-		// Lý do không đăng ký được của từng lớp, null nghĩa là đăng ký được
-		model.addAttribute("lyDo", dangKyHocPhanService.lyDoTungLop(bc, dsLop, siSo));
 		model.addAttribute("hocKyThu", bc.getHocKyThu());
 		model.addAttribute("loiChung", bc.getLoiChung());
 
-		// Lịch học của từng lớp đang mở, để sinh viên xem trước khi đăng ký
-		model.addAttribute("lichTheoLop", lichHocService.lichTheoLop(
-				dsLop.stream().map(LopHocPhan::getMaLopHocPhan).toList()));
+		// Khung chương trình của ngành, mỗi học phần kèm trạng thái đăng ký
+		model.addAttribute("keHoach", keHoachDangKyService.keHoach(sv, hk, bc));
 
-		Set<Integer> lopDaDangKy = daDangKy.stream()
-				.map(dk -> dk.getLopHocPhan().getMaLopHocPhan()).collect(Collectors.toSet());
-		Set<Integer> monDaDangKy = daDangKy.stream()
-				.map(dk -> dk.getLopHocPhan().getHocPhan().getMaHocPhanId()).collect(Collectors.toSet());
-		model.addAttribute("lopDaDangKy", lopDaDangKy);
-		model.addAttribute("monDaDangKy", monDaDangKy);
+		// Lịch của mọi lớp xuất hiện trên trang: lớp đã đăng ký và lớp đang mở
+		List<Integer> maLop = new ArrayList<>();
+		for (DangKyHocPhan dk : daDangKy)
+			maLop.add(dk.getLopHocPhan().getMaLopHocPhan());
+		for (LopHocPhan lop : dangKyHocPhanService.dsLopDangMo(hk))
+			maLop.add(lop.getMaLopHocPhan());
+		model.addAttribute("lichTheoLop", lichHocService.lichTheoLop(maLop));
 
 		return "sinhvien/dangky";
 	}
@@ -163,6 +161,26 @@ public class SinhVienController {
 		} catch (IllegalStateException e) {
 			ra.addFlashAttribute("loi", e.getMessage());
 		}
+		return "redirect:/sinhvien/dangky";
+	}
+
+	/**
+	 * Gửi phiếu xác nhận những học phần đã đăng ký về hộp thư sinh viên.
+	 *
+	 * Tách riêng khỏi nút Đăng ký vì sinh viên chọn lớp nhiều lần rồi đổi
+	 * tới đổi lui; gửi mỗi lần bấm một thư thì hộp thư đầy thư vụn mà chẳng
+	 * thư nào là bản chốt. Sinh viên tự bấm khi thấy đã xong.
+	 *
+	 * Phiếu chỉ sao lại dữ liệu đang có, bấm mấy lần cũng không thay đổi gì
+	 * trong cơ sở dữ liệu, nên không cần chặn bấm nhiều lần.
+	 */
+	@PostMapping("/dangky/xacnhan")
+	public String guiPhieuXacNhan(@ModelAttribute("sinhVien") SinhVien sv,
+	                              RedirectAttributes ra) {
+		HocKy hk = dangKyHocPhanService.hocKyHienTai().orElse(null);
+		PhieuDangKyService.KetQua kq = phieuDangKyService.guiPhieu(sv, hk);
+
+		ra.addFlashAttribute(kq.thanhCong() ? "thongBao" : "loi", kq.thongBao());
 		return "redirect:/sinhvien/dangky";
 	}
 

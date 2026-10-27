@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Khai bao rieng cua may, khong day len kho ma nguon ###
+mail-local.properties

@@ -3,65 +3,264 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{phongdaotao/layout}">
 <head>
-    <title>Sinh viên</title>
-    <style>
-        .the-muc { transition: .15s; text-decoration: none; color: inherit; display: block; height: 100%; }
-        .the-muc:hover { transform: translateY(-2px); box-shadow: 0 .4rem .9rem rgba(0,0,0,.12) !important; }
-        .the-muc .icon { width: 44px; height: 44px; border-radius: 10px;
-                         display: flex; align-items: center; justify-content: center; }
-    </style>
+    <title>Quản lý sinh viên</title>
 </head>
 <body>
 
-<h5 layout:fragment="page-title">Sinh viên</h5>
+<h5 layout:fragment="page-title">Quản lý sinh viên</h5>
 
 <div layout:fragment="content">
 
-    <div th:if="${loi}" class="alert alert-danger" th:text="${loi}"></div>
+    <style>
+        .the-khoa { transition: transform .2s ease, box-shadow .2s ease; }
+        .the-khoa:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, .12) !important;
+        }
+        .the-khoa .bieu-tuong {
+            width: 46px; height: 46px; flex: 0 0 46px;
+            border-radius: 12px;
+            background: #e7f0fb; color: #1565c0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+        }
+        @media (hover: none) {
+            .the-khoa:hover { transform: none; }
+        }
 
-    <!-- Thanh trên: tìm nhanh + nhập Excel -->
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-        <form th:action="@{/quanly/sinhvien/tim}" method="get" class="d-flex gap-2" style="min-width: 320px">
+        /* Khung biểu đồ.
+           Chiều cao đặt bằng CSS chứ không chờ JavaScript, nên bố cục
+           đứng yên ngay từ lúc tải trang, không bị giật khi biểu đồ vẽ xong.
+
+           13 cột đứng cần tối thiểu khoảng 760px bề ngang mới đọc được tên
+           khoa. Màn hình hẹp hơn thì cho cuộn ngang trong khung riêng,
+           phần còn lại của trang vẫn đứng yên. */
+        .khung-cuon { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        #khungBieuDo {
+            position: relative;
+            height: 420px;
+            min-width: 760px;
+        }
+    </style>
+
+    <div th:if="${loi}" class="alert alert-warning alert-dismissible fade show">
+        <i class="fas fa-circle-exclamation me-2"></i><span th:text="${loi}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- ============ Ô tìm nhanh ============ -->
+    <form th:action="@{/quanly/sinhvien/tim}" method="get" class="mb-3">
+        <div class="input-group" style="max-width: 420px;">
             <input type="text" name="tuKhoa" class="form-control"
-                   placeholder="Tìm nhanh theo MSSV hoặc họ tên">
-            <button type="submit" class="btn btn-outline-primary text-nowrap">
-                <i class="fas fa-magnifying-glass"></i> Tìm
+                   placeholder="Nhập MSSV hoặc họ tên" required>
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="fas fa-magnifying-glass me-1"></i> Tìm
             </button>
-        </form>
-
-        <a th:href="@{/quanly/sinhvien/import}" class="btn btn-success">
-            <i class="fas fa-file-excel"></i> Nhập từ Excel
-        </a>
-    </div>
-
-    <!-- Tổng quan -->
-    <div class="alert alert-light border d-flex justify-content-between align-items-center">
-        <span><i class="fas fa-sitemap text-primary"></i>
-              Chọn khoa để xem ngành, rồi tới khóa và danh sách lớp.</span>
-        <span class="fw-semibold" th:text="'Toàn trường: ' + ${tongSinhVien} + ' sinh viên'"></span>
-    </div>
-
-    <!-- Lưới khoa -->
-    <div class="row g-3">
-        <div th:if="${dsKhoa.empty}" class="col-12">
-            <div class="alert alert-secondary mb-0">Chưa có sinh viên nào trong hệ thống.</div>
         </div>
+    </form>
 
-        <div class="col-md-6 col-xl-4" th:each="k : ${dsKhoa}">
-            <a th:href="@{/quanly/sinhvien/khoa/{id}(id=${k.ma})}" class="the-muc card shadow-sm">
+    <!-- ============ Dòng hướng dẫn ============ -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <span class="text-muted">
+                <i class="fas fa-sitemap me-2 text-primary"></i>
+                Chọn khoa để xem ngành, rồi tới khóa và danh sách.
+            </span>
+            <span class="text-muted">
+                Toàn trường:
+                <strong th:text="${#numbers.formatInteger(tongSinhVien, 0, 'POINT')}">14.311</strong>
+                sinh viên
+            </span>
+        </div>
+    </div>
+
+    <!-- ============ Biểu đồ quy mô theo khoa ============ -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+                <div>
+                    <h5 class="mb-1">Quy mô đào tạo theo khoa</h5>
+                    <p class="text-muted small mb-0">
+                        Số sinh viên đang theo học, xếp từ nhiều đến ít
+                    </p>
+                </div>
+                <div class="text-end">
+                    <div class="fw-bold lh-1"
+                         style="font-size: clamp(1.4rem, 3vw, 2rem); color: #1565c0;"
+                         th:text="${#numbers.formatInteger(tongSinhVien, 0, 'POINT')}">14.311</div>
+                    <div class="text-muted small">sinh viên toàn trường</div>
+                </div>
+            </div>
+
+            <div class="khung-cuon">
+                <div id="khungBieuDo">
+                    <canvas id="bieuDoKhoa"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ============ Lưới các khoa ============ -->
+    <div class="row g-3">
+        <div class="col-12 col-md-6 col-xl-4" th:each="k : ${dsKhoa}">
+            <a th:href="@{/quanly/sinhvien/khoa/{ma}(ma=${k.ma})}"
+               class="card shadow-sm h-100 text-decoration-none the-khoa">
                 <div class="card-body d-flex align-items-center gap-3">
-                    <div class="icon bg-primary bg-opacity-10 text-primary">
+                    <div class="bieu-tuong">
                         <i class="fas fa-building-columns"></i>
                     </div>
-                    <div class="flex-grow-1">
-                        <div class="fw-semibold" th:text="${k.ten}"></div>
-                        <small class="text-muted" th:text="${k.soLuong} + ' sinh viên'"></small>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-semibold text-dark" th:text="${k.ten}">Tên khoa</div>
+                        <div class="text-muted small">
+                            <span th:text="${#numbers.formatInteger(k.soLuong, 0, 'POINT')}">0</span>
+                            sinh viên
+                        </div>
                     </div>
                     <i class="fas fa-chevron-right text-muted"></i>
                 </div>
             </a>
         </div>
     </div>
+
+    <div th:if="${dsKhoa == null or dsKhoa.isEmpty()}" class="alert alert-info">
+        Chưa có dữ liệu sinh viên.
+    </div>
+
+    <!-- ===============================================================
+         Thư viện và mã vẽ biểu đồ đặt ngay trong content, không dùng
+         fragment scripts. Nếu layout không khai báo fragment đó thì
+         Thymeleaf bỏ qua cả khối mà không báo lỗi gì.
+         =============================================================== -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <script th:inline="javascript">
+    (function () {
+        const duLieu = /*[[${dsKhoa}]]*/ [];
+
+        const khung = document.getElementById('bieuDoKhoa');
+        if (!khung || !duLieu || duLieu.length === 0) return;
+
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js chưa tải được. Kiểm tra kết nối mạng hoặc trình chặn quảng cáo.');
+            return;
+        }
+
+        // Sắp xếp giảm dần tại trình duyệt, không phụ thuộc thứ tự server trả về
+        const sapXep = duLieu.slice().sort((a, b) => b.soLuong - a.soLuong);
+
+        const tenDayDu = sapXep.map(m => m.ten);
+        const giaTri   = sapXep.map(m => m.soLuong);
+        const tong     = giaTri.reduce((a, b) => a + b, 0);
+
+        // Cột đứng nên nhãn nằm ngang bên dưới, chỗ rất hẹp.
+        // Bỏ chữ "Khoa"/"Viện" ở đầu rồi ngắt thành nhiều dòng,
+        // thay vì xoay nghiêng 45 độ vốn rất khó đọc.
+        // Tên đầy đủ vẫn hiện khi rê chuột.
+        function ngatDong(ten) {
+            const rutGon = ten.replace(/^(Khoa|Viện)\s+/i, '');
+            const tu = rutGon.split(' ');
+            const dong = [];
+            let hienTai = '';
+            tu.forEach(t => {
+                if ((hienTai + ' ' + t).trim().length > 12) {
+                    if (hienTai) dong.push(hienTai);
+                    hienTai = t;
+                } else {
+                    hienTai = (hienTai + ' ' + t).trim();
+                }
+            });
+            if (hienTai) dong.push(hienTai);
+            return dong;
+        }
+
+        const nhan = tenDayDu.map(ngatDong);
+
+        // Một chỉ số duy nhất thì dùng MỘT màu. Tô mỗi khoa một màu
+        // sẽ ám chỉ chúng khác loại, trong khi đều là "số sinh viên".
+        const MAU = '#1565c0';
+
+        // Ghi số ngay trên đỉnh cột, khỏi dóng mắt sang trục bên trái
+        const nhanSo = {
+            id: 'nhanSo',
+            afterDatasetsDraw(chart) {
+                const ctx = chart.ctx;
+                ctx.save();
+                ctx.font = '600 12px "Segoe UI", sans-serif';
+                ctx.fillStyle = '#495057';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                chart.getDatasetMeta(0).data.forEach(function (cot, i) {
+                    ctx.fillText(giaTri[i].toLocaleString('vi-VN'), cot.x, cot.y - 6);
+                });
+                ctx.restore();
+            }
+        };
+
+        new Chart(khung, {
+            type: 'bar',
+            data: {
+                labels: nhan,
+                datasets: [{
+                    data: giaTri,
+                    backgroundColor: MAU,
+                    hoverBackgroundColor: '#0d47a1',
+                    borderRadius: 4,          // bo đỉnh cột, chân cột vuông ở gốc trục
+                    borderSkipped: 'bottom',
+                    maxBarThickness: 54
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: { padding: { top: 24 } },   // chừa chỗ cho số trên đỉnh cột
+                plugins: {
+                    legend: { display: false },     // một chỉ số thì không cần chú giải
+                    tooltip: {
+                        backgroundColor: 'rgba(22, 33, 62, 0.92)',
+                        padding: 10,
+                        displayColors: false,
+                        callbacks: {
+                            // Nhãn trục đã rút gọn, tooltip trả lại tên đầy đủ
+                            title: items => tenDayDu[items[0].dataIndex],
+                            label: function (ctx) {
+                                const sl = ctx.parsed.y;
+                                const tyLe = tong ? (sl * 100 / tong).toFixed(1) : 0;
+                                return sl.toLocaleString('vi-VN') + ' sinh viên  ('
+                                     + tyLe + '% toàn trường)';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: '#343a40',
+                            font: { size: 11 },
+                            autoSkip: false,      // bắt buộc hiện đủ 13 tên khoa
+                            maxRotation: 0,
+                            minRotation: 0
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#eef1f5' },
+                        ticks: {
+                            color: '#8a94a6',
+                            font: { size: 11 },
+                            callback: v => v.toLocaleString('vi-VN')
+                        }
+                    }
+                }
+            },
+            plugins: [nhanSo]
+        });
+    })();
+    </script>
+
 </div>
+
 </body>
 </html>

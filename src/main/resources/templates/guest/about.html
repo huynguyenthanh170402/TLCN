@@ -3,101 +3,452 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title th:text="#{about.title}">About</title>
+    <title th:text="#{about.title}">Giới thiệu</title>
+
+    <style>
+        /* Trang này không dùng ảnh cổng trường. Thay bằng nền chuyển màu
+           và đặt logo lên giữa, nhìn trang trọng và không che mất logo. */
+        .hero-logo {
+            min-height: auto;
+            margin-top: var(--navbar-height);
+            padding: clamp(2rem, 6vw, 4rem) 1rem;
+            background: linear-gradient(135deg, #eef2f9 0%, #dde6f5 100%);
+        }
+        .hero-logo::before,
+        .hero-logo::after { display: none; }
+
+        .hero-logo .container {
+            background: transparent;
+            backdrop-filter: none;
+            box-shadow: none;
+            max-width: min(900px, 94vw);
+            padding: 0;
+        }
+
+        .logo-truong {
+            width: clamp(110px, 20vw, 180px);
+            height: auto;
+            margin-bottom: 1.25rem;
+            filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.12));
+        }
+
+        .hero-logo h1 {
+            color: #16213e;
+            text-shadow: none;
+            text-transform: none;
+            font-size: clamp(1.3rem, 3.6vw, 2.2rem);
+            margin-bottom: 0.35rem;
+        }
+
+        .ten-tieng-anh {
+            color: #46566f;
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            margin-bottom: 0.75rem;
+        }
+
+        /* ---------- Dòng thời gian lịch sử ---------- */
+        .moc-thoi-gian {
+            position: relative;
+            padding-left: 2rem;
+            border-left: 3px solid #d6dfee;
+            margin-left: 0.5rem;
+        }
+
+        .moc {
+            position: relative;
+            padding-bottom: 1.75rem;
+        }
+        .moc:last-child { padding-bottom: 0; }
+
+        /* Chấm tròn trên trục thời gian */
+        .moc::before {
+            content: "";
+            position: absolute;
+            left: calc(-2rem - 9px);
+            top: 6px;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #1565c0;
+            border: 3px solid #fff;
+            box-shadow: 0 0 0 2px #d6dfee;
+        }
+
+        /* Mốc đổi tên gần đây làm nổi bằng màu đỏ của logo */
+        .moc.moc-noi-bat::before { background: #e4322b; }
+
+        .moc-ngay {
+            font-weight: 700;
+            color: #1565c0;
+            font-size: 0.95rem;
+            display: block;
+            margin-bottom: 0.15rem;
+        }
+        .moc.moc-noi-bat .moc-ngay { color: #e4322b; }
+
+        .moc-noidung { margin-bottom: 0; }
+
+        /* ---------- Thẻ thông tin chung ---------- */
+        .o-thongtin {
+            display: flex;
+            gap: 0.9rem;
+            align-items: flex-start;
+            height: 100%;
+        }
+        .o-thongtin i {
+            font-size: 1.35rem;
+            color: #1565c0;
+            flex: 0 0 auto;
+            margin-top: 2px;
+        }
+        .o-thongtin .nhan {
+            font-size: 0.85rem;
+            color: #6c757d;
+            display: block;
+        }
+        .o-thongtin .giatri {
+            font-weight: 600;
+            color: #16213e;
+        }
+
+        /* ---------- Danh sách khoa ---------- */
+        .the-khoa {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+            padding: 0.9rem 1rem;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+            height: 100%;
+        }
+        .the-khoa i { color: #1565c0; margin-top: 3px; flex: 0 0 auto; }
+        .the-khoa .ten-khoa { font-weight: 600; display: block; }
+        .the-khoa .nganh { font-size: 0.875rem; color: #6c757d; }
+    </style>
 </head>
 <body>
 <main layout:fragment="content">
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container">
-            <h1 th:text="#{about.heading}">About Our School</h1>
-            <p>Learn more about our institution and values</p>
+
+    <!-- ============ Logo và tên trường ============ -->
+    <section class="hero hero-logo">
+        <div class="container text-center">
+            <img th:src="@{/images/logo-hcmute.png}" class="logo-truong"
+                 alt="Logo Trường Đại học Công nghệ Kỹ thuật TP. Hồ Chí Minh">
+            <h1 th:text="#{about.ten_vi}">Trường Đại học Công nghệ Kỹ thuật TP. Hồ Chí Minh</h1>
+            <p class="ten-tieng-anh" th:text="#{about.ten_en}">
+                Ho Chi Minh City University of Technology and Education
+            </p>
+            <span class="badge bg-primary fs-6 px-3 py-2" th:text="#{about.viettat}">HCM-UTE</span>
         </div>
     </section>
 
-    <!-- Mission, Vision, History Section -->
+    <!-- ============ Giới thiệu chung ============ -->
     <section class="py-5">
         <div class="container">
-            <div class="row mb-5">
-                <div class="col-md-6 mb-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-bullseye me-2"></i> <span th:text="#{about.mission}">Mission</span>
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <p th:text="#{about.mission_content}">
-                                Provide high-quality education and holistic development for students in a modern learning environment.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 mb-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-rocket me-2"></i> <span th:text="#{about.vision}">Vision</span>
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <p th:text="#{about.vision_content}">
-                                Become a leading university in the region, recognized for educational and research excellence.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mb-5">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-history me-2"></i> <span th:text="#{about.history}">History</span>
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <p th:text="#{about.history_content}">
-                        Founded in 1995, the school has developed into one of the most prominent educational institutions.
-                    </p>
-                    <p>
-                        Over the past three decades, we have established a strong reputation for academic excellence,
-                        innovation, and community engagement. Our institution has continuously evolved to meet the changing
-                        needs of the education sector while maintaining our core values of integrity, excellence, and inclusivity.
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-9">
+                    <p class="lead" th:text="#{about.gioithieu}">
+                        Giới thiệu chung về nhà trường.
                     </p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Core Values Section -->
+    <!-- ============ Thông tin chung ============ -->
     <section class="bg-light py-5">
         <div class="container">
-            <h2 class="section-heading mb-5">Our Core Values</h2>
-            <div class="row">
-                <div class="col-md-4 mb-4">
-                    <div class="card">
+            <h2 class="section-heading" th:text="#{about.thongtin_heading}">Thông tin chung</h2>
+            <div class="row g-4">
+
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="card"><div class="card-body">
+                        <div class="o-thongtin">
+                            <i class="fas fa-location-dot"></i>
+                            <div>
+                                <span class="nhan" th:text="#{about.diachi_nhan}">Địa chỉ</span>
+                                <span class="giatri" th:text="#{about.diachi}">Số 1 Võ Văn Ngân</span>
+                            </div>
+                        </div>
+                    </div></div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="card"><div class="card-body">
+                        <div class="o-thongtin">
+                            <i class="fas fa-user-tie"></i>
+                            <div>
+                                <span class="nhan" th:text="#{about.hieutruong_nhan}">Hiệu trưởng</span>
+                                <span class="giatri" th:text="#{about.hieutruong}">PGS.TS. Lê Hiếu Giang</span>
+                            </div>
+                        </div>
+                    </div></div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="card"><div class="card-body">
+                        <div class="o-thongtin">
+                            <i class="fas fa-calendar-check"></i>
+                            <div>
+                                <span class="nhan" th:text="#{about.thanhlap_nhan}">Thành lập</span>
+                                <span class="giatri" th:text="#{about.thanhlap}">05/10/1962</span>
+                            </div>
+                        </div>
+                    </div></div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="card"><div class="card-body">
+                        <div class="o-thongtin">
+                            <i class="fas fa-globe"></i>
+                            <div>
+                                <span class="nhan" th:text="#{about.website_nhan}">Website</span>
+                                <span class="giatri">
+                                    <a href="https://hcmute.edu.vn" target="_blank"
+                                       rel="noopener noreferrer">hcmute.edu.vn</a>
+                                </span>
+                            </div>
+                        </div>
+                    </div></div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ Lịch sử hình thành ============ -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="section-heading" th:text="#{about.history}">Lịch sử hình thành</h2>
+
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-9">
+                    <div class="moc-thoi-gian">
+
+                        <div class="moc">
+                            <span class="moc-ngay" th:text="#{about.ls1.ngay}">05/10/1962</span>
+                            <p class="moc-noidung" th:text="#{about.ls1.noidung}">Nội dung</p>
+                        </div>
+
+                        <div class="moc">
+                            <span class="moc-ngay" th:text="#{about.ls2.ngay}">21/09/1972</span>
+                            <p class="moc-noidung" th:text="#{about.ls2.noidung}">Nội dung</p>
+                        </div>
+
+                        <div class="moc">
+                            <span class="moc-ngay" th:text="#{about.ls3.ngay}">1974</span>
+                            <p class="moc-noidung" th:text="#{about.ls3.noidung}">Nội dung</p>
+                        </div>
+
+                        <div class="moc">
+                            <span class="moc-ngay" th:text="#{about.ls4.ngay}">27/10/1976</span>
+                            <p class="moc-noidung" th:text="#{about.ls4.noidung}">Nội dung</p>
+                        </div>
+
+                        <div class="moc">
+                            <span class="moc-ngay" th:text="#{about.ls5.ngay}">1984</span>
+                            <p class="moc-noidung" th:text="#{about.ls5.noidung}">Nội dung</p>
+                        </div>
+
+                        <div class="moc">
+                            <span class="moc-ngay" th:text="#{about.ls6.ngay}">1991</span>
+                            <p class="moc-noidung" th:text="#{about.ls6.noidung}">Nội dung</p>
+                        </div>
+
+                        <div class="moc moc-noi-bat">
+                            <span class="moc-ngay" th:text="#{about.ls7.ngay}">26/12/2025</span>
+                            <p class="moc-noidung" th:text="#{about.ls7.noidung}">Nội dung</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ Sứ mạng và Tầm nhìn ============ -->
+    <section class="bg-light py-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-12 col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-bullseye me-2"></i>
+                                <span th:text="#{about.mission}">Sứ mạng</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-0" th:text="#{about.mission_content}">Nội dung sứ mạng</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-rocket me-2"></i>
+                                <span th:text="#{about.vision}">Tầm nhìn</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-0" th:text="#{about.vision_content}">Nội dung tầm nhìn</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ Các khoa đào tạo ============ -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="section-heading" th:text="#{about.khoa_heading}">Các khoa đào tạo</h2>
+            <p class="text-center mb-4" th:text="#{about.khoa_intro}">Giới thiệu ngắn.</p>
+
+            <div class="row g-3">
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="the-khoa">
+                        <i class="fas fa-gears"></i>
+                        <div>
+                            <span class="ten-khoa" th:text="#{about.khoa1.ten}">Khoa Cơ khí Chế tạo máy</span>
+                            <span class="nganh" th:text="#{about.khoa1.nganh}">Ngành tiêu biểu</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="the-khoa">
+                        <i class="fas fa-car"></i>
+                        <div>
+                            <span class="ten-khoa" th:text="#{about.khoa2.ten}">Khoa Cơ khí Động lực</span>
+                            <span class="nganh" th:text="#{about.khoa2.nganh}">Ngành tiêu biểu</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="the-khoa">
+                        <i class="fas fa-bolt"></i>
+                        <div>
+                            <span class="ten-khoa" th:text="#{about.khoa3.ten}">Khoa Điện - Điện tử</span>
+                            <span class="nganh" th:text="#{about.khoa3.nganh}">Ngành tiêu biểu</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="the-khoa">
+                        <i class="fas fa-laptop-code"></i>
+                        <div>
+                            <span class="ten-khoa" th:text="#{about.khoa4.ten}">Khoa Công nghệ Thông tin</span>
+                            <span class="nganh" th:text="#{about.khoa4.nganh}">Ngành tiêu biểu</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="the-khoa">
+                        <i class="fas fa-road"></i>
+                        <div>
+                            <span class="ten-khoa" th:text="#{about.khoa5.ten}">Khoa Giao thông và Năng lượng</span>
+                            <span class="nganh" th:text="#{about.khoa5.nganh}">Ngành tiêu biểu</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="the-khoa">
+                        <i class="fas fa-flask"></i>
+                        <div>
+                            <span class="ten-khoa" th:text="#{about.khoa6.ten}">Khoa Công nghệ Hóa học và Thực phẩm</span>
+                            <span class="nganh" th:text="#{about.khoa6.nganh}">Ngành tiêu biểu</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="the-khoa">
+                        <i class="fas fa-shirt"></i>
+                        <div>
+                            <span class="ten-khoa" th:text="#{about.khoa7.ten}">Khoa Thời trang và Du lịch</span>
+                            <span class="nganh" th:text="#{about.khoa7.nganh}">Ngành tiêu biểu</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="the-khoa">
+                        <i class="fas fa-print"></i>
+                        <div>
+                            <span class="ten-khoa" th:text="#{about.khoa8.ten}">Khoa In và Truyền thông</span>
+                            <span class="nganh" th:text="#{about.khoa8.nganh}">Ngành tiêu biểu</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="the-khoa">
+                        <i class="fas fa-atom"></i>
+                        <div>
+                            <span class="ten-khoa" th:text="#{about.khoa9.ten}">Khoa Khoa học Ứng dụng</span>
+                            <span class="nganh" th:text="#{about.khoa9.nganh}">Ngành tiêu biểu</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="the-khoa">
+                        <i class="fas fa-compass-drafting"></i>
+                        <div>
+                            <span class="ten-khoa" th:text="#{about.khoa10.ten}">Kiến trúc và Quy hoạch</span>
+                            <span class="nganh" th:text="#{about.khoa10.nganh}">Ngành tiêu biểu</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="the-khoa">
+                        <i class="fas fa-chart-line"></i>
+                        <div>
+                            <span class="ten-khoa" th:text="#{about.khoa11.ten}">Khoa Kinh tế</span>
+                            <span class="nganh" th:text="#{about.khoa11.nganh}">Ngành tiêu biểu</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="the-khoa">
+                        <i class="fas fa-chalkboard-user"></i>
+                        <div>
+                            <span class="ten-khoa" th:text="#{about.khoa12.ten}">Viện Sư phạm Kỹ thuật</span>
+                            <span class="nganh" th:text="#{about.khoa12.nganh}">Ngành tiêu biểu</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ Giá trị cốt lõi ============ -->
+    <section class="bg-light py-5">
+        <div class="container">
+            <h2 class="section-heading" th:text="#{about.values_heading}">Giá trị cốt lõi</h2>
+            <div class="row g-4">
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="card h-100">
                         <div class="card-body text-center">
                             <i class="fas fa-star fa-3x mb-3" style="color: #f39c12;"></i>
-                            <h5 class="card-title">Excellence</h5>
-                            <p class="card-text">We are committed to achieving the highest standards in all our endeavors.</p>
+                            <h5 class="card-title" th:text="#{about.value1.title}">Chất lượng</h5>
+                            <p class="card-text" th:text="#{about.value1.desc}">Mô tả</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-4">
-                    <div class="card">
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="card h-100">
                         <div class="card-body text-center">
                             <i class="fas fa-handshake fa-3x mb-3" style="color: #27ae60;"></i>
-                            <h5 class="card-title">Integrity</h5>
-                            <p class="card-text">We conduct ourselves with honesty, transparency, and strong ethical principles.</p>
+                            <h5 class="card-title" th:text="#{about.value2.title}">Chính trực</h5>
+                            <p class="card-text" th:text="#{about.value2.desc}">Mô tả</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-4">
-                    <div class="card">
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="card h-100">
                         <div class="card-body text-center">
                             <i class="fas fa-users fa-3x mb-3" style="color: #e74c3c;"></i>
-                            <h5 class="card-title">Inclusivity</h5>
-                            <p class="card-text">We welcome and celebrate diversity in our academic and campus community.</p>
+                            <h5 class="card-title" th:text="#{about.value3.title}">Hòa nhập</h5>
+                            <p class="card-text" th:text="#{about.value3.desc}">Mô tả</p>
                         </div>
                     </div>
                 </div>
@@ -105,101 +456,6 @@
         </div>
     </section>
 
-    <!-- Key Highlights Section -->
-    <section class="py-5">
-        <div class="container">
-            <h2 class="section-heading mb-5">Why Choose Us?</h2>
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="d-flex mb-4">
-                        <div class="me-3">
-                            <i class="fas fa-check-circle fa-2x" style="color: #27ae60;"></i>
-                        </div>
-                        <div>
-                            <h5>World-Class Faculty</h5>
-                            <p>Our faculty members are renowned experts in their fields with international recognition.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 mb-4">
-                    <div class="d-flex mb-4">
-                        <div class="me-3">
-                            <i class="fas fa-check-circle fa-2x" style="color: #27ae60;"></i>
-                        </div>
-                        <div>
-                            <h5>Modern Campus Facilities</h5>
-                            <p>State-of-the-art laboratories, libraries, and learning centers equipped with latest technology.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 mb-4">
-                    <div class="d-flex mb-4">
-                        <div class="me-3">
-                            <i class="fas fa-check-circle fa-2x" style="color: #27ae60;"></i>
-                        </div>
-                        <div>
-                            <h5>Research Opportunities</h5>
-                            <p>Engage in cutting-edge research projects with support from experienced mentors.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 mb-4">
-                    <div class="d-flex mb-4">
-                        <div class="me-3">
-                            <i class="fas fa-check-circle fa-2x" style="color: #27ae60;"></i>
-                        </div>
-                        <div>
-                            <h5>Global Network</h5>
-                            <p>Strong connections with international universities and industry partners worldwide.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 mb-4">
-                    <div class="d-flex mb-4">
-                        <div class="me-3">
-                            <i class="fas fa-check-circle fa-2x" style="color: #27ae60;"></i>
-                        </div>
-                        <div>
-                            <h5>Career Support</h5>
-                            <p>Comprehensive career counseling and placement services to launch your professional journey.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 mb-4">
-                    <div class="d-flex mb-4">
-                        <div class="me-3">
-                            <i class="fas fa-check-circle fa-2x" style="color: #27ae60;"></i>
-                        </div>
-                        <div>
-                            <h5>Student Support Services</h5>
-                            <p>Dedicated support for academic, personal, and professional development.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Accreditation Section -->
-    <section class="bg-light py-5">
-        <div class="container text-center">
-            <h2 class="section-heading mb-5">Accreditations & Recognition</h2>
-            <div class="row">
-                <div class="col-md-4 mb-4">
-                    <h5>International Accreditation</h5>
-                    <p>Recognized by leading international accreditation bodies for quality and standards.</p>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <h5>National Rankings</h5>
-                    <p>Consistently ranked among top educational institutions in the nation.</p>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <h5>Professional Recognition</h5>
-                    <p>Our programs are recognized by professional organizations and industry leaders.</p>
-                </div>
-            </div>
-        </div>
-    </section>
 </main>
 </body>
 </html>

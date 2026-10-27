@@ -1,9 +1,11 @@
 package vn.TieuLuanChuyenNganhFITHCMUTE.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,7 @@ public class PhanCongService {
 	private static final int VAI_TRO_CHINH = 1;
 	private static final int HIEU_LUC = 1;
 	private static final int DA_HUY = 0;
+	private static final int DANG_CONG_TAC = 1;
 
 	private final LopHocPhanRepository lopRepository;
 	private final GiangVienRepository giangVienRepository;
@@ -44,10 +47,84 @@ public class PhanCongService {
 		private List<LichHoc> lich;
 	}
 
+	/** Một ô trên màn hình chọn khoa */
+	@Getter
+	public static class TomTatKhoa {
+		private final Integer maDonVi;
+		private final String ten;
+		private int soLop;
+		private int soChuaPhanCong;
+
+		TomTatKhoa(Integer maDonVi, String ten) { this.maDonVi = maDonVi; this.ten = ten; }
+
+		public boolean isXong() { return soLop > 0 && soChuaPhanCong == 0; }
+	}
+
+	// ===================== CHIA VIỆC THEO KHOA =====================
+
+	/**
+	 * Số liệu cho màn hình chọn khoa.
+	 *
+	 * Lớp thuộc về khoa phụ trách học phần, không phải khoa quản lý ngành:
+	 * người đứng lớp là giảng viên của khoa dạy môn đó. Lớp Toán cao cấp mở
+	 * cho sinh viên Cơ khí vẫn do khoa dạy Toán lo giảng viên.
+	 *
+	 * Dùng lại dsLop thay vì viết truy vấn đếm riêng, vì danh sách đó đằng
+	 * nào cũng đã gom sẵn giảng viên của từng lớp — đúng thứ cần để biết lớp
+	 * nào còn trống.
+	 */
+	@Transactional(readOnly = true)
+	public List<TomTatKhoa> tomTatTheoKhoa(Integer maHocKy) {
+		Map<Integer, TomTatKhoa> theoKhoa = new HashMap<>();
+
+		for (DongPhanCong d : dsLopToanTruong(maHocKy, false)) {
+			Integer ma = maKhoa(d.getLop());
+			String ten = tenKhoaCuaLop(d.getLop());
+
+			TomTatKhoa t = theoKhoa.computeIfAbsent(ma, k -> new TomTatKhoa(k, ten));
+			t.soLop++;
+			if (d.getGiangVien() == null) t.soChuaPhanCong++;
+		}
+
+		List<TomTatKhoa> kq = new ArrayList<>(theoKhoa.values());
+		kq.sort(Comparator.comparing(TomTatKhoa::getTen));
+		return kq;
+	}
+
+	/** Mã khoa phụ trách học phần của lớp; -1 khi học phần chưa gắn khoa */
+	public static Integer maKhoa(LopHocPhan lop) {
+		var donVi = lop.getHocPhan().getDonVi();
+		return (donVi == null) ? -1 : donVi.getMaDonVi();
+	}
+
+	public static String tenKhoaCuaLop(LopHocPhan lop) {
+		var donVi = lop.getHocPhan().getDonVi();
+		return (donVi == null) ? "Chưa rõ khoa phụ trách" : donVi.getTenDonVi();
+	}
+
 	// ===================== XEM =====================
 
 	@Transactional(readOnly = true)
 	public List<DongPhanCong> dsLop(Integer maHocKy, boolean chiChuaPhanCong) {
+		return dsLop(maHocKy, chiChuaPhanCong, null);
+	}
+
+	/**
+	 * @param maDonVi để trống thì lấy cả trường, có thì chỉ lấy lớp của khoa đó
+	 */
+	@Transactional(readOnly = true)
+	public List<DongPhanCong> dsLop(Integer maHocKy, boolean chiChuaPhanCong, Integer maDonVi) {
+		List<DongPhanCong> tatCa = dsLopToanTruong(maHocKy, chiChuaPhanCong);
+		if (maDonVi == null) return tatCa;
+
+		List<DongPhanCong> kq = new ArrayList<>();
+		for (DongPhanCong d : tatCa) {
+			if (maDonVi.equals(maKhoa(d.getLop()))) kq.add(d);
+		}
+		return kq;
+	}
+
+	private List<DongPhanCong> dsLopToanTruong(Integer maHocKy, boolean chiChuaPhanCong) {
 		List<LopHocPhan> dsLop = lopRepository.findByHocKy_MaHocKy(
 				maHocKy, Sort.by("hocPhan.maHocPhan", "maLop"));
 
@@ -76,13 +153,43 @@ public class PhanCongService {
 		return kq;
 	}
 
-	/** Giảng viên của khoa phụ trách học phần, để gợi ý trước trong ô chọn */
+	/**
+	 * Giảng viên gợi ý cho ô chọn, gom theo khoa công tác.
+	 *
+	 * Gom theo khoa để ô chọn nói được giảng viên thuộc khoa nào mà không
+	 * phải lặp tên khoa trên từng dòng — tên khoa dài, lặp lại thì ô chọn
+	 * hẹp sẽ cắt mất tên người.
+	 *
+	 * Ưu tiên giảng viên của khoa phụ trách học phần. Khoa đó không có ai
+	 * đang công tác thì mở ra toàn trường, lúc này việc gom theo khoa mới
+	 * thật sự cần vì danh sách trộn nhiều khoa.
+	 *
+	 * Chỉ lấy người đang công tác. Trước đây nhánh dự phòng lấy tất cả, kể
+	 * cả người đã nghỉ, nên ô chọn mời một cái tên mà bấm Giao lớp là bị
+	 * doiGiangVien chặn lại — người dùng không hiểu vì sao chọn được mà
+	 * không giao được.
+	 */
 	@Transactional(readOnly = true)
-	public List<GiangVien> dsGiangVien(Integer maDonVi) {
-		List<GiangVien> cungKhoa = maDonVi == null ? List.of()
-				: giangVienRepository.findByDonVi_MaDonViAndTrangThaiOrderByMaSoGiangVien(maDonVi, 1);
-		if (!cungKhoa.isEmpty()) return cungKhoa;
-		return giangVienRepository.findAll(Sort.by("maSoGiangVien"));
+	public Map<String, List<GiangVien>> dsGiangVien(Integer maDonVi) {
+		List<GiangVien> ds = maDonVi == null ? List.of()
+				: giangVienRepository.findByDonVi_MaDonViAndTrangThaiOrderByMaSoGiangVien(
+						maDonVi, DANG_CONG_TAC);
+
+		if (ds.isEmpty())
+			ds = giangVienRepository.findByTrangThaiOrderByMaSoGiangVien(DANG_CONG_TAC);
+
+		// TreeMap để các khoa xếp theo tên, khỏi phải sắp lại ở giao diện
+		Map<String, List<GiangVien>> theoKhoa = new TreeMap<>();
+		for (GiangVien gv : ds) {
+			theoKhoa.computeIfAbsent(tenKhoa(gv), k -> new ArrayList<>()).add(gv);
+		}
+		return theoKhoa;
+	}
+
+	/** Tên khoa công tác, dùng chung cho ô chọn lẫn dòng đang phân công */
+	public static String tenKhoa(GiangVien gv) {
+		if (gv == null || gv.getDonVi() == null) return "Chưa rõ khoa";
+		return gv.getDonVi().getTenDonVi();
 	}
 
 	// ===================== ĐỔI GIẢNG VIÊN =====================

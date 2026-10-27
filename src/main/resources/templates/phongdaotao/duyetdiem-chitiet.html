@@ -11,8 +11,12 @@
 
 <div layout:fragment="content">
 
-    <a th:href="@{/quanly/duyetdiem}" class="btn btn-sm btn-outline-secondary mb-3">
-        <i class="fas fa-arrow-left"></i> Danh sách
+    <!-- Quay về đúng khoa của lớp này, không về màn hình chọn khoa:
+         chuyên viên thường duyệt liên tiếp nhiều lớp trong cùng một khoa. -->
+    <a th:href="@{/quanly/duyetdiem/khoa/{id}(id=${maDonVi})}"
+       class="btn btn-sm btn-outline-secondary mb-3">
+        <i class="fas fa-arrow-left"></i>
+        <span th:text="${tenKhoa}">Danh sách</span>
     </a>
 
     <!-- Thông tin lớp -->

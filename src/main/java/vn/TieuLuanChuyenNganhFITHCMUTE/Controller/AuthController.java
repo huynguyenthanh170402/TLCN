@@ -1,14 +1,28 @@
 package vn.TieuLuanChuyenNganhFITHCMUTE.Controller;
 
-import java.util.Set;
+import java.security.Principal;
 
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import lombok.extern.slf4j.Slf4j;
+import vn.TieuLuanChuyenNganhFITHCMUTE.Entity.VaiTro;
+
+/**
+ * Trang đăng nhập và ngã ba điều hướng sau khi đăng nhập.
+ *
+ * Gộp chung một lớp vì hai việc này đi liền nhau: người dùng đăng nhập ở
+ * /login, Spring Security đưa họ sang /dashboard, chỗ này nhìn vai trò rồi
+ * chuyển tiếp về trang chủ tương ứng.
+ *
+ * Nhờ vậy cấu hình chỉ cần một địa chỉ sau đăng nhập
+ * (defaultSuccessUrl("/dashboard", true)), không phải viết sáu nhánh rải rác.
+ */
 @Controller
+@Slf4j
 public class AuthController {
 
 	@GetMapping("/login")
@@ -17,19 +31,44 @@ public class AuthController {
 		return "guest/login";
 	}
 
-	/** Sau khi đăng nhập, chuyển tới khu vực riêng theo quyền */
 	@GetMapping("/dashboard")
-	public String dashboard(Authentication auth) {
-		if (auth == null) return "redirect:/login";
+	public String dieuHuong(Authentication auth, Principal principal) {
 
-		Set<String> roles = AuthorityUtils.authorityListToSet(auth.getAuthorities());
+		if (auth == null) {
+			return "redirect:/login";
+		}
 
-		if (roles.contains("ROLE_SINH_VIEN"))     return "redirect:/sinhvien";
-		if (roles.contains("ROLE_GIANG_VIEN"))    return "redirect:/giangvien";
-		if (roles.contains("ROLE_CHUYEN_VIEN")
-		 || roles.contains("ROLE_PHONG_BAN"))     return "redirect:/quanly";
-		if (roles.contains("ROLE_BAN_GIAM_HIEU")) return "redirect:/baocao";
+		VaiTro vaiTro = layVaiTro(auth);
 
-		return "redirect:/";
+		if (vaiTro == null) {
+			log.warn("Tài khoản {} không có vai trò hợp lệ", principal.getName());
+			return "redirect:/403";
+		}
+
+		return switch (vaiTro) {
+			case SINH_VIEN                -> "redirect:/sinhvien/hoso";
+			case GIANG_VIEN               -> "redirect:/giangvien/lop";
+			case PHONG_DAO_TAO            -> "redirect:/quanly/sinhvien";
+			case PHONG_KE_HOACH_TAI_CHINH -> "redirect:/taichinh";
+			case PHONG_CONG_TAC_SINH_VIEN -> "redirect:/ctsv";
+			case BAN_GIAM_HIEU            -> "redirect:/baocao/tongquan";
+		};
+	}
+
+	/**
+	 * Đọc vai trò từ authority. Authority có dạng ROLE_PHONG_DAO_TAO,
+	 * cắt bỏ tiền tố ROLE_ rồi tra trong enum.
+	 */
+	private VaiTro layVaiTro(Authentication auth) {
+		for (GrantedAuthority q : auth.getAuthorities()) {
+			String ten = q.getAuthority();
+			if (ten == null || !ten.startsWith("ROLE_")) continue;
+			try {
+				return VaiTro.valueOf(ten.substring(5));
+			} catch (IllegalArgumentException boQua) {
+				// Authority lạ, thử cái tiếp theo
+			}
+		}
+		return null;
 	}
 }

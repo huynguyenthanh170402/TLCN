@@ -1,4 +1,4 @@
-package vn.TieuLuanChuyenNganhFITHCMUTE.Controller.phongdaodao;
+package vn.TieuLuanChuyenNganhFITHCMUTE.Controller.phongdaotao;
 
 import java.security.Principal;
 import java.time.LocalDate;

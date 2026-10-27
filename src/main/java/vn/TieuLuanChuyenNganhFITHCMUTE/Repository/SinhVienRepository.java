@@ -35,6 +35,15 @@ public interface SinhVienRepository extends JpaRepository<SinhVien, Integer> {
 	       """)
 	Optional<SinhVien> timTheoMa(@Param("maSinhVien") Integer maSinhVien);
 
+	/** Tra theo mã số sinh viên, dùng khi Phòng Công tác Sinh viên nhập MSSV */
+	@Query("""
+	       SELECT sv FROM SinhVien sv
+	       LEFT JOIN FETCH sv.nganh n
+	       LEFT JOIN FETCH n.donVi
+	       WHERE sv.maSoSinhVien = :maSoSinhVien
+	       """)
+	Optional<SinhVien> timTheoMaSo(@Param("maSoSinhVien") String maSoSinhVien);
+
 	/** Kiểm tra trùng MSSV khi nhập từ Excel */
 	boolean existsByMaSoSinhVien(String maSoSinhVien);
 

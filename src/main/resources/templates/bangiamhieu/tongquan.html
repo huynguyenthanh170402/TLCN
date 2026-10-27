@@ -3,158 +3,131 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{bangiamhieu/layout}">
 <head>
-    <title>Báo cáo tổng quan</title>
-    <style>
-        .khung-bieudo { position: relative; height: 280px; }
-    </style>
+    <title>Tổng quan</title>
 </head>
 <body>
 
-<h5 layout:fragment="page-title">Báo cáo tổng quan</h5>
+<h5 layout:fragment="page-title">Tổng quan toàn trường</h5>
 
 <div layout:fragment="content">
 
-    <!-- ===== Thẻ tổng quan ===== -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card shadow-sm border-start border-primary border-4"><div class="card-body">
-                <div class="text-muted small">Sinh viên</div>
-                <div class="fs-3 fw-bold text-primary" th:text="${bc.tongSinhVien}"></div>
-            </div></div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm border-start border-success border-4"><div class="card-body">
-                <div class="text-muted small">Giảng viên</div>
-                <div class="fs-3 fw-bold text-success" th:text="${bc.tongGiangVien}"></div>
-            </div></div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm border-start border-info border-4"><div class="card-body">
-                <div class="text-muted small">Lớp học phần học kỳ này</div>
-                <div class="fs-3 fw-bold text-info" th:text="${bc.soLopHocKyNay}"></div>
-            </div></div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm border-start border-danger border-4"><div class="card-body">
-                <div class="text-muted small">Học phí còn phải thu</div>
-                <div class="fs-5 fw-bold text-danger"
-                     th:text="${#numbers.formatDecimal(bc.tongConNo, 1, 'POINT', 0, 'COMMA')} + ' đ'"></div>
-                <small class="text-muted"
-                       th:text="'Đã thu ' + ${#numbers.formatDecimal(bc.tongDaThu, 1, 'POINT', 0, 'COMMA')} + ' đ'"></small>
-            </div></div>
-        </div>
-    </div>
-
-    <!-- ===== Hàng biểu đồ 1 ===== -->
-    <div class="row g-3 mb-4">
-        <div class="col-lg-7">
-            <div class="card shadow-sm h-100">
-                <div class="card-header fw-bold">Sinh viên theo khoa</div>
-                <div class="card-body"><div class="khung-bieudo"><canvas id="bdKhoa"></canvas></div></div>
+    <!-- ===================== HÀNG THẺ SỐ ===================== -->
+    <div class="row g-3">
+        <div class="col-6 col-xl-3">
+            <div class="the-so">
+                <div class="nhan">Sinh viên đang học</div>
+                <div class="so" th:text="${bc.tongSinhVienDangHoc}">0</div>
+                <div class="phu">trên tổng <span th:text="${bc.tongSinhVien}">0</span> hồ sơ</div>
             </div>
         </div>
-        <div class="col-lg-5">
-            <div class="card shadow-sm h-100">
-                <div class="card-header fw-bold">Xếp loại học lực (GPA tích lũy)</div>
-                <div class="card-body"><div class="khung-bieudo"><canvas id="bdXepLoai"></canvas></div></div>
+        <div class="col-6 col-xl-3">
+            <div class="the-so">
+                <div class="nhan">Giảng viên đang công tác</div>
+                <div class="so" th:text="${bc.tongGiangVien}">0</div>
+                <div class="phu"><span th:text="${bc.soLopHocKyNay}">0</span> lớp học phần đang mở</div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="the-so">
+                <div class="nhan">Sinh viên / giảng viên</div>
+                <div class="so" th:text="${bc.tiLeSvGvToanTruong}">0</div>
+                <div class="phu">toàn trường, ngưỡng tham chiếu 25</div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="the-so">
+                <div class="nhan">Học phí đã thu</div>
+                <div class="so" th:text="${bc.tyLeThu} + '%'">0%</div>
+                <div class="phu">
+                    còn nợ
+                    <span th:text="${#numbers.formatDecimal(bc.tongConNo, 1, 'POINT', 0, 'COMMA')}">0</span> đ
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ===== Hàng biểu đồ 2 ===== -->
-    <div class="row g-3 mb-4">
-        <div class="col-lg-5">
-            <div class="card shadow-sm h-100">
-                <div class="card-header fw-bold">Phân bố điểm chữ</div>
-                <div class="card-body"><div class="khung-bieudo"><canvas id="bdDiemChu"></canvas></div></div>
+    <!-- ===================== HAI BIỂU ĐỒ CHÍNH ===================== -->
+    <div class="tieu-muc">Hai câu hỏi lớn nhất</div>
+
+    <div class="row g-3">
+        <div class="col-12 col-xl-7">
+            <div class="khung-bd h-100">
+                <div class="dau">
+                    <p class="ten">Sinh viên theo khoa</p>
+                    <p class="mo-ta">Quy mô từng khoa, tính trên toàn bộ hồ sơ</p>
+                </div>
+                <div class="than"><div class="o-ve cao"><canvas id="bdKhoa"></canvas></div></div>
             </div>
         </div>
-        <div class="col-lg-7">
-            <div class="card shadow-sm h-100">
-                <div class="card-header fw-bold">Học phí theo học kỳ (triệu đồng)</div>
-                <div class="card-body"><div class="khung-bieudo"><canvas id="bdHocPhi"></canvas></div></div>
+
+        <div class="col-12 col-xl-5">
+            <div class="khung-bd h-100">
+                <div class="dau">
+                    <p class="ten">Trạng thái học vụ</p>
+                    <p class="mo-ta">Bao nhiêu còn học, bao nhiêu đã rời trường</p>
+                </div>
+                <div class="than">
+                    <div class="o-ve"><canvas id="bdTrangThai"></canvas></div>
+                    <ul class="chu-giai mt-3" id="chuGiaiTrangThai"></ul>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ===== Bảng tỷ lệ đạt ===== -->
-    <div class="card shadow-sm">
-        <div class="card-header fw-bold">Tỷ lệ đạt theo học phần (điểm đã công bố)</div>
-        <div class="table-responsive" style="max-height: 400px;">
-            <table class="table table-sm align-middle mb-0">
-                <thead class="table-light sticky-top">
-                <tr>
-                    <th>Học phần</th>
-                    <th class="text-center">Số lượt</th>
-                    <th style="width: 45%">Tỷ lệ đạt</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:if="${bc.hocPhanNhan.empty}">
-                    <td colspan="3" class="text-center text-muted py-3">Chưa có dữ liệu.</td>
-                </tr>
-                <tr th:each="ten, it : ${bc.hocPhanNhan}"
-                    th:with="tyLe=${bc.hocPhanTyLeDat[it.index]}">
-                    <td th:text="${ten}"></td>
-                    <td class="text-center" th:text="${bc.hocPhanSoLuot[it.index]}"></td>
-                    <td>
-                        <div class="progress" style="height: 18px;">
-                            <div class="progress-bar"
-                                 th:classappend="${tyLe >= 80} ? 'bg-success' : (${tyLe >= 50} ? 'bg-warning' : 'bg-danger')"
-                                 th:style="'width:' + ${tyLe} + '%'"
-                                 th:text="${tyLe} + '%'"></div>
-                        </div>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+    <!-- ===================== ĐIỀU HƯỚNG ===================== -->
+    <div class="tieu-muc">Xem chi tiết</div>
+
+    <div class="row g-3">
+        <div class="col-12 col-md-4">
+            <a th:href="@{/baocao/sinhvien}" class="the-so d-block text-decoration-none">
+                <div class="nhan">Thống kê sinh viên</div>
+                <div class="phu mt-2">
+                    Quy mô từng khóa tuyển sinh, trạng thái học vụ và
+                    số sinh viên trên một giảng viên theo khoa.
+                </div>
+            </a>
+        </div>
+        <div class="col-12 col-md-4">
+            <a th:href="@{/baocao/hoctap}" class="the-so d-block text-decoration-none">
+                <div class="nhan">Kết quả học tập</div>
+                <div class="phu mt-2">
+                    Phân bố điểm chữ, xếp loại học lực và tỷ lệ đạt
+                    của từng học phần.
+                </div>
+            </a>
+        </div>
+        <div class="col-12 col-md-4">
+            <a th:href="@{/baocao/taichinh}" class="the-so d-block text-decoration-none">
+                <div class="nhan">Thu học phí</div>
+                <div class="phu mt-2">
+                    Số phải thu và đã thu theo từng học kỳ,
+                    phần còn nợ của toàn trường.
+                </div>
+            </a>
         </div>
     </div>
+
+    <p class="text-muted small mt-4 mb-0">
+        Toàn bộ khu này chỉ đọc. Ban Giám hiệu không thêm, sửa hay xóa dữ liệu:
+        mỗi con số ở đây do phòng chuyên trách nhập và chịu trách nhiệm,
+        hệ thống chỉ tổng hợp lại.
+    </p>
+
 </div>
 
-<!-- Dữ liệu từ server đổ sang JavaScript qua Thymeleaf inline -->
 <th:block layout:fragment="scripts">
+
 <script th:inline="javascript">
-    const khoaNhan     = /*[[${bc.khoaNhan}]]*/ [];
-    const khoaSoLuong  = /*[[${bc.khoaSoLuong}]]*/ [];
-    const xlNhan       = /*[[${bc.xepLoaiNhan}]]*/ [];
-    const xlSoLuong    = /*[[${bc.xepLoaiSoLuong}]]*/ [];
-    const chuNhan      = /*[[${bc.diemChuNhan}]]*/ [];
-    const chuSoLuong   = /*[[${bc.diemChuSoLuong}]]*/ [];
-    const hpNhan       = /*[[${bc.hocPhiNhan}]]*/ [];
-    const hpPhaiThu    = /*[[${bc.hocPhiPhaiThu}]]*/ [];
-    const hpDaThu      = /*[[${bc.hocPhiDaThu}]]*/ [];
+    var khoaNhan    = /*[[${bc.khoaNhan}]]*/ [];
+    var khoaSoLuong = /*[[${bc.khoaSoLuong}]]*/ [];
+    var ttNhan      = /*[[${bc.trangThaiNhan}]]*/ [];
+    var ttSoLuong   = /*[[${bc.trangThaiSoLuong}]]*/ [];
+</script>
 
-    new Chart(document.getElementById('bdKhoa'), {
-        type: 'bar',
-        data: { labels: khoaNhan, datasets: [{ label: 'Số sinh viên', data: khoaSoLuong, backgroundColor: '#4c1d95' }] },
-        options: { maintainAspectRatio: false, plugins: { legend: { display: false } },
-                   scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
-    });
-
-    new Chart(document.getElementById('bdXepLoai'), {
-        type: 'doughnut',
-        data: { labels: xlNhan, datasets: [{ data: xlSoLuong,
-                backgroundColor: ['#15803d', '#2563eb', '#0891b2', '#d97706', '#dc2626'] }] },
-        options: { maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
-    });
-
-    new Chart(document.getElementById('bdDiemChu'), {
-        type: 'bar',
-        data: { labels: chuNhan, datasets: [{ label: 'Số lượt', data: chuSoLuong,
-                backgroundColor: ['#15803d','#16a34a','#65a30d','#ca8a04','#d97706','#ea580c','#dc2626','#991b1b'] }] },
-        options: { maintainAspectRatio: false, plugins: { legend: { display: false } },
-                   scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
-    });
-
-    new Chart(document.getElementById('bdHocPhi'), {
-        type: 'bar',
-        data: { labels: hpNhan, datasets: [
-            { label: 'Phải thu', data: hpPhaiThu, backgroundColor: '#94a3b8' },
-            { label: 'Đã thu',   data: hpDaThu,   backgroundColor: '#16a34a' }
-        ] },
-        options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    });
+<script>
+    BD.cotNgang('bdKhoa', khoaNhan, khoaSoLuong, 'sinh viên', 'sinh viên');
+    BD.vanhKhuyen('bdTrangThai', ttNhan, ttSoLuong);
+    BD.chuGiai('chuGiaiTrangThai', ttNhan, ttSoLuong);
 </script>
 </th:block>
 </body>

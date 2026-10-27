@@ -23,8 +23,11 @@
                 <div class="card shadow-sm border-start border-primary border-4"><div class="card-body">
                     <div class="text-muted small">GPA tích lũy (hệ 4)</div>
                     <div class="fs-3 fw-bold text-primary"
-                         th:text="${#numbers.formatDecimal(tongKet.gpa, 1, 2)}">0.00</div>
-                    <span class="badge bg-primary" th:text="${tongKet.xepLoai}"></span>
+                         th:text="${tongKet.soMonDaHoc > 0 and tongKet.gpa != null} ? ${#numbers.formatDecimal(tongKet.gpa, 1, 2)} : '—'">—</div>
+                    <span th:if="${tongKet.soMonDaHoc > 0 and tongKet.gpa != null}"
+                          class="badge bg-primary" th:text="${tongKet.xepLoai}"></span>
+                    <small th:unless="${tongKet.soMonDaHoc > 0 and tongKet.gpa != null}"
+                           class="text-muted">Chưa có điểm được công bố</small>
                 </div></div>
             </div>
             <div class="col-md-3">
@@ -44,9 +47,11 @@
             <div class="col-md-3">
                 <div class="card shadow-sm border-start border-danger border-4"><div class="card-body">
                     <div class="text-muted small">Học phần chưa đạt</div>
-                    <div class="fs-3 fw-bold text-danger"
+                    <div class="fs-3 fw-bold"
+                         th:classappend="${tongKet.soMonDaHoc - tongKet.soMonDat > 0} ? 'text-danger' : 'text-muted'"
                          th:text="${tongKet.soMonDaHoc - tongKet.soMonDat}">0</div>
-                    <small class="text-muted">Cần đăng ký học lại</small>
+                    <small class="text-muted"
+                           th:text="${tongKet.soMonDaHoc - tongKet.soMonDat > 0} ? 'Cần đăng ký học lại' : 'Không có học phần nợ'"></small>
                 </div></div>
             </div>
         </div>
@@ -88,7 +93,7 @@
                         <span class="fw-bold" th:text="${n.hocKy.tenHocKy}"></span>
                         <span class="small">
                             GPA học kỳ:
-                            <strong th:text="${#numbers.formatDecimal(n.gpaHocKy, 1, 2)}"></strong>
+                            <strong th:text="${n.gpaHocKy != null} ? ${#numbers.formatDecimal(n.gpaHocKy, 1, 2)} : '—'"></strong>
                             · Đạt <strong th:text="${n.tinChiDat}"></strong>
                             / <span th:text="${n.tinChiDangKy}"></span> tín chỉ
                         </span>

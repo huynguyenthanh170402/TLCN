@@ -18,6 +18,16 @@ public interface GiangVienRepository extends JpaRepository<GiangVien, Integer> {
 
 	boolean existsByMaSoGiangVien(String maSoGiangVien);
 
-	/** Giảng viên của một khoa, dùng khi phân công giảng dạy */
+	/**
+	 * Giảng viên của một khoa, dùng khi phân công giảng dạy.
+	 *
+	 * Nạp sẵn khoa vì màn hình phân công hiện tên khoa bên cạnh từng giảng
+	 * viên; để lười thì mỗi dòng lại bắn thêm một truy vấn.
+	 */
+	@EntityGraph(attributePaths = {"donVi"})
 	List<GiangVien> findByDonVi_MaDonViAndTrangThaiOrderByMaSoGiangVien(Integer maDonVi, Integer trangThai);
+
+	/** Toàn bộ giảng viên theo trạng thái, nạp sẵn khoa */
+	@EntityGraph(attributePaths = {"donVi"})
+	List<GiangVien> findByTrangThaiOrderByMaSoGiangVien(Integer trangThai);
 }

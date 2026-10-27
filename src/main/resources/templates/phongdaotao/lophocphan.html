@@ -4,6 +4,26 @@
       layout:decorate="~{phongdaotao/layout}">
 <head>
     <title>Lớp học phần</title>
+    <style>
+        .o-khoa {
+            display: block; height: 100%;
+            text-decoration: none; color: inherit;
+            border: 1px solid #dee2e6; border-radius: .6rem;
+            padding: 1rem 1.1rem; background: #fff;
+            transition: box-shadow .15s, border-color .15s, transform .15s;
+        }
+        .o-khoa:hover {
+            border-color: #0d6efd;
+            box-shadow: 0 .4rem 1rem rgba(13, 110, 253, .12);
+            transform: translateY(-2px);
+        }
+        .o-khoa.con-thieu { border-left: 4px solid #fd7e14; }
+        .o-khoa.da-xong   { border-left: 4px solid #198754; }
+
+        .ten-khoa { font-weight: 600; line-height: 1.3; }
+        .so-lon   { font-size: 1.65rem; font-weight: 700; line-height: 1; }
+        .nhan-nho { font-size: .78rem; color: #6c757d; }
+    </style>
 </head>
 <body>
 
@@ -11,111 +31,98 @@
 
 <div layout:fragment="content">
 
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-        <!-- Lọc theo học kỳ -->
-        <form th:action="@{/quanly/lophocphan}" method="get" class="d-flex gap-2 align-items-center">
-            <label class="text-nowrap fw-semibold">Học kỳ:</label>
-            <select name="hocKy" class="form-select" onchange="this.form.submit()">
-                <option th:each="hk : ${dsHocKy}"
-                        th:value="${hk.maHocKy}"
-                        th:text="${hk.tenHocKy}"
-                        th:selected="${hk.maHocKy == hocKyChon}"></option>
-            </select>
-        </form>
-
-        <a th:href="@{/quanly/lophocphan/them(hocKy=${hocKyChon})}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Mở lớp mới
-        </a>
+    <div class="alert alert-light border small mb-3">
+        Lớp thuộc về <strong>khoa phụ trách học phần</strong>, cùng cách chia với Phân công
+        giảng dạy và Duyệt điểm, vì ba việc đó đều do người phụ trách cùng một khoa làm.
     </div>
 
-    <div class="card shadow-sm">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                <tr>
-                    <th>Mã lớp</th>
-                    <th>Học phần</th>
-                    <th class="text-center">Loại lớp</th>
-                    <th class="text-center">TC</th>
-                    <th>Lịch học</th>
-                    <th class="text-center">Sĩ số</th>
-                    <th class="text-center">Trạng thái</th>
-                    <th class="text-center">Thao tác</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:if="${dsLop.empty}">
-                    <td colspan="8" class="text-center text-muted py-4">Học kỳ này chưa có lớp nào.</td>
-                </tr>
-                <tr th:each="lop : ${dsLop}"
-                    th:with="daCo=${siSo[lop.maLopHocPhan]},
-                             thieu=${lop.siSoToiThieu != null and daCo < lop.siSoToiThieu}">
-                    <td class="small fw-semibold" th:text="${lop.maLop}"></td>
-                    <td th:text="${lop.hocPhan.tenHocPhan}"></td>
-                    <td class="text-center">
-                        <span class="badge" th:classappend="${lop.mauLoaiLop}" th:text="${lop.tenLoaiLop}"></span>
-                        <div th:if="${lop.khoaApDung != null}" class="small text-muted"
-                             th:text="'Khóa ' + ${lop.khoaApDung}"></div>
-                    </td>
-                    <td class="text-center" th:text="${lop.hocPhan.soTinChi}"></td>
-                    <td class="small">
-                        <div th:each="lh : ${lichTheoLop[lop.maLopHocPhan]}"
-                             th:text="${lh.tenThu} + ', tiết ' + ${lh.tietBatDau} + '–' + ${lh.tietKetThuc}
-                                      + ' (' + ${lh.phongHoc?.maPhong} + ')'"></div>
-                        <span th:if="${lichTheoLop[lop.maLopHocPhan] == null}" class="text-muted">Chưa xếp lịch</span>
-                    </td>
-                    <td class="text-center">
-                        <span th:text="${daCo} + ' / ' + ${lop.siSoToiDa}"></span>
-                        <div th:if="${thieu and lop.trangThai == 1}" class="small text-warning"
-                             th:text="'Chưa đủ tối thiểu ' + ${lop.siSoToiThieu}"></div>
-                    </td>
-                    <td class="text-center">
-                        <span th:switch="${lop.trangThai}">
-                            <span th:case="0" class="badge bg-secondary">Chưa mở</span>
-                            <span th:case="1" class="badge bg-success">Mở đăng ký</span>
-                            <span th:case="2" class="badge bg-primary">Đang học</span>
-                            <span th:case="3" class="badge bg-dark">Đã kết thúc</span>
-                            <span th:case="4" class="badge bg-danger">Đã hủy</span>
-                        </span>
-                    </td>
-                    <td class="text-center text-nowrap">
-                        <!-- Mỗi nút là một form POST đổi sang trạng thái tương ứng -->
-                        <form th:if="${lop.trangThai == 0 or lop.trangThai == 2}"
-                              th:action="@{/quanly/lophocphan/{id}/trangthai(id=${lop.maLopHocPhan})}"
-                              method="post" class="d-inline">
-                            <input type="hidden" name="trangThai" value="1">
-                            <input type="hidden" name="hocKy" th:value="${hocKyChon}">
-                            <button class="btn btn-sm btn-success" title="Mở đăng ký">Mở ĐK</button>
-                        </form>
-                        <form th:if="${lop.trangThai == 1}"
-                              th:action="@{/quanly/lophocphan/{id}/trangthai(id=${lop.maLopHocPhan})}"
-                              method="post" class="d-inline">
-                            <input type="hidden" name="trangThai" value="2">
-                            <input type="hidden" name="hocKy" th:value="${hocKyChon}">
-                            <button class="btn btn-sm btn-primary" title="Khóa đăng ký, bắt đầu học">Khóa ĐK</button>
-                        </form>
-                        <form th:if="${lop.trangThai == 2}"
-                              th:action="@{/quanly/lophocphan/{id}/trangthai(id=${lop.maLopHocPhan})}"
-                              method="post" class="d-inline"
-                              onsubmit="return confirm('Kết thúc lớp này?');">
-                            <input type="hidden" name="trangThai" value="3">
-                            <input type="hidden" name="hocKy" th:value="${hocKyChon}">
-                            <button class="btn btn-sm btn-outline-dark">Kết thúc</button>
-                        </form>
-                        <form th:if="${lop.trangThai == 0 or lop.trangThai == 1}"
-                              th:action="@{/quanly/lophocphan/{id}/trangthai(id=${lop.maLopHocPhan})}"
-                              method="post" class="d-inline"
-                              onsubmit="return confirm('Hủy lớp này?');">
-                            <input type="hidden" name="trangThai" value="4">
-                            <input type="hidden" name="hocKy" th:value="${hocKyChon}">
-                            <button class="btn btn-sm btn-outline-danger">Hủy</button>
-                        </form>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+    <!-- Chọn học kỳ -->
+    <form th:action="@{/quanly/lophocphan}" method="get" class="card card-body shadow-sm mb-4">
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-5">
+                <label class="form-label fw-semibold">Học kỳ</label>
+                <select name="hocKy" class="form-select" required>
+                    <option th:each="hk : ${dsHocKy}" th:value="${hk.maHocKy}"
+                            th:text="${hk.tenHocKy}" th:selected="${hk.maHocKy == hocKyChon}"></option>
+                </select>
+            </div>
+            <div class="col-12 col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Xem số liệu</button>
+            </div>
+            <div class="col-12 col-md-4 text-md-end">
+                <a th:href="@{/quanly/lophocphan/them(hocKy=${hocKyChon})}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Mở lớp mới
+                </a>
+            </div>
         </div>
+    </form>
+
+    <div th:if="${dsTomTat == null}" class="alert alert-secondary">
+        Chọn một học kỳ để xem số lớp của từng khoa.
     </div>
+
+    <th:block th:if="${dsTomTat != null}">
+
+        <div th:if="${dsTomTat.empty}" class="alert alert-secondary">
+            Học kỳ này chưa có lớp học phần nào.
+        </div>
+
+        <th:block th:unless="${dsTomTat.empty}">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <h6 class="mb-0 fw-bold">Chọn khoa</h6>
+                <span class="small text-muted">Bấm vào một khoa để xem lớp của khoa đó theo từng ngành.</span>
+            </div>
+
+            <form class="o-tim mb-3" role="search">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-magnifying-glass"></i></span>
+                    <input type="search" class="form-control" placeholder="Tìm theo tên khoa…"
+                           data-loc="#luoiKhoaLhp" data-muc=":scope > div"
+                           data-trong="#khongThayKhoaLhp">
+                    <button class="btn btn-outline-secondary" type="submit">Tìm</button>
+                </div>
+            </form>
+
+            <div class="alert alert-secondary" id="khongThayKhoaLhp" hidden>
+                Không có khoa nào khớp với từ khóa.
+            </div>
+
+            <div class="row g-3" id="luoiKhoaLhp">
+                <div class="col-12 col-md-6 col-xl-4" th:each="t : ${dsTomTat}">
+
+                    <a class="o-khoa"
+                       th:classappend="${t.soChuaMo gt 0} ? 'con-thieu' : 'da-xong'"
+                       th:href="@{/quanly/lophocphan/khoa/{id}(id=${t.maDonVi}, hocKy=${hocKyChon})}">
+
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                            <div class="ten-khoa" th:text="${t.ten}"></div>
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </div>
+
+                        <div class="d-flex align-items-end gap-3">
+                            <div>
+                                <div class="so-lon text-primary" th:text="${t.soLop}"></div>
+                                <div class="nhan-nho">lớp học phần</div>
+                            </div>
+                            <div class="ms-auto text-end nhan-nho">
+                                <div th:text="'đang mở ĐK ' + ${t.soDangMo}"></div>
+                                <div th:text="'chưa mở ' + ${t.soChuaMo}"></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-2">
+                            <span th:if="${t.soChuaMo gt 0}" class="badge bg-warning text-dark"
+                                  th:text="${t.soChuaMo} + ' lớp chưa mở đăng ký'"></span>
+                            <span th:if="${t.xong}" class="badge bg-success">
+                                <i class="fas fa-check me-1"></i>Đã mở hết
+                            </span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </th:block>
+
+    </th:block>
 </div>
 </body>
 </html>

@@ -27,11 +27,27 @@ public interface LopHocPhanRepository extends JpaRepository<LopHocPhan, Integer>
 	@EntityGraph(attributePaths = {"hocPhan", "hocKy"})
 	List<LopHocPhan> findByHocKy_MaHocKyAndTrangThai(Integer maHocKy, Integer trangThai, Sort sort);
 
-	/** Mọi lớp của một học kỳ (trang quản lý của Phòng Đào tạo) */
-	@EntityGraph(attributePaths = {"hocPhan", "hocKy"})
+	/**
+	 * Mọi lớp của một học kỳ (trang quản lý của Phòng Đào tạo).
+	 *
+	 * Nạp luôn khoa phụ trách học phần vì màn hình phân công chia việc theo
+	 * khoa; để lười thì gần nghìn lớp sẽ bắn thêm chừng ấy truy vấn con.
+	 */
+	@EntityGraph(attributePaths = {"hocPhan", "hocPhan.donVi", "hocKy", "nganh"})
 	List<LopHocPhan> findByHocKy_MaHocKy(Integer maHocKy, Sort sort);
 
 	/** Đếm lớp chính khóa đã mở cho một học phần của một khóa, dùng khi lập kế hoạch */
 	long countByHocKy_MaHocKyAndHocPhan_MaHocPhanIdAndKhoaApDung(
 			Integer maHocKy, Integer maHocPhanId, String khoaApDung);
+
+	/**
+	 * Đếm lớp mở chung cho mọi ngành: cột MaNganh để trống.
+	 * Dùng cho học phần khối đại cương, vốn gom sinh viên toàn trường.
+	 */
+	long countByHocKy_MaHocKyAndHocPhan_MaHocPhanIdAndKhoaApDungAndNganhIsNull(
+			Integer maHocKy, Integer maHocPhanId, String khoaApDung);
+
+	/** Đếm lớp mở riêng cho một ngành, dùng cho học phần cơ sở ngành và chuyên ngành */
+	long countByHocKy_MaHocKyAndHocPhan_MaHocPhanIdAndKhoaApDungAndNganh_MaNganh(
+			Integer maHocKy, Integer maHocPhanId, String khoaApDung, Integer maNganh);
 }

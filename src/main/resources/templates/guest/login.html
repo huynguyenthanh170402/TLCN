@@ -119,6 +119,26 @@
                     <span th:text="#{login.logout}">Bạn đã đăng xuất thành công</span>
                 </div>
 
+                <!-- Phiên hết hạn sau 30 phút không hoạt động,
+                     hoặc tài khoản vừa được đăng nhập ở nơi khác -->
+                <div th:if="${param.expired}" class="alert alert-warning py-2 small">
+                    <i class="fas fa-clock me-1"></i>
+                    <span th:text="#{login.expired}">Phiên làm việc đã hết hạn.</span>
+                </div>
+
+                <!-- Mật khẩu tạm đúng nhưng đã quá 5 phút -->
+                <div th:if="${param.hethanmk}" class="alert alert-warning py-2 small">
+                    <i class="fas fa-hourglass-end me-1"></i>
+                    <span th:text="#{login.temp_expired}">Mật khẩu tạm đã hết hiệu lực.</span>
+                </div>
+
+                <!-- Thẻ bài CSRF không khớp phiên, hay gặp nhất là khi máy chủ
+                     vừa khởi động lại mà trình duyệt còn giữ trang cũ -->
+                <div th:if="${param.phienhet}" class="alert alert-warning py-2 small">
+                    <i class="fas fa-rotate me-1"></i>
+                    <span th:text="#{login.csrf}">Phiên làm việc không còn hợp lệ.</span>
+                </div>
+
                 <!-- Vừa đặt lại mật khẩu xong -->
                 <div th:if="${thongBao}" class="alert alert-success py-2 small">
                     <i class="fas fa-circle-check me-1"></i>
@@ -149,13 +169,10 @@
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox"
-                                   name="remember-me" id="ghiNho">
-                            <label class="form-check-label small" for="ghiNho"
-                                   th:text="#{login.remember}">Ghi nhớ đăng nhập</label>
-                        </div>
+                    <!-- Đã bỏ ô "Ghi nhớ đăng nhập": tính năng đó cấp cookie
+                         sống nhiều ngày và sẽ khôi phục phiên ngay sau khi
+                         phiên 30 phút hết hạn, làm quy định 30 phút vô nghĩa. -->
+                    <div class="d-flex justify-content-end align-items-center mb-3">
                         <a th:href="@{/quenmatkhau}" class="small text-decoration-none"
                            th:text="#{login.forgot}">Quên mật khẩu?</a>
                     </div>
