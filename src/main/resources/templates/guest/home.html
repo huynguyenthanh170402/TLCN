@@ -227,40 +227,9 @@
         </div>
     </section>
 
-    <!-- ============ Truy cập nhanh ============ -->
-    <section class="py-5">
-        <div class="container">
-            <h2 class="section-heading mb-4" th:text="#{home.quickaccess}">Truy cập nhanh</h2>
-            <div class="row g-3 text-center">
-                <div class="col-6 col-lg-3">
-                    <a th:href="@{/about}" class="btn btn-primary btn-lg w-100">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <span th:text="#{nav.about}">Giới thiệu</span>
-                    </a>
-                </div>
-                <div class="col-6 col-lg-3">
-                    <a th:href="@{/faculty}" class="btn btn-primary btn-lg w-100">
-                        <i class="fas fa-university me-2"></i>
-                        <span th:text="#{nav.faculty}">Khoa</span>
-                    </a>
-                </div>
-                <div class="col-6 col-lg-3">
-                    <a th:href="@{/news}" class="btn btn-primary btn-lg w-100">
-                        <i class="fas fa-newspaper me-2"></i>
-                        <span th:text="#{nav.news}">Tin tức</span>
-                    </a>
-                </div>
-                <div class="col-6 col-lg-3">
-                    <a th:href="@{/research}" class="btn btn-primary btn-lg w-100">
-                        <i class="fas fa-flask me-2"></i>
-                        <span th:text="#{nav.research}">Nghiên cứu</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ============ Số liệu thống kê ============ -->
+    <!-- ============ Số liệu thống kê ============
+         Khối "Truy cập nhanh" đã bỏ: bốn nút đó trùng y hệt thanh điều hướng
+         ở đầu trang, lặp lại chỉ làm trang dài thêm chứ không thêm lối đi mới. -->
     <section class="py-5" style="background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); color: white;">
         <div class="container">
             <div class="row g-4 text-center">
@@ -284,17 +253,8 @@
         </div>
     </section>
 
-    <!-- ============ Kêu gọi đăng nhập ============ -->
-    <section class="bg-light py-5">
-        <div class="container text-center">
-            <h2 class="mb-3" th:text="#{home.cta.title}">Sẵn sàng bắt đầu?</h2>
-            <p class="lead mb-4" th:text="#{home.cta.desc}">Đăng nhập để vào trang cá nhân.</p>
-            <a th:href="@{/login}" class="btn btn-primary btn-lg">
-                <i class="fas fa-sign-in-alt me-2"></i>
-                <span th:text="#{home.cta.button}">Đăng nhập ngay</span>
-            </a>
-        </div>
-    </section>
+    <!-- Khối "Sẵn sàng bắt đầu?" đã bỏ: nút Đăng nhập đã nằm sẵn ở góc phải
+         thanh điều hướng, hiện suốt mọi trang, nên không cần nhắc lại ở cuối. -->
 
 </main>
 </body>

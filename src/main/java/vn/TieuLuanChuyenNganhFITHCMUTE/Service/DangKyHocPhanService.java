@@ -42,6 +42,16 @@ public class DangKyHocPhanService {
 
 	/** Giới hạn tín chỉ một học kỳ */
 	public static final int TIN_CHI_TOI_DA = 25;
+
+	/**
+	 * Trần sĩ số của một lớp học phần, không lớp nào được vượt.
+	 *
+	 * Đây là trần cứng của trường, khác với siSoToiDa khai riêng cho từng lớp.
+	 * Lớp có thể đặt trần thấp hơn (phòng thực hành chỉ 25 máy), nhưng không
+	 * lớp nào được đặt cao hơn, và lớp quên khai siSoToiDa cũng vẫn dừng ở
+	 * đây chứ không nhận vô hạn sinh viên.
+	 */
+	public static final int SI_SO_TOI_DA = 50;
 	/** Sinh viên có GPA dưới mức này bị hạn chế số tín chỉ */
 	public static final int TIN_CHI_HOC_LUC_YEU = 14;
 	private static final BigDecimal GPA_CANH_BAO = new BigDecimal("2.0");
@@ -50,6 +60,9 @@ public class DangKyHocPhanService {
 	private static final int LOP_DANG_MO = 1;
 	private static final int DA_DANG_KY = 1;
 	private static final int DA_HUY = 2;
+	/** Giá trị của DangKyHocPhan.trangThaiDuyet khi vừa đăng ký xong */
+	private static final int CHO_DUYET = 0;
+	private static final int TU_CHOI = 2;
 	private static final int SV_DANG_HOC = 1;
 	private static final int DIEM_DA_CONG_BO = 3;
 	private static final int CONG_NO_DA_DONG_DU = 2;
@@ -103,6 +116,12 @@ public class DangKyHocPhanService {
 				sv.getMaSinhVien(), hk.getMaHocKy(), DA_DANG_KY);
 	}
 
+	/** Các lượt bị Phòng Đào tạo từ chối trong học kỳ, kèm lý do */
+	public List<DangKyHocPhan> dsBiTuChoi(SinhVien sv, HocKy hk) {
+		return dangKyRepository.findBySinhVien_MaSinhVienAndLopHocPhan_HocKy_MaHocKyAndTrangThaiDuyet(
+				sv.getMaSinhVien(), hk.getMaHocKy(), TU_CHOI);
+	}
+
 	public Map<Integer, Long> siSoCacLop(List<LopHocPhan> dsLop) {
 		Map<Integer, Long> kq = new HashMap<>();
 		for (LopHocPhan lop : dsLop) {
@@ -114,6 +133,18 @@ public class DangKyHocPhanService {
 
 	public int tongTinChi(List<DangKyHocPhan> ds) {
 		return ds.stream().mapToInt(dk -> dk.getLopHocPhan().getHocPhan().getSoTinChi()).sum();
+	}
+
+	/**
+	 * Trần sĩ số thực tế của một lớp.
+	 *
+	 * Lấy số nhỏ hơn giữa trần riêng của lớp và trần cứng của trường. Lớp khai
+	 * 25 thì dừng ở 25; lớp khai 80 hay quên khai đều dừng ở 50.
+	 */
+	public static int tranSiSo(LopHocPhan lop) {
+		Integer rieng = lop.getSiSoToiDa();
+		if (rieng == null || rieng <= 0) return SI_SO_TOI_DA;
+		return Math.min(rieng, SI_SO_TOI_DA);
 	}
 
 	// ===================== BỐI CẢNH =====================
@@ -278,8 +309,9 @@ public class DangKyHocPhanService {
 		}
 
 		// Sĩ số
-		if (lop.getSiSoToiDa() != null && siSoHienTai >= lop.getSiSoToiDa())
-			return "Lớp đã đủ sĩ số.";
+		int tran = tranSiSo(lop);
+		if (siSoHienTai >= tran)
+			return "Lớp đã đủ sĩ số (" + tran + " sinh viên).";
 
 		// Giới hạn tín chỉ
 		int tcSau = bc.tongTinChiDaDangKy + lop.getHocPhan().getSoTinChi();
@@ -341,6 +373,18 @@ public class DangKyHocPhanService {
 		dk.setNgayDangKy(LocalDateTime.now());
 		dk.setNgayHuy(null);
 		dk.setLyDoHuy(null);
+
+		/*
+		 * Mọi lượt đăng ký mới đều phải qua Phòng Đào tạo xác nhận. Xóa luôn
+		 * dấu vết duyệt cũ: dòng này có thể là lượt đăng ký từng bị từ chối
+		 * rồi sinh viên đăng ký lại (ràng buộc UNIQUE buộc dùng lại dòng cũ),
+		 * để nguyên thì nó mang theo lý do từ chối của lần trước.
+		 */
+		dk.setTrangThaiDuyet(CHO_DUYET);
+		dk.setNgayDuyet(null);
+		dk.setNguoiDuyet(null);
+		dk.setLyDoTuChoi(null);
+
 		dangKyRepository.saveAndFlush(dk);
 
 		hocPhiService.capNhatCongNo(sv, hk);

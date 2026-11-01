@@ -4,6 +4,267 @@
       layout:decorate="~{sinhvien/layout}">
 <head>
     <title>Hồ sơ cá nhân</title>
+
+    <style>
+        /* ============================================================
+           THẺ ĐẦU TRANG
+           Dải màu + ảnh đại diện đè lên, tên và các thẻ tóm tắt nằm cạnh.
+           Bản cũ nhét ảnh vào một thẻ riêng chiếm trọn cột trái, bên dưới
+           ảnh thừa ra một mảng trắng cao bằng ba thẻ thông tin bên phải.
+           ============================================================ */
+        .the-dau {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 14px rgba(16, 32, 64, .07);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        /* Dải màu lấy đúng tông xanh của menu trái (#0b3d91) rồi sáng dần,
+           dừng ở mức xanh đậm. Bản trước kéo tới #2196f3 — xanh neon, lệch
+           hẳn khỏi phần còn lại của trang. */
+        .the-dau .dai {
+            height: 96px;
+            background: linear-gradient(100deg, #09306e 0%, #0b3d91 46%, #1356a6 100%);
+        }
+
+        /* CHỈ ảnh đại diện đè lên dải màu, chữ nằm hẳn dưới nền trắng.
+           Bản trước kéo cả hàng lên bằng margin âm, khối tên cao hơn phần
+           chìa ra nên chữ đen leo lên nền xanh — gần như không đọc nổi. */
+        .the-dau .than {
+            display: flex;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 0 1.25rem;
+            padding: 0 clamp(1rem, 2.5vw, 1.75rem) 1.45rem;
+        }
+
+        .khoi-anh {
+            position: relative;
+            flex: 0 0 auto;
+            margin-top: -56px;
+        }
+        .khoi-anh .anh,
+        .khoi-anh .anh-trong {
+            width: 132px;
+            height: 132px;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            box-shadow: 0 6px 18px rgba(16, 32, 64, .16);
+            object-fit: cover;
+            background: #fff;
+        }
+        .khoi-anh .anh-trong {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(140deg, #dde7f8, #c3d6ef);
+            color: #577aae;
+            font-size: 3.1rem;
+        }
+
+        /* Nút máy ảnh nằm đè góc dưới ảnh, kiểu quen thuộc của mọi trang
+           hồ sơ — đỡ phải thêm một nút chữ chiếm thêm một dòng. */
+        .nut-may-anh {
+            position: absolute;
+            right: 2px;
+            bottom: 6px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            background: #0b3d91;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+            box-shadow: 0 3px 10px rgba(11, 61, 145, .35);
+            transition: background .2s ease;
+        }
+        .nut-may-anh:hover { background: #1565c0; color: #fff; }
+
+        .khoi-ten {
+            flex: 1 1 280px;
+            min-width: 0;
+            padding-top: 1.15rem;
+        }
+        .khoi-ten .ten {
+            font-size: clamp(1.3rem, 2.3vw, 1.72rem);
+            font-weight: 800;
+            color: #16213e;
+            line-height: 1.25;
+            margin: 0 0 .4rem;
+        }
+        .khoi-ten .phu {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: .6rem;
+            margin-bottom: .75rem;
+        }
+        .khoi-ten .ma {
+            font-weight: 700;
+            color: #5b6880;
+            letter-spacing: .04em;
+        }
+
+        /* Nhãn trạng thái: nền nhạt viền mảnh thay cho khối xanh lá đặc.
+           Một mảng màu đặc cạnh tên sẽ hút mắt hơn chính cái tên. */
+        .nhan-tt {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            padding: .22rem .7rem;
+            border-radius: 999px;
+            font-size: .8rem;
+            font-weight: 700;
+        }
+        .nhan-tt::before {
+            content: "";
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+        .tt-dang-hoc { background: #e7f5ec; color: #1b7a43; border: 1px solid #c9e8d6; }
+        .tt-khac     { background: #eef0f4; color: #5c6779; border: 1px solid #dfe3ea; }
+
+        .chips { display: flex; flex-wrap: wrap; gap: .45rem; }
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: .42rem;
+            background: #f2f5fa;
+            color: #35496c;
+            border: 1px solid #e2e8f2;
+            padding: .3rem .72rem;
+            border-radius: 999px;
+            font-size: .84rem;
+            font-weight: 600;
+        }
+        .chip i { font-size: .78rem; color: #7b8eb0; }
+
+        .khoi-nut {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+            padding-top: 1.15rem;
+        }
+
+        /* ============================================================
+           THẺ THÔNG TIN
+           ============================================================ */
+        .the-tt {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 14px rgba(16, 32, 64, .07);
+            height: 100%;
+            overflow: hidden;
+        }
+        .the-tt .dau {
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+            padding: 1rem clamp(1rem, 2.2vw, 1.5rem);
+            border-bottom: 1px solid #eef1f6;
+            font-weight: 700;
+            color: #16213e;
+            font-size: 1.02rem;
+        }
+        .the-tt .dau i {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: #f1f4fa;
+            color: #0b3d91;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .9rem;
+            flex: 0 0 34px;
+        }
+        .the-tt .than { padding: 1.3rem clamp(1rem, 2.2vw, 1.5rem) 1.45rem; }
+
+        /* Nhãn nằm TRÊN giá trị, không phải hai cột trái phải.
+           Kiểu hai cột cũ phải ghi cứng th rộng 40%: nhãn ngắn thì thừa
+           một khoảng trắng dài ngoẵng giữa nhãn và giá trị, còn giá trị
+           dài thì bị bóp vào 60% còn lại. Xếp dọc thì nhãn nào cũng sát
+           giá trị của nó, và cột tự chia đều theo bề ngang màn hình. */
+        .luoi-muc {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+            gap: 1.15rem 1.8rem;
+        }
+        /* Thẻ Liên hệ chứa email dài gần 30 ký tự. Để cột 215px như hai thẻ
+           kia thì email bị bẻ giữa chừng thành "...edu.v / n". */
+        .luoi-muc.rong-hon {
+            grid-template-columns: repeat(auto-fit, minmax(275px, 1fr));
+        }
+        .muc { min-width: 0; }
+        .muc.rong { grid-column: 1 / -1; }
+
+        .nhan {
+            font-size: .735rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: #8a93a5;
+            margin-bottom: .28rem;
+        }
+        .gia-tri {
+            font-size: .98rem;
+            font-weight: 600;
+            color: #1c2534;
+            line-height: 1.45;
+            overflow-wrap: break-word;
+        }
+        .gia-tri a { color: #0d4fa0; text-decoration: none; }
+        .gia-tri a:hover { text-decoration: underline; }
+
+        /* Ô chưa có dữ liệu tự hiện chữ nhắc, không để trống trơn.
+           Dòng trống không nói được là "chưa nhập" hay "hệ thống lỗi". */
+        .gia-tri:empty::after {
+            content: "Chưa cập nhật";
+            font-weight: 400;
+            font-style: italic;
+            color: #b4bbc7;
+        }
+        .gia-tri .phu-nho {
+            font-size: .88rem;
+            font-weight: 500;
+            color: #7b869a;
+            margin-top: .1rem;
+        }
+        .gia-tri .quan-he { font-weight: 500; color: #7b869a; }
+
+        /* Lời nhắc hồ sơ còn thiếu: nhẹ nhàng thôi, đây không phải lỗi */
+        .nhac-thieu {
+            display: flex;
+            align-items: flex-start;
+            gap: .7rem;
+            background: #fdfaf2;
+            border: 1px solid #efe3cb;
+            color: #6e5a30;
+            border-radius: 12px;
+            padding: .85rem 1.1rem;
+            font-size: .92rem;
+            margin-bottom: 1.5rem;
+        }
+        .nhac-thieu i { margin-top: .15rem; color: #c99a35; }
+
+        @media (max-width: 575.98px) {
+            .the-dau .dai { height: 80px; }
+            .the-dau .than { gap: 0 .9rem; }
+            .khoi-anh { margin-top: -46px; }
+            .khoi-anh .anh,
+            .khoi-anh .anh-trong { width: 104px; height: 104px; font-size: 2.5rem; }
+            .nut-may-anh { width: 34px; height: 34px; }
+            .khoi-ten { padding-top: .9rem; }
+            .khoi-nut { width: 100%; padding-top: 1rem; }
+            .khoi-nut .btn { width: 100%; }
+        }
+    </style>
 </head>
 <body>
 
@@ -20,111 +281,233 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 
-    <div class="d-flex justify-content-end mb-3" th:if="${sinhVien != null}">
-        <a th:href="@{/sinhvien/hoso/sua}" class="btn btn-primary">
-            <i class="fas fa-pen"></i> Cập nhật hồ sơ
-        </a>
-    </div>
     <div th:if="${sinhVien == null}" class="alert alert-warning">
         Tài khoản này chưa được gắn với hồ sơ sinh viên nào.
     </div>
 
-    <div th:if="${sinhVien != null}" class="row">
+    <div th:if="${sinhVien != null}">
 
-        <!-- ===================== Thẻ ảnh đại diện ===================== -->
-        <div class="col-lg-4 mb-4">
-            <div class="card text-center shadow-sm">
-                <div class="card-body">
+        <!-- ===================== Thẻ đầu trang ===================== -->
+        <section class="the-dau">
+            <div class="dai"></div>
 
+            <div class="than">
+
+                <div class="khoi-anh">
                     <img th:if="${sinhVien.anhDaiDien != null and !sinhVien.anhDaiDien.isEmpty()}"
                          th:src="@{'/uploads/' + ${sinhVien.anhDaiDien}}"
-                         class="rounded-circle mb-3"
-                         style="width:140px;height:140px;object-fit:cover;border:3px solid #e9ecef"
-                         alt="Ảnh đại diện">
-                    <i th:unless="${sinhVien.anhDaiDien != null and !sinhVien.anhDaiDien.isEmpty()}"
-                       class="fas fa-user-circle fa-7x mb-3 text-secondary"></i>
+                         class="anh" alt="Ảnh đại diện">
+                    <div th:unless="${sinhVien.anhDaiDien != null and !sinhVien.anhDaiDien.isEmpty()}"
+                         class="anh-trong"><i class="fas fa-user"></i></div>
 
-                    <h5 th:text="${sinhVien.hoTen}"></h5>
-                    <p class="text-muted mb-2" th:text="${sinhVien.maSoSinhVien}"></p>
-                    <span class="badge mb-3"
-                          th:classappend="${sinhVien.trangThai == 1} ? 'bg-success' : 'bg-secondary'"
-                          th:text="${sinhVien.tenTrangThai}"></span>
-
-                    <!-- Biểu mẫu tải ảnh. enctype là bắt buộc, thiếu thì file không gửi lên được -->
+                    <!-- enctype là bắt buộc, thiếu thì trình duyệt chỉ gửi tên
+                         file chứ không gửi nội dung file lên máy chủ -->
                     <form th:action="@{/sinhvien/hoso/anh}" method="post"
                           enctype="multipart/form-data" id="formAnh">
                         <input type="file" name="file" id="chonAnh"
                                accept="image/jpeg,image/png,image/webp"
                                class="d-none"
                                onchange="document.getElementById('formAnh').submit()">
-
-                        <button type="button" class="btn btn-sm btn-outline-primary w-100"
+                        <button type="button" class="nut-may-anh" title="Đổi ảnh đại diện"
                                 onclick="document.getElementById('chonAnh').click()">
-                            <i class="fas fa-camera me-1"></i> Đổi ảnh đại diện
+                            <i class="fas fa-camera"></i>
                         </button>
                     </form>
+                </div>
 
+                <div class="khoi-ten">
+                    <h1 class="ten" th:text="${sinhVien.hoTen}">Họ và tên</h1>
+
+                    <div class="phu">
+                        <span class="ma" th:text="${sinhVien.maSoSinhVien}">MSSV</span>
+                        <span class="nhan-tt"
+                              th:classappend="${sinhVien.trangThai == 1} ? 'tt-dang-hoc' : 'tt-khac'"
+                              th:text="${sinhVien.tenTrangThai}">Trạng thái</span>
+                    </div>
+
+                    <div class="chips">
+                        <span class="chip" th:if="${sinhVien.nganh != null}">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span th:text="${sinhVien.nganh.tenNganh}">Ngành</span>
+                        </span>
+                        <span class="chip" th:if="${sinhVien.nganh?.donVi != null}">
+                            <i class="fas fa-building-columns"></i>
+                            <span th:text="${sinhVien.nganh.donVi.tenDonVi}">Khoa</span>
+                        </span>
+                        <span class="chip" th:if="${sinhVien.khoaTuyenSinh != null}">
+                            <i class="fas fa-calendar-days"></i>
+                            <span th:text="'Khóa ' + ${sinhVien.khoaTuyenSinh}">Khóa</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="khoi-nut">
+                    <a th:href="@{/sinhvien/hoso/sua}" class="btn btn-primary">
+                        <i class="fas fa-pen me-1"></i> Cập nhật hồ sơ
+                    </a>
                     <form th:if="${sinhVien.anhDaiDien != null and !sinhVien.anhDaiDien.isEmpty()}"
-                          th:action="@{/sinhvien/hoso/anh/xoa}" method="post" class="mt-2">
+                          th:action="@{/sinhvien/hoso/anh/xoa}" method="post">
                         <button type="submit" class="btn btn-sm btn-outline-danger w-100"
                                 onclick="return confirm('Xóa ảnh đại diện?')">
                             <i class="fas fa-trash me-1"></i> Xóa ảnh
                         </button>
                     </form>
-
-                    
-
                 </div>
+
+            </div>
+        </section>
+
+        <!-- ===================== Nhắc hồ sơ còn thiếu ===================== -->
+        <div class="nhac-thieu"
+             th:if="${#strings.isEmpty(sinhVien.noiSinh) or #strings.isEmpty(sinhVien.queQuan)
+                      or #strings.isEmpty(sinhVien.danToc) or #strings.isEmpty(sinhVien.soGiayTo)
+                      or #strings.isEmpty(sinhVien.emailCaNhan) or #strings.isEmpty(sinhVien.soDienThoai)
+                      or #strings.isEmpty(sinhVien.diaChiThuongTru)
+                      or #strings.isEmpty(sinhVien.hoTenNguoiLienHe)}">
+            <i class="fas fa-circle-info"></i>
+            <div>
+                Hồ sơ của bạn còn ô chưa điền (đánh dấu <em>Chưa cập nhật</em> bên dưới).
+                Nhà trường dùng các thông tin này để cấp giấy xác nhận và liên hệ khi cần,
+                nên bạn điền sớm giúp nhé.
             </div>
         </div>
 
-        <!-- ===================== Thông tin ===================== -->
-        <div class="col-lg-8">
+        <!-- ===================== Các thẻ thông tin ===================== -->
+        <div class="row g-4">
 
-            <div class="card shadow-sm mb-4">
-                <div class="card-header fw-bold">Thông tin học vụ</div>
-                <table class="table mb-0">
-                    <tr><th style="width:40%">Ngành</th>
-                        <td th:text="${sinhVien.nganh?.tenNganh}"></td></tr>
-                    <tr><th>Khoa quản lý</th>
-                        <td th:text="${sinhVien.nganh?.donVi?.tenDonVi}"></td></tr>
-                    <tr><th>Khóa tuyển sinh</th>
-                        <td th:text="${sinhVien.khoaTuyenSinh}"></td></tr>
-                    <tr><th>Ngày nhập học</th>
-                        <td th:text="${#temporals.format(sinhVien.ngayNhapHoc, 'dd/MM/yyyy')}"></td></tr>
-                    <tr><th>Dự kiến tốt nghiệp</th>
-                        <td th:text="${#temporals.format(sinhVien.ngayTotNghiepDuKien, 'dd/MM/yyyy')}"></td></tr>
-                </table>
+            <div class="col-12 col-xl-6">
+                <div class="the-tt">
+                    <div class="dau"><i class="fas fa-graduation-cap"></i> Thông tin học vụ</div>
+                    <div class="than">
+                        <div class="luoi-muc">
+
+                            <div class="muc">
+                                <div class="nhan">Ngành</div>
+                                <div class="gia-tri" th:text="${sinhVien.nganh?.tenNganh}"></div>
+                            </div>
+
+                            <div class="muc">
+                                <div class="nhan">Khoa quản lý</div>
+                                <div class="gia-tri" th:text="${sinhVien.nganh?.donVi?.tenDonVi}"></div>
+                            </div>
+
+                            <div class="muc">
+                                <div class="nhan">Khóa tuyển sinh</div>
+                                <div class="gia-tri" th:text="${sinhVien.khoaTuyenSinh}"></div>
+                            </div>
+
+                            <div class="muc">
+                                <div class="nhan">Trạng thái</div>
+                                <div class="gia-tri" th:text="${sinhVien.tenTrangThai}"></div>
+                            </div>
+
+                            <div class="muc">
+                                <div class="nhan">Ngày nhập học</div>
+                                <div class="gia-tri"
+                                     th:text="${#temporals.format(sinhVien.ngayNhapHoc, 'dd/MM/yyyy')}"></div>
+                            </div>
+
+                            <div class="muc">
+                                <div class="nhan">Dự kiến tốt nghiệp</div>
+                                <div class="gia-tri"
+                                     th:text="${#temporals.format(sinhVien.ngayTotNghiepDuKien, 'dd/MM/yyyy')}"></div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="card shadow-sm mb-4">
-                <div class="card-header fw-bold">Thông tin cá nhân</div>
-                <table class="table mb-0">
-                    <tr><th style="width:40%">Ngày sinh</th>
-                        <td th:text="${#temporals.format(sinhVien.ngaySinh, 'dd/MM/yyyy')}"></td></tr>
-                    <tr><th>Giới tính</th><td th:text="${sinhVien.tenGioiTinh}"></td></tr>
-                    <tr><th>Nơi sinh</th><td th:text="${sinhVien.noiSinh}"></td></tr>
-                    <tr><th>Quê quán</th><td th:text="${sinhVien.queQuan}"></td></tr>
-                    <tr><th>Dân tộc</th><td th:text="${sinhVien.danToc}"></td></tr>
-                    <tr><th>Số CCCD</th><td th:text="${sinhVien.soGiayTo}"></td></tr>
-                </table>
+            <div class="col-12 col-xl-6">
+                <div class="the-tt">
+                    <div class="dau"><i class="fas fa-id-card"></i> Thông tin cá nhân</div>
+                    <div class="than">
+                        <div class="luoi-muc">
+
+                            <div class="muc">
+                                <div class="nhan">Ngày sinh</div>
+                                <div class="gia-tri"
+                                     th:text="${#temporals.format(sinhVien.ngaySinh, 'dd/MM/yyyy')}"></div>
+                            </div>
+
+                            <div class="muc">
+                                <div class="nhan">Giới tính</div>
+                                <div class="gia-tri" th:text="${sinhVien.tenGioiTinh}"></div>
+                            </div>
+
+                            <div class="muc">
+                                <div class="nhan">Nơi sinh</div>
+                                <div class="gia-tri" th:text="${sinhVien.noiSinh}"></div>
+                            </div>
+
+                            <div class="muc">
+                                <div class="nhan">Quê quán</div>
+                                <div class="gia-tri" th:text="${sinhVien.queQuan}"></div>
+                            </div>
+
+                            <div class="muc">
+                                <div class="nhan">Dân tộc</div>
+                                <div class="gia-tri" th:text="${sinhVien.danToc}"></div>
+                            </div>
+
+                            <div class="muc">
+                                <div class="nhan">Số CCCD</div>
+                                <div class="gia-tri" th:text="${sinhVien.soGiayTo}"></div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="card shadow-sm mb-4">
-                <div class="card-header fw-bold">Liên hệ</div>
-                <table class="table mb-0">
-                    <tr><th style="width:40%">Email trường</th><td th:text="${sinhVien.emailTruong}"></td></tr>
-                    <tr><th>Email cá nhân</th><td th:text="${sinhVien.emailCaNhan}"></td></tr>
-                    <tr><th>Điện thoại</th><td th:text="${sinhVien.soDienThoai}"></td></tr>
-                    <tr><th>Thường trú</th><td th:text="${sinhVien.diaChiThuongTru}"></td></tr>
-                    <tr><th>Người liên hệ</th>
-                        <td>
-                            <span th:text="${sinhVien.hoTenNguoiLienHe}"></span>
-                            <span th:if="${sinhVien.quanHeVoiSinhVien}"
-                                  th:text="'(' + ${sinhVien.quanHeVoiSinhVien} + ')'"></span><br>
-                            <small class="text-muted" th:text="${sinhVien.soDienThoaiNguoiLienHe}"></small>
-                        </td></tr>
-                </table>
+            <div class="col-12">
+                <div class="the-tt">
+                    <div class="dau"><i class="fas fa-address-book"></i> Liên hệ</div>
+                    <div class="than">
+                        <div class="luoi-muc rong-hon">
+
+                            <div class="muc">
+                                <div class="nhan">Email trường</div>
+                                <div class="gia-tri"><a th:if="${!#strings.isEmpty(sinhVien.emailTruong)}" th:href="'mailto:' + ${sinhVien.emailTruong}" th:text="${sinhVien.emailTruong}"></a></div>
+                            </div>
+
+                            <div class="muc">
+                                <div class="nhan">Email cá nhân</div>
+                                <div class="gia-tri"><a th:if="${!#strings.isEmpty(sinhVien.emailCaNhan)}" th:href="'mailto:' + ${sinhVien.emailCaNhan}" th:text="${sinhVien.emailCaNhan}"></a></div>
+                            </div>
+
+                            <div class="muc">
+                                <div class="nhan">Điện thoại</div>
+                                <div class="gia-tri"><a th:if="${!#strings.isEmpty(sinhVien.soDienThoai)}" th:href="'tel:' + ${sinhVien.soDienThoai}" th:text="${sinhVien.soDienThoai}"></a></div>
+                            </div>
+
+                            <div class="muc rong">
+                                <div class="nhan">Địa chỉ thường trú</div>
+                                <div class="gia-tri" th:text="${sinhVien.diaChiThuongTru}"></div>
+                            </div>
+
+                            <!-- Gộp tên, quan hệ và số điện thoại vào một ô: ba dòng
+                                 rời rạc thì nhìn không ra chúng nói về cùng một người -->
+                            <div class="muc rong"
+                                 th:with="coNguoiLienHe=${!#strings.isEmpty(sinhVien.hoTenNguoiLienHe) or !#strings.isEmpty(sinhVien.soDienThoaiNguoiLienHe)}">
+                                <div class="nhan">Người liên hệ khi cần</div>
+
+                                <div class="gia-tri" th:unless="${coNguoiLienHe}"></div>
+
+                                <div class="gia-tri" th:if="${coNguoiLienHe}">
+                                    <span th:text="${sinhVien.hoTenNguoiLienHe}"></span>
+                                    <span class="quan-he"
+                                          th:if="${!#strings.isEmpty(sinhVien.quanHeVoiSinhVien)}"
+                                          th:text="'(' + ${sinhVien.quanHeVoiSinhVien} + ')'"></span>
+                                    <div class="phu-nho"
+                                         th:if="${!#strings.isEmpty(sinhVien.soDienThoaiNguoiLienHe)}"
+                                         th:text="${sinhVien.soDienThoaiNguoiLienHe}"></div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </div>

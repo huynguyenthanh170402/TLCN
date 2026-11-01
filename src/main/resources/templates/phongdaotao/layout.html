@@ -61,6 +61,10 @@
            th:classappend="${menu == 'phancong'} ? 'active'">
             <i class="fas fa-user-check"></i> Phân công giảng dạy
         </a>
+        <a class="nav-link" th:href="@{/quanly/duyetdangky}"
+           th:classappend="${menu == 'duyetdangky'} ? 'active'">
+            <i class="fas fa-file-circle-check"></i> Duyệt đăng ký học phần
+        </a>
         <a class="nav-link" th:href="@{/quanly/duyetdiem}"
            th:classappend="${menu == 'duyetdiem'} ? 'active'">
             <i class="fas fa-clipboard-check"></i> Duyệt điểm

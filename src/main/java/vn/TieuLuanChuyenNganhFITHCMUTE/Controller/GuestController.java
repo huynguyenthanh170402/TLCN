@@ -2,6 +2,7 @@ package vn.TieuLuanChuyenNganhFITHCMUTE.Controller;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,6 +54,21 @@ public class GuestController {
 	public String faculty(Model model) {
 		model.addAttribute("page", "faculty");
 		model.addAttribute("dsKhoa", chuongTrinhService.tongQuanCacKhoa());
+
+		/*
+		 * Ngành của từng khoa nạp luôn ở đây chứ không gọi lại khi người xem
+		 * bấm mở một khoa. Cả trường chỉ hơn bốn chục ngành, gửi một lần rồi
+		 * ẩn hiện bằng trình duyệt vẫn nhẹ hơn là mỗi cú bấm một lượt gọi
+		 * máy chủ, mà lại không có cảnh chờ nạp giữa chừng.
+		 */
+		Map<Integer, List<NganhThongKe>> nganhTheoKhoa = new LinkedHashMap<>();
+		for (NganhThongKe n : chuongTrinhService.tongQuanCacNganh()) {
+			// Khớp cách đánh mã của tongQuanCacKhoa: chưa gắn khoa thì gom vào -1
+			Integer ma = (n.maDonVi() == null) ? -1 : n.maDonVi();
+			nganhTheoKhoa.computeIfAbsent(ma, k -> new ArrayList<>()).add(n);
+		}
+		model.addAttribute("nganhTheoKhoa", nganhTheoKhoa);
+		model.addAttribute("tuyenSinh", trangThaiTuyenSinh());
 		return "guest/faculty";
 	}
 
@@ -65,7 +81,7 @@ public class GuestController {
 		model.addAttribute("khoa", khoa);
 		model.addAttribute("dsNganh", chuongTrinhService.dsNganhCuaKhoa(maDonVi));
 		// Trạng thái tuyển sinh nằm ở bảng Nganh, bảng thống kê không mang theo
-		model.addAttribute("tuyenSinh", trangThaiTuyenSinh(maDonVi));
+		model.addAttribute("tuyenSinh", trangThaiTuyenSinh());
 		return "guest/faculty-chitiet";
 	}
 
@@ -80,7 +96,7 @@ public class GuestController {
 		 * Thymeleaf không có cú pháp gom nhóm gọn gàng, làm trong template
 		 * sẽ thành vòng lặp lồng nhau rồi lọc lại từng lần.
 		 */
-		Map<String, List<NganhThongKe>> theoKhoa = new java.util.LinkedHashMap<>();
+		Map<String, List<NganhThongKe>> theoKhoa = new LinkedHashMap<>();
 		for (NganhThongKe n : chuongTrinhService.tongQuanCacNganh()) {
 			String ten = (n.tenKhoa() == null) ? "Chưa gắn khoa" : n.tenKhoa();
 			theoKhoa.computeIfAbsent(ten, k -> new ArrayList<>()).add(n);
@@ -128,10 +144,16 @@ public class GuestController {
 
 	// ===================== HỖ TRỢ =====================
 
-	/** Mã ngành → còn tuyển sinh hay không */
-	private Map<Integer, Boolean> trangThaiTuyenSinh(Integer maDonVi) {
+	/**
+	 * Mã ngành → còn tuyển sinh hay không.
+	 *
+	 * Lấy một lượt cả trường thay vì lọc theo khoa: trang /faculty giờ bày
+	 * ngành của mọi khoa cùng lúc nên dù sao cũng cần đủ, còn trang chi tiết
+	 * một khoa thì tra thừa vài chục dòng cũng không đáng kể.
+	 */
+	private Map<Integer, Boolean> trangThaiTuyenSinh() {
 		Map<Integer, Boolean> kq = new HashMap<>();
-		for (Nganh n : nganhRepository.findByDonVi_MaDonViOrderByTenNganh(maDonVi)) {
+		for (Nganh n : nganhRepository.findAll()) {
 			kq.put(n.getMaNganh(),
 					n.getTrangThai() == null || n.getTrangThai() == 1);
 		}

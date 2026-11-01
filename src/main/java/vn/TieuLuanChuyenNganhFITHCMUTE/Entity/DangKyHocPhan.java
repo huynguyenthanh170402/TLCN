@@ -31,9 +31,38 @@ public class DangKyHocPhan {
 	@Column(name = "NgayDangKy", nullable = false)
 	private LocalDateTime ngayDangKy = LocalDateTime.now();
 
-	/** 0 chờ duyệt, 1 đã đăng ký, 2 đã hủy, 3 bị từ chối */
+	/**
+	 * 1 lượt đăng ký còn hiệu lực, 2 đã hủy.
+	 *
+	 * Cột này trả lời câu "chỗ trong lớp còn giữ hay đã nhả ra", nên nó chi
+	 * phối sĩ số, học phí, lịch học và bảng điểm. Việc Phòng Đào tạo đã xác
+	 * nhận hay chưa là câu hỏi khác, nằm ở trangThaiDuyet bên dưới: lượt đăng
+	 * ký đang chờ xác nhận vẫn giữ chỗ và vẫn tính tín chỉ, nếu không sinh
+	 * viên có thể ôm hàng chục lớp trùng giờ trong lúc chờ duyệt.
+	 */
 	@Column(name = "TrangThai", nullable = false)
 	private Integer trangThai = 1;
+
+	/* ---------- Xác nhận của Phòng Đào tạo ---------- */
+
+	/**
+	 * 0 chờ xác nhận, 1 đã xác nhận, 2 bị từ chối.
+	 *
+	 * null là dữ liệu có từ trước khi thêm bước xác nhận. Coi như đã xác nhận,
+	 * chứ không phải đùn cả nghìn lượt đăng ký cũ vào hàng chờ duyệt.
+	 */
+	@Column(name = "TrangThaiDuyet")
+	private Integer trangThaiDuyet;
+
+	@Column(name = "NgayDuyet")
+	private LocalDateTime ngayDuyet;
+
+	/** Tên đăng nhập của chuyên viên đã xác nhận hoặc từ chối */
+	@Column(name = "NguoiDuyet", length = 100)
+	private String nguoiDuyet;
+
+	@Column(name = "LyDoTuChoi", length = 1000)
+	private String lyDoTuChoi;
 
 	@Column(name = "NgayHuy")
 	private LocalDateTime ngayHuy;
@@ -47,6 +76,25 @@ public class DangKyHocPhan {
 	/** Kết quả gắn với lượt đăng ký này (có thể chưa có) */
 	@OneToOne(mappedBy = "dangKyHocPhan", fetch = FetchType.LAZY)
 	private KetQuaHocPhan ketQua;
+
+	@Transient
+	public boolean isChoDuyet() { return Integer.valueOf(0).equals(trangThaiDuyet); }
+
+	/** null tính là đã xác nhận, xem ghi chú ở trangThaiDuyet */
+	@Transient
+	public boolean isDaDuyet() {
+		return trangThaiDuyet == null || Integer.valueOf(1).equals(trangThaiDuyet);
+	}
+
+	@Transient
+	public boolean isTuChoi() { return Integer.valueOf(2).equals(trangThaiDuyet); }
+
+	@Transient
+	public String getTenTrangThaiDuyet() {
+		if (isChoDuyet()) return "Chờ Phòng Đào tạo xác nhận";
+		if (isTuChoi())   return "Phòng Đào tạo không duyệt";
+		return "Đã xác nhận";
+	}
 
 	@Transient
 	public String getTenLoaiDangKy() {

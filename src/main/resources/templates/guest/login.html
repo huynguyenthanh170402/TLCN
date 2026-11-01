@@ -6,106 +6,239 @@
     <title th:text="#{login.title}">Đăng nhập</title>
 
     <style>
-        /* ===== Khung trang xác thực, dùng chung cho đăng nhập và quên mật khẩu ===== */
-        .auth-wrap {
-            min-height: calc(100vh - 70px);
+        /* ============================================================
+           TRANG ĐĂNG NHẬP CHIA ĐÔI MÀN HÌNH
+           Trái là ảnh cổng trường trải hết nửa màn hình, phải là biểu mẫu
+           trên nền trắng. Bản cũ đặt một thẻ hẹp giữa nền ảnh phủ tối, hai
+           bên thừa ra hai mảng sẫm chẳng chứa gì — vừa phí chỗ vừa làm ảnh
+           nền thành thứ bị che khuất chứ không phải thứ được nhìn.
+           ============================================================ */
+        .auth-split {
+            display: flex;
+            min-height: calc(100vh - var(--navbar-height));
+            margin-top: var(--navbar-height);
+            background: #fff;
+        }
+
+        /* ===================== Nửa trái: ảnh ===================== */
+        .auth-anh {
+            flex: 1 1 auto;
+            position: relative;
+            overflow: hidden;
+            background: #0d1b33;
+        }
+
+        /* Mỗi ảnh là một lớp chồng lên nhau, đổi ảnh bằng cách mờ dần lớp này
+           và hiện dần lớp kia. Cách thay thẳng background-image sẽ nháy trắng
+           một nhịp ở lần đầu vì ảnh mới lúc đó mới bắt đầu tải; để sẵn thành
+           lớp thì trình duyệt tải cả hai ngay từ đầu. */
+        .anh-lop {
+            position: absolute;
+            inset: 0;
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            opacity: 0;
+            transition: opacity 1.2s ease;
+        }
+        .anh-lop.hien { opacity: 1; }
+
+        /* Phủ tối dần từ dưới lên. Phủ đều cả ảnh thì mất luôn phần cổng
+           trường ở trên, mà chữ lại nằm dưới cùng nên chỉ cần tối ở đó. */
+        .auth-anh::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(rgba(10, 20, 40, .12) 38%, rgba(8, 17, 35, .86));
+        }
+
+        .auth-anh-chu {
+            position: absolute;
+            z-index: 1;
+            left: 0; right: 0; bottom: 0;
+            padding: clamp(1.5rem, 3.5vw, 3rem);
+            color: #fff;
+        }
+        .auth-anh-chu h2 {
+            font-weight: 800;
+            line-height: 1.25;
+            font-size: clamp(1.25rem, 2.3vw, 2rem);
+            text-shadow: 0 2px 14px rgba(0, 0, 0, .55);
+            margin-bottom: .6rem;
+        }
+        .auth-anh-chu p {
+            margin: 0;
+            max-width: 48ch;
+            color: rgba(255, 255, 255, .9);
+            font-size: clamp(.88rem, 1.05vw, 1rem);
+            line-height: 1.55;
+        }
+
+        /* ===================== Nửa phải: biểu mẫu ===================== */
+        .auth-form {
+            flex: 0 0 40%;
+            min-width: 380px;
+            max-width: 560px;
+            background: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 3rem 1rem;
-            background:
-                linear-gradient(rgba(12, 22, 42, 0.72), rgba(12, 22, 42, 0.82)),
-                url('/images/campus.jpg') center/cover no-repeat fixed;
+            padding: clamp(2rem, 4vw, 3.5rem) clamp(1.25rem, 3vw, 3rem);
         }
+        .auth-noi-dung { width: 100%; max-width: 440px; }
 
-        .auth-card {
-            width: 100%;
-            max-width: 440px;
-            border: none;
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-        }
-
-        .auth-head {
+        .auth-logo {
+            width: 62px; height: 62px;
+            border-radius: 17px;
             background: linear-gradient(135deg, #0b3d91 0%, #1565c0 100%);
             color: #fff;
-            padding: 2rem 2rem 1.5rem;
-            text-align: center;
-        }
-
-        .auth-head .auth-logo {
-            width: 62px; height: 62px;
-            margin: 0 auto 0.9rem;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.16);
             display: flex; align-items: center; justify-content: center;
             font-size: 1.7rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 .6rem 1.2rem rgba(13, 71, 161, .28);
+        }
+        .auth-tieu-de { margin-bottom: 1.9rem; }
+        .auth-tieu-de h1 {
+            font-weight: 800;
+            color: #16213e;
+            font-size: clamp(1.5rem, 2vw, 1.9rem);
+            letter-spacing: -.3px;
+            margin-bottom: .35rem;
+        }
+        .auth-tieu-de .auth-phu {
+            color: #6c757d;
+            font-size: .95rem;
+            margin: 0;
         }
 
-        .auth-head h4 { margin: 0; font-weight: 700; letter-spacing: .3px; }
-        .auth-head p  { margin: .35rem 0 0; font-size: .88rem; opacity: .85; }
-
-        .auth-body { padding: 1.75rem 2rem 2rem; background: #fff; }
+        /* Nhãn và ô nhập đều phóng to so với bản trước. Đây là màn hình đầu
+           tiên mọi người gặp, lại chỉ có đúng hai ô — chữ nhỏ ở đây không
+           tiết kiệm được chỗ nào mà chỉ làm khó người gõ. */
+        .auth-nhan {
+            display: block;
+            font-size: .95rem;
+            font-weight: 600;
+            color: #33415c;
+            margin-bottom: .45rem;
+        }
+        .auth-o { margin-bottom: 1.35rem; }
 
         /* Ô nhập có icon bên trái */
-        .auth-body .input-group-text {
+        .auth-noi-dung .input-group-text {
             background: #f1f3f7;
             border-right: 0;
             color: #5a6b85;
-            width: 44px;
+            width: 52px;
+            font-size: 1.05rem;
             justify-content: center;
+            border-radius: 11px 0 0 11px;
         }
-        .auth-body .form-control {
+        .auth-noi-dung .form-control {
             border-left: 0;
-            padding-top: .65rem;
-            padding-bottom: .65rem;
+            padding: .85rem .9rem;
+            font-size: 1.02rem;
         }
-        .auth-body .form-control:focus {
+        .auth-noi-dung .form-control:focus {
             box-shadow: none;
             border-color: #1565c0;
         }
-        .auth-body .input-group:focus-within .input-group-text {
+        .auth-noi-dung .input-group:focus-within .input-group-text {
             border-color: #1565c0;
             color: #1565c0;
         }
+        /* Bo góc phải cho phần tử cuối của mỗi nhóm: ô Tên đăng nhập thì là
+           chính ô nhập, ô Mật khẩu thì là nút con mắt. Bo cứng vào một trong
+           hai sẽ lệch ở ô còn lại. */
+        .auth-noi-dung .input-group > :last-child {
+            border-top-right-radius: 11px;
+            border-bottom-right-radius: 11px;
+        }
 
         .btn-auth {
-            padding: .7rem;
-            font-weight: 600;
-            border-radius: 10px;
+            padding: .92rem;
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: .2px;
+            border-radius: 11px;
             background: linear-gradient(135deg, #0b3d91 0%, #1565c0 100%);
             border: none;
             color: #fff;
+            box-shadow: 0 .55rem 1.1rem rgba(13, 71, 161, .3);
         }
         .btn-auth:hover { filter: brightness(1.08); color: #fff; }
 
         .auth-foot {
-            background: #f8f9fb;
-            padding: .9rem 2rem;
-            text-align: center;
-            font-size: .875rem;
-            border-top: 1px solid #e9ecef;
+            margin-top: 2rem;
+            padding-top: 1.1rem;
+            border-top: 1px solid #edf0f4;
+        }
+        .auth-foot .ten-he-thong {
+            display: block;
+            font-weight: 700;
+            color: #16213e;
+            font-size: .95rem;
+            margin-bottom: .2rem;
+        }
+        .auth-foot p {
+            margin: 0;
+            font-size: .85rem;
+            color: #8a93a2;
+            line-height: 1.5;
         }
 
-        @media (max-width: 576px) {
-            .auth-head, .auth-body { padding-left: 1.25rem; padding-right: 1.25rem; }
+        /* Dưới cỡ lg thì xếp dọc: ảnh thành dải ngang ở trên, biểu mẫu nằm
+           dưới chiếm hết bề ngang. Chia đôi trên màn hình hẹp sẽ bóp cả ảnh
+           lẫn ô nhập thành hai cột gầy, không đọc nổi. */
+        @media (max-width: 991.98px) {
+            .auth-split {
+                flex-direction: column;
+                min-height: 0;
+            }
+            .auth-anh { flex: 0 0 200px; }
+            .auth-anh-chu { display: none; }
+            .auth-form {
+                flex: 1 1 auto;
+                min-width: 0;
+                max-width: none;
+            }
+            .auth-noi-dung { max-width: 420px; }
         }
     </style>
 </head>
 <body>
 <main layout:fragment="content">
 
-    <div class="auth-wrap">
-        <div class="card auth-card">
+    <div class="auth-split">
 
-            <div class="auth-head">
-                <div class="auth-logo"><i class="fas fa-graduation-cap"></i></div>
-                <h4 th:text="#{login.heading}">Đăng nhập hệ thống</h4>
-                <p th:text="#{app.name}">Trường Đại học Sư phạm Kỹ thuật TP. Hồ Chí Minh</p>
+        <!-- ===================== Ảnh nền, tự đổi 5 giây một lần ===================== -->
+        <div class="auth-anh">
+            <div class="anh-lop hien"
+                 th:style="'background-image:url(' + @{/images/cong-truong.jpg} + ')'"></div>
+            <div class="anh-lop"
+                 th:style="'background-image:url(' + @{/images/sinh-vien.jpg} + ')'"></div>
+
+            <div class="auth-anh-chu">
+                <h2 th:text="#{app.name}">Trường Đại học Sư phạm Kỹ thuật TP. Hồ Chí Minh</h2>
+                <p th:text="#{home.cta.desc}">
+                    Đăng nhập để vào trang cá nhân, xem lịch học, đăng ký học phần
+                    và tra cứu kết quả học tập của bạn.
+                </p>
             </div>
+        </div>
 
-            <div class="auth-body">
+        <!-- ===================== Biểu mẫu ===================== -->
+        <div class="auth-form">
+            <div class="auth-noi-dung">
+
+                <div class="auth-logo"><i class="fas fa-graduation-cap"></i></div>
+                <div class="auth-tieu-de">
+                    <h1 th:text="#{login.heading}">Đăng nhập hệ thống</h1>
+
+                    <!-- Tên trường đã nằm trên ảnh bên trái rồi, chỉ nhắc lại
+                         ở đây khi màn hình hẹp làm phần chữ đó bị ẩn đi. -->
+                    <p class="auth-phu d-lg-none" th:text="#{app.name}">
+                        Trường Đại học Sư phạm Kỹ thuật TP. Hồ Chí Minh</p>
+                </div>
 
                 <!-- Sai tài khoản hoặc mật khẩu -->
                 <div th:if="${param.error}" class="alert alert-danger py-2 small">
@@ -147,17 +280,19 @@
 
                 <form th:action="@{/login}" method="post">
 
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold" th:text="#{login.username}">Tên đăng nhập</label>
+                    <div class="auth-o">
+                        <label class="auth-nhan" for="oTenDangNhap"
+                               th:text="#{login.username}">Tên đăng nhập</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-user"></i></span>
-                            <input type="text" name="username" class="form-control"
+                            <input type="text" name="username" id="oTenDangNhap" class="form-control"
                                    autocomplete="username" autofocus required>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold" th:text="#{login.password}">Mật khẩu</label>
+                    <div class="auth-o">
+                        <label class="auth-nhan" for="oMatKhau"
+                               th:text="#{login.password}">Mật khẩu</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-lock"></i></span>
                             <input type="password" name="password" id="oMatKhau" class="form-control"
@@ -172,8 +307,9 @@
                     <!-- Đã bỏ ô "Ghi nhớ đăng nhập": tính năng đó cấp cookie
                          sống nhiều ngày và sẽ khôi phục phiên ngay sau khi
                          phiên 30 phút hết hạn, làm quy định 30 phút vô nghĩa. -->
-                    <div class="d-flex justify-content-end align-items-center mb-3">
-                        <a th:href="@{/quenmatkhau}" class="small text-decoration-none"
+                    <div class="d-flex justify-content-end align-items-center mb-4">
+                        <a th:href="@{/quenmatkhau}" class="text-decoration-none fw-semibold"
+                           style="font-size: .92rem;"
                            th:text="#{login.forgot}">Quên mật khẩu?</a>
                     </div>
 
@@ -182,17 +318,39 @@
                         <span th:text="#{login.button}">Đăng nhập</span>
                     </button>
                 </form>
-            </div>
 
-            <div class="auth-foot text-muted">
-                <i class="fas fa-circle-info me-1"></i>
-                <span th:text="#{login.help}">Chưa có tài khoản? Liên hệ Phòng Công tác Sinh viên.</span>
-            </div>
+                <div class="auth-foot">
+                    <span class="ten-he-thong">
+                        <i class="fas fa-shield-halved me-1" style="color:#1565c0;"></i>
+                        <span th:text="#{login.system}">Hệ thống Quản lý Đào tạo</span>
+                    </span>
+                    <p th:text="#{login.system_desc}">
+                        Dùng chung cho sinh viên, giảng viên và các phòng ban của Trường.</p>
+                </div>
 
+            </div>
         </div>
     </div>
 
     <script>
+        // Đổi ảnh nền bên trái, 5 giây một lần
+        (function () {
+            var lop = document.querySelectorAll('.auth-anh .anh-lop');
+            if (lop.length < 2) return;
+
+            /* Người đã bật "giảm chuyển động" trong hệ điều hành thường là
+               người bị chóng mặt vì hiệu ứng; để yên một ảnh cho họ. */
+            if (window.matchMedia &&
+                window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+            var i = 0;
+            setInterval(function () {
+                lop[i].classList.remove('hien');
+                i = (i + 1) % lop.length;
+                lop[i].classList.add('hien');
+            }, 5000);
+        })();
+
         // Nút con mắt để xem lại mật khẩu vừa gõ
         (function () {
             var nut  = document.getElementById('nutHienMatKhau');

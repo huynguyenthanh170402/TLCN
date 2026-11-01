@@ -126,6 +126,11 @@ public class SinhVienController {
 		model.addAttribute("hocKyThu", bc.getHocKyThu());
 		model.addAttribute("loiChung", bc.getLoiChung());
 
+		// Lượt bị Phòng Đào tạo từ chối nằm ngoài danh sách trên (chúng đã bị
+		// chuyển sang trạng thái hủy), nhưng vẫn phải hiện cho sinh viên đọc
+		// lý do — nếu không thì môn tự nhiên biến mất mà không ai giải thích.
+		model.addAttribute("dsTuChoi", dangKyHocPhanService.dsBiTuChoi(sv, hk));
+
 		// Khung chương trình của ngành, mỗi học phần kèm trạng thái đăng ký
 		model.addAttribute("keHoach", keHoachDangKyService.keHoach(sv, hk, bc));
 

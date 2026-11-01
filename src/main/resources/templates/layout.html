@@ -33,7 +33,23 @@
             color: #333;
             background: #f4f6f9;
             overflow-x: hidden;
+
+            /* Chân trang luôn chạm đáy màn hình.
+               Trang nào nội dung ngắn — chi tiết một khoa chỉ có vài ngành —
+               thì chân trang trèo lên giữa màn hình, phía dưới còn một mảng
+               trống trông như trang bị cụt. Dựng thân trang thành cột co
+               giãn rồi cho phần nội dung nở ra chiếm chỗ thừa, chân trang bị
+               đẩy xuống đáy. Trang dài thì mọi thứ vẫn như cũ, chân trang
+               nằm sau nội dung chứ không dính đè lên màn hình. */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
+
+        /* Phần nội dung ăn hết khoảng trống còn lại; chân trang giữ nguyên
+           chiều cao thật của nó, không bị bóp lại khi thiếu chỗ. */
+        body > main { flex: 1 0 auto; }
+        body > footer { flex-shrink: 0; }
 
         /* Ảnh không bao giờ rộng hơn khung chứa */
         img, svg, video, iframe {
@@ -86,9 +102,12 @@
         /* ============================================================
            THANH MENU
            ============================================================ */
+        /* Thanh menu nền xanh, chữ trắng đậm — cùng tông nhận diện của trường.
+           Nền xám nhạt chữ đen trước đây gần trùng màu nền trang, nhìn không
+           ra đâu là thanh điều hướng đâu là nội dung. */
         .navbar {
-            background-color: #f4f6f9 !important;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            background-color: #0d47a1 !important;
+            box-shadow: 0 2px 12px rgba(10, 35, 85, 0.28);
             min-height: var(--navbar-height);
         }
 
@@ -98,7 +117,7 @@
         .navbar-brand {
             font-weight: 700;
             font-size: clamp(0.85rem, 1.6vw, 1.1rem);
-            color: #16213e !important;
+            color: #fff !important;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -111,9 +130,9 @@
         /* Mỗi mục luôn nằm gọn một dòng. Cỡ chữ và khoảng đệm co theo bề
            rộng màn hình để tám mục vẫn vừa khi người dùng phóng to trang. */
         .navbar-nav .nav-link {
-            color: #000 !important;
+            color: #fff !important;
             font-size: clamp(0.88rem, 0.95vw, 1.05rem);
-            font-weight: 600;
+            font-weight: 700;
             margin: 0 2px;
             padding: 0.5rem clamp(0.4rem, 0.7vw, 0.95rem) !important;
             border-radius: 8px;
@@ -124,15 +143,99 @@
             transition: color 0.2s ease, background-color 0.2s ease;
         }
 
+        /* Trên nền xanh không thể làm sáng chữ hơn nữa để báo hiệu, nên dùng
+           một lớp nền trắng mờ. Đổi màu chữ sang vàng hay xanh nhạt thì mỗi
+           lần rê chuột thanh menu lại loang lổ nhiều màu. */
         .navbar-nav .nav-link:hover,
-        .navbar-nav .nav-link:focus {
+        .navbar-nav .nav-link:focus,
+        .navbar-nav .nav-link.show {
             color: #fff !important;
-            background-color: var(--primary-color);
+            background-color: rgba(255, 255, 255, 0.17);
         }
 
+        /* Trang đang mở: nền sáng hơn một bậc so với khi rê chuột */
         .navbar-nav .nav-link.active {
-            color: #1565c0 !important;
+            color: #fff !important;
+            background-color: rgba(255, 255, 255, 0.26);
+        }
+
+        /* Vạch ngăn mảnh giữa các mục, như menu của trang trường. Chỉ kẻ từ
+           mục thứ hai trở đi nên không thừa một vạch ở đầu hàng. */
+        @media (min-width: 1200px) {
+            .navbar-nav .nav-item + .nav-item {
+                border-left: 1px solid rgba(255, 255, 255, 0.25);
+            }
+        }
+
+        /* Menu dọc trên điện thoại: vạch ngăn chuyển thành đường kẻ ngang,
+           kẻ dọc giữa hai mục xếp chồng nhau thì chẳng ngăn được gì. */
+        @media (max-width: 1199.98px) {
+            .navbar-nav .nav-item + .nav-item {
+                border-top: 1px solid rgba(255, 255, 255, 0.16);
+            }
+        }
+
+        .bang-khoa {
+            border: 0;
+            border-top: 3px solid var(--secondary-color);
+            box-shadow: 0 1rem 2rem rgba(0, 0, 0, .13);
+            padding: 1.3rem 0 1rem;
+        }
+
+        /* Chia cột bằng CSS columns chứ không phải lưới: số khoa thay đổi theo
+           dữ liệu, lưới thì phải tự tính xem mỗi cột mấy khoa, còn columns tự
+           rải. break-inside giữ cho tên khoa không bị tách rời khỏi ngành của
+           nó khi rơi đúng chỗ ngắt cột. */
+        .cot-khoa { column-count: 4; column-gap: 2.2rem; }
+        .khoi-khoa { break-inside: avoid; margin-bottom: 1.15rem; }
+
+        .ten-khoa {
+            display: block;
             font-weight: 700;
+            font-size: .95rem;
+            color: #16213e;
+            text-decoration: none;
+            padding-bottom: .4rem;
+            margin-bottom: .35rem;
+            border-bottom: 1px solid #e3e8ef;
+        }
+        .ten-khoa:hover { color: var(--secondary-color); }
+
+        .ten-nganh {
+            display: block;
+            font-size: .87rem;
+            line-height: 1.4;
+            color: #55606e;
+            text-decoration: none;
+            padding: .22rem 0;
+        }
+        .ten-nganh:hover { color: var(--secondary-color); }
+
+        .chan-khoa {
+            border-top: 1px solid #e3e8ef;
+            padding-top: .8rem;
+            text-align: right;
+            font-size: .9rem;
+            font-weight: 600;
+        }
+        .chan-khoa a { text-decoration: none; color: var(--secondary-color); }
+
+        /* Màn hình hẹp hơn một chút thì bớt cột, chữ khỏi bị bóp thành cột dọc */
+        @media (max-width: 1399.98px) {
+            .cot-khoa { column-count: 3; }
+        }
+
+        /* Dưới cỡ xl thanh menu thu vào nút ba gạch. Lúc đó bảng khoa nằm
+           thẳng trong menu dọc, không trải ngang nữa, nên trả về một cột. */
+        @media (max-width: 1199.98px) {
+            .bang-khoa {
+                border-top: 0;
+                box-shadow: none;
+                padding: .25rem 0 .5rem 1rem;
+                max-height: 50vh;
+                overflow-y: auto;
+            }
+            .cot-khoa { column-count: 1; }
         }
 
         /* Menu mở ra trên điện thoại: giới hạn chiều cao và cho cuộn,
@@ -148,6 +251,23 @@
             .navbar > .container { flex-wrap: nowrap; }
             .navbar-collapse { overflow-y: visible; }
             .navbar-nav { flex-wrap: nowrap; }
+
+            /* Bảng khoa trải hết bề ngang, nằm sát ngay dưới thanh điều hướng.
+               position: static ở thẻ li để bảng neo theo cả thanh navbar chứ
+               không theo riêng chữ "Khoa": chữ "Khoa" nằm lệch phải, neo vào
+               đó thì bảng rộng sẽ thò ra ngoài mép màn hình. */
+            .menu-khoa { position: static; }
+            .menu-khoa .bang-khoa {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                width: auto;
+                margin: 0;
+                border-radius: 0 0 .9rem .9rem;
+                max-height: calc(100vh - var(--navbar-height) - 2rem);
+                overflow-y: auto;
+            }
         }
 
         /* ===================== Nút đổi ngôn ngữ ===================== */
@@ -157,37 +277,51 @@
             padding: 6px 12px;
             margin: 0 4px;
             border-radius: 6px;
-            border: 1px solid rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.45);
             background: transparent;
-            color: #16213e;
+            color: #fff;
             cursor: pointer;
             transition: all 0.25s ease;
             font-size: 0.9rem;
-            font-weight: 600;
+            font-weight: 700;
             text-decoration: none;
             white-space: nowrap;
         }
 
+        /* Đảo màu khi chọn: nền trắng chữ xanh. Trên nền xanh mà tô thêm một
+           sắc xanh khác thì nút được chọn và nút không được chọn nhìn gần như
+           nhau. */
         .lang-btn:hover,
         .lang-btn.active {
-            background: var(--secondary-color);
-            color: #fff;
-            border-color: var(--secondary-color);
+            background: #fff;
+            color: #0d47a1;
+            border-color: #fff;
         }
 
         /* ============================================================
            KHU ẢNH ĐẦU TRANG
            ============================================================ */
+        /* Mặc định chỉ là một dải màu cao vừa đủ ôm lấy tiêu đề.
+           Ảnh cổng trường là của riêng trang chủ, phải tự thêm lớp hero-anh
+           mới có. Để ảnh ở mọi trang thì trang nào cũng bắt người xem cuộn
+           qua đúng một màn hình ảnh giống hệt nhau mới tới nội dung — mà
+           người bấm vào "An toàn thông tin" là đang muốn đọc về ngành đó,
+           không phải xem lại cái cổng trường lần thứ năm. */
         .hero {
             position: relative;
-            min-height: calc(100vh - var(--navbar-height));
             margin-top: var(--navbar-height);
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
             overflow: hidden;
-            padding: clamp(2rem, 6vw, 3rem) 1rem;
+            padding: clamp(1.8rem, 4.5vw, 3rem) 1rem;
+            background: linear-gradient(135deg, #16263f 0%, #1f4e79 100%);
+        }
+
+        /* ----- Riêng trang chủ: ảnh cổng trường, cao hết màn hình ----- */
+        .hero.hero-anh {
+            min-height: calc(100vh - var(--navbar-height));
             background: #0d1b33;
         }
 
@@ -195,10 +329,10 @@
            Dùng vh đơn thuần thì trên iPhone khối hero bị hụt hoặc dư
            một khoảng bằng chiều cao thanh địa chỉ. */
         @supports (height: 100dvh) {
-            .hero { min-height: calc(100dvh - var(--navbar-height)); }
+            .hero.hero-anh { min-height: calc(100dvh - var(--navbar-height)); }
         }
 
-        .hero::before {
+        .hero.hero-anh::before {
             content: "";
             position: absolute;
             inset: 0;
@@ -208,7 +342,7 @@
             background: url('/images/cong-truong.jpg') center/cover no-repeat;
         }
 
-        .hero::after {
+        .hero.hero-anh::after {
             content: "";
             position: absolute;
             inset: 0;
@@ -220,6 +354,12 @@
             position: relative;
             z-index: 2;
             max-width: min(820px, 92vw);
+        }
+
+        /* Khung kính mờ chỉ có nghĩa khi nằm trên ảnh: nó sinh ra để tách
+           chữ khỏi nền ảnh lộn xộn. Đặt trên dải màu phẳng thì thành một
+           hộp sẫm nổi trên nền sẫm, chẳng tách được gì. */
+        .hero.hero-anh .container {
             padding: clamp(1.25rem, 4vw, 2.25rem) clamp(1rem, 3vw, 2rem);
             border-radius: 16px;
             background: rgba(12, 22, 42, 0.55);
@@ -248,9 +388,11 @@
             animation: fadeInUp 1s ease;
         }
 
-        .hero.hero-sm { min-height: 60vh; }
+        /* hero-sm chỉ còn tác dụng khi đi kèm ảnh. Không có ảnh thì dải màu
+           đã gọn sẵn, ép thêm chiều cao chỉ tạo ra khoảng trống vô nghĩa. */
+        .hero.hero-anh.hero-sm { min-height: 60vh; }
         @supports (height: 100dvh) {
-            .hero.hero-sm { min-height: 60dvh; }
+            .hero.hero-anh.hero-sm { min-height: 60dvh; }
         }
 
         @keyframes fadeInDown {
@@ -366,8 +508,8 @@
         }
 
         @media (max-width: 768px) {
-            .hero { min-height: 70vh; }
-            .hero.hero-sm { min-height: 48vh; }
+            .hero.hero-anh { min-height: 70vh; }
+            .hero.hero-anh.hero-sm { min-height: 48vh; }
             .lang-selector { margin-left: 0; margin-top: 10px; }
             footer { padding: 28px 0 16px; margin-top: 36px; }
             .section-heading { margin-bottom: 26px; }
@@ -377,7 +519,8 @@
 <body>
 
 <!-- ===================== Thanh điều hướng ===================== -->
-<nav class="navbar navbar-expand-xl navbar-light fixed-top">
+<!-- navbar-dark: để Bootstrap vẽ nút ba gạch màu trắng cho hợp nền xanh -->
+<nav class="navbar navbar-expand-xl navbar-dark fixed-top">
     <div class="container">
         <a class="navbar-brand" th:href="@{/}">
             <i class="fas fa-graduation-cap me-2"></i><span th:text="#{app.name}">HCMUTE</span>
@@ -395,8 +538,41 @@
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/about}" th:classappend="${page == 'about' ? 'active' : ''}" th:text="#{nav.about}">Giới thiệu</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/faculty}" th:classappend="${page == 'faculty' ? 'active' : ''}" th:text="#{nav.faculty}">Khoa</a>
+                <!-- Khoa: bấm vào thì bảng khoa - ngành xổ xuống ngay dưới thanh
+                     điều hướng. Danh sách lấy thẳng từ service chứ không đi qua
+                     model, vì thanh này hiện trên mọi trang dùng layout gốc
+                     (trang khách, đăng nhập, quên mật khẩu, trang 403) — bắt
+                     từng controller nhớ nạp một biến cho menu thì sớm muộn cũng
+                     có chỗ quên, và menu sẽ trống đúng ở trang đó. -->
+                <li class="nav-item dropdown menu-khoa"
+                    th:with="dsMenuKhoa=${@chuongTrinhService.menuKhoa()}">
+                    <a class="nav-link dropdown-toggle" href="#" role="button"
+                       data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false"
+                       th:classappend="${page == 'faculty' ? 'active' : ''}"
+                       th:text="#{nav.faculty}">Khoa</a>
+
+                    <div class="dropdown-menu bang-khoa">
+                        <div class="container">
+
+                            <div class="cot-khoa">
+                                <div class="khoi-khoa" th:each="k : ${dsMenuKhoa}">
+                                    <a class="ten-khoa" th:href="@{/faculty/{id}(id=${k.maDonVi})}"
+                                       th:text="${k.ten}">Khoa</a>
+                                    <a class="ten-nganh" th:each="n : ${k.dsNganh}"
+                                       th:href="@{/major/{id}(id=${n.maNganh})}"
+                                       th:text="${n.tenNganh}">Ngành</a>
+                                </div>
+                            </div>
+
+                            <div class="chan-khoa">
+                                <a th:href="@{/faculty}">
+                                    <span th:text="#{faculty.list.heading}">Các khoa đào tạo</span>
+                                    <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/major}" th:classappend="${page == 'major' ? 'active' : ''}" th:text="#{nav.major}">Ngành học</a>

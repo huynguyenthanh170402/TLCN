@@ -65,6 +65,9 @@ public class ChuongTrinhService {
 		public boolean isXong()       { return soNganh > 0 && getSoNganhChuaCo() == 0; }
 	}
 
+	/** Một khoa kèm ngành bên trong, cho bảng khoa xổ xuống ở thanh điều hướng */
+	public record MucMenuKhoa(Integer maDonVi, String ten, List<NganhThongKe> dsNganh) {}
+
 	/** Kết quả một lần xóa, để màn hình nói đúng chuyện vừa xảy ra */
 	public record KetQuaXoa(boolean xoaHan, long soSinhVienDaHoc) {}
 
@@ -113,6 +116,31 @@ public class ChuongTrinhService {
 			if (n.coChuongTrinh()) k.soNganhCoChuongTrinh++;
 		}
 		return new ArrayList<>(theoKhoa.values());
+	}
+
+	/**
+	 * Khoa kèm ngành bên trong, dựng sẵn cho bảng khoa xổ xuống ở thanh
+	 * điều hướng.
+	 *
+	 * Gom ở đây chứ không để giao diện tự nhóm: Thymeleaf không có cú pháp
+	 * gom nhóm, làm trong template sẽ thành vòng lặp lồng nhau rồi lọc lại
+	 * cả danh sách ngành đúng một lần cho mỗi khoa.
+	 */
+	@Transactional(readOnly = true)
+	public List<MucMenuKhoa> menuKhoa() {
+		Map<Integer, String> ten = new LinkedHashMap<>();
+		Map<Integer, List<NganhThongKe>> nganh = new LinkedHashMap<>();
+
+		for (NganhThongKe n : tongQuanCacNganh()) {
+			// Cùng quy ước với tongQuanCacKhoa: chưa gắn khoa thì gom vào mã -1
+			Integer ma = (n.maDonVi() == null) ? -1 : n.maDonVi();
+			ten.putIfAbsent(ma, (n.tenKhoa() == null) ? "Chưa gắn khoa" : n.tenKhoa());
+			nganh.computeIfAbsent(ma, k -> new ArrayList<>()).add(n);
+		}
+
+		List<MucMenuKhoa> kq = new ArrayList<>();
+		ten.forEach((ma, t) -> kq.add(new MucMenuKhoa(ma, t, nganh.get(ma))));
+		return kq;
 	}
 
 	/** Các ngành của một khoa; mã -1 là nhóm ngành chưa gắn khoa */

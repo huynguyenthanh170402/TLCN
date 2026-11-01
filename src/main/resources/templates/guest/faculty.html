@@ -5,22 +5,47 @@
 <head>
     <title th:text="#{faculty.title}">Khoa</title>
     <style>
-        .the-khoa {
-            display: block; height: 100%;
-            text-decoration: none; color: inherit;
-            border: 1px solid #dee2e6; border-radius: .7rem;
-            padding: 1.4rem 1.5rem; background: #fff;
-            border-top: 4px solid #0b3d91;
-            transition: box-shadow .18s, transform .18s;
+        /* Danh sách khoa dạng xổ xuống.
+           Trước đây mỗi khoa là một ô trong lưới ba cột, bấm vào thì nhảy sang
+           trang khác. Mười mấy ô giống hệt nhau nằm dàn hàng rất rối mắt, mà
+           muốn so sánh hai khoa lại phải bấm đi bấm lại. Giờ gom thành một cột
+           dọc, bấm khoa nào thì ngành của khoa đó xổ ra ngay bên dưới. */
+        .ds-khoa .accordion-item {
+            border: 1px solid #dee2e6;
+            border-radius: .7rem !important;
+            margin-bottom: .7rem;
+            overflow: hidden;
         }
-        .the-khoa:hover {
-            box-shadow: 0 .6rem 1.4rem rgba(11, 61, 145, .14);
-            transform: translateY(-3px);
+        .ds-khoa .accordion-button {
+            font-weight: 600;
+            color: #16213e;
+            background: #fff;
+            padding: .95rem 1.1rem;
+            gap: .5rem;
+            flex-wrap: wrap;
+        }
+        /* Khoa đang mở: đổi nền nhạt để biết mình đang đứng ở đâu */
+        .ds-khoa .accordion-button:not(.collapsed) {
+            color: #0b3d91;
+            background: #eef3fb;
+            box-shadow: none;
+        }
+        .ds-khoa .accordion-button:focus {
+            box-shadow: none;
+            border-color: transparent;
+        }
+        .ds-khoa .accordion-body { padding: .35rem .6rem .8rem; }
+
+        /* Một dòng ngành bên trong khoa */
+        .nganh-muc {
+            border: 0 !important;
+            border-bottom: 1px solid #f0f2f5 !important;
+            padding: .7rem .5rem;
             color: inherit;
         }
-        .the-khoa .ten { font-weight: 700; font-size: 1.05rem; line-height: 1.35; }
-        .the-khoa .so  { font-size: 2rem; font-weight: 700; color: #0b3d91; line-height: 1; }
-        .the-khoa .nhan { font-size: .82rem; color: #6c757d; }
+        .nganh-muc:last-child { border-bottom: 0 !important; }
+        .nganh-muc:hover { background: #f6f9fe; color: #0b3d91; }
+        .nganh-muc .ten { font-weight: 500; }
     </style>
 </head>
 <body>
@@ -39,29 +64,141 @@
             <div th:if="${dsKhoa.empty}" class="alert alert-secondary"
                  th:text="#{faculty.empty}">Chưa có dữ liệu khoa đào tạo.</div>
 
-            <div class="row g-4">
-                <div class="col-md-6 col-lg-4" th:each="k : ${dsKhoa}">
-                    <a class="the-khoa" th:href="@{/faculty/{id}(id=${k.maDonVi})}">
-                        <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
-                            <div class="ten" th:text="${k.ten}">Khoa</div>
-                            <i class="fas fa-arrow-right text-primary"></i>
-                        </div>
+            <div th:unless="${dsKhoa.empty}">
 
-                        <div class="d-flex align-items-end gap-3">
-                            <div>
-                                <div class="so" th:text="${k.soNganh}">0</div>
-                                <div class="nhan" th:text="#{faculty.count.majors}">ngành đào tạo</div>
-                            </div>
-                            <div class="ms-auto text-end nhan">
-                                <div th:text="${k.tongHocPhan} + ' học phần'"></div>
+                <!-- Ô tìm: gõ được cả tên khoa lẫn tên ngành nằm bên trong khoa,
+                     vì người xem thường chỉ nhớ tên ngành mình định học. -->
+                <div class="row mb-4">
+                    <div class="col-12 col-md-7 col-lg-5">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white">
+                                <i class="fas fa-magnifying-glass text-muted"></i>
+                            </span>
+                            <input type="text" id="timKhoa" class="form-control"
+                                   autocomplete="off"
+                                   placeholder="Tìm tên khoa hoặc tên ngành...">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion ds-khoa" id="dsKhoa">
+                    <div class="accordion-item khoa-muc" th:each="k : ${dsKhoa}"
+                         th:data-ten="${k.ten}">
+
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button"
+                                    data-bs-toggle="collapse"
+                                    th:data-bs-target="'#khoa-' + ${k.maDonVi}">
+                                <span th:text="${k.ten}">Khoa</span>
+                                <span class="ms-auto me-3 small text-muted">
+                                    <span th:text="${k.soNganh}">0</span>
+                                    <span th:text="#{faculty.count.majors}">ngành đào tạo</span>
+                                    <span class="mx-1">·</span>
+                                    <span th:text="${k.tongHocPhan} + ' học phần'">0 học phần</span>
+                                </span>
+                            </button>
+                        </h2>
+
+                        <!-- data-bs-parent: mở khoa này thì khoa đang mở tự đóng lại,
+                             để trang không dài ra mãi khi bấm lần lượt từng khoa. -->
+                        <div th:id="'khoa-' + ${k.maDonVi}"
+                             class="accordion-collapse collapse" data-bs-parent="#dsKhoa">
+                            <div class="accordion-body">
+
+                                <div class="list-group list-group-flush">
+                                    <a th:each="n : ${nganhTheoKhoa[k.maDonVi]}"
+                                       class="list-group-item list-group-item-action nganh-muc
+                                              d-flex justify-content-between align-items-center gap-3"
+                                       th:href="@{/major/{id}(id=${n.maNganh})}"
+                                       th:data-ten="${n.tenNganh}">
+
+                                        <span>
+                                            <span class="ten" th:text="${n.tenNganh}">Ngành</span>
+                                            <span th:if="${tuyenSinh[n.maNganh] == false}"
+                                                  class="badge bg-secondary ms-2"
+                                                  th:text="#{major.badge.closed}">Ngừng tuyển sinh</span>
+                                        </span>
+
+                                        <span class="small text-muted text-end">
+                                            <span th:if="${n.coChuongTrinh}"
+                                                  th:text="${n.soHocPhan} + ' học phần · ' + ${n.tongTinChi} + ' tín chỉ'"></span>
+                                            <span th:unless="${n.coChuongTrinh}"
+                                                  th:text="#{major.detail.noprogram}">Chưa có chương trình</span>
+                                        </span>
+                                    </a>
+                                </div>
+
+                                <div class="mt-3 ps-2">
+                                    <a class="small" th:href="@{/faculty/{id}(id=${k.maDonVi})}">
+                                        <i class="fas fa-address-card me-1"></i>
+                                        <span th:text="#{faculty.detail.contact}">Thông tin liên hệ</span>
+                                    </a>
+                                </div>
+
                             </div>
                         </div>
-                    </a>
+                    </div>
+                </div>
+
+                <div id="khongThayKhoa" class="alert alert-secondary mt-3" hidden>
+                    Không tìm thấy khoa hay ngành nào khớp với từ khóa.
                 </div>
             </div>
+
         </div>
     </section>
 
 </main>
+
+<th:block layout:fragment="scripts">
+<script>
+(function () {
+    var o = document.getElementById('timKhoa');
+    if (!o) return;
+
+    /* Bỏ dấu để gõ "cong nghe" vẫn ra "Công nghệ".
+       Chữ đ không nằm trong dải dấu tổ hợp nên phải thay riêng. */
+    function boDau(s) {
+        return (s || '').toString().toLowerCase()
+            .normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd');
+    }
+
+    var dsMuc = Array.prototype.slice.call(document.querySelectorAll('.khoa-muc'));
+
+    // Dựng sẵn chuỗi tìm của từng khoa một lần, gồm tên khoa và tên mọi ngành
+    // bên trong. Gõ mỗi phím mà duyệt lại cả cây DOM thì phí.
+    dsMuc.forEach(function (m) {
+        var tu = [m.getAttribute('data-ten') || ''];
+        m.querySelectorAll('.nganh-muc').forEach(function (n) {
+            tu.push(n.getAttribute('data-ten') || '');
+        });
+        m.dataset.timKiem = boDau(tu.join(' '));
+    });
+
+    var oTrong = document.getElementById('khongThayKhoa');
+
+    o.addEventListener('input', function () {
+        var tu = boDau(o.value.trim());
+        var khop = [];
+
+        dsMuc.forEach(function (m) {
+            var dung = (tu === '' || m.dataset.timKiem.indexOf(tu) >= 0);
+            m.hidden = !dung;
+            if (dung) khop.push(m);
+        });
+
+        oTrong.hidden = khop.length > 0;
+
+        /* Chỉ còn đúng một khoa thì mở luôn, khỏi bắt bấm thêm một nhịp.
+           Nhiều kết quả thì để nguyên: data-bs-parent chỉ cho mở một khoa,
+           mở hàng loạt sẽ thành cảnh các khoa thi nhau đóng mở. */
+        if (tu !== '' && khop.length === 1 && window.bootstrap) {
+            var than = khop[0].querySelector('.accordion-collapse');
+            bootstrap.Collapse.getOrCreateInstance(than, { toggle: false }).show();
+        }
+    });
+})();
+</script>
+</th:block>
 </body>
 </html>
