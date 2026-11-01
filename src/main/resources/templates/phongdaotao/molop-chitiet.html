@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongdaotao/layout}">
+<head>
+    <title>Kế hoạch mở lớp</title>
+    <style>
+        .o-pham-vi { font-size: .82rem; }
+        .bang-ke-hoach td, .bang-ke-hoach th { font-variant-numeric: tabular-nums; }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">
+    Mở lớp — <span th:text="${tenPhamVi}">Phạm vi</span>
+</h5>
+
+<div layout:fragment="content">
+
+    <nav class="mb-3">
+        <a th:href="@{${duongDanVe}(hocKy=${hocKyChon})}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Quay lại
+        </a>
+    </nav>
+
+    <div class="alert alert-light border small mb-3">
+        <strong th:text="${tenPhamVi}"></strong>
+        <span th:text="${moTaPhamVi}"></span>
+        Hệ thống lấy các học phần đúng học kỳ trong chương trình đào tạo của từng khóa,
+        chia lớp theo sĩ số, chọn phòng còn trống và xếp lịch sao cho sinh viên không
+        bị trùng giờ. Học phần <strong>tự chọn</strong> chỉ mở theo ước tính 40% sinh
+        viên đăng ký, vì mở đủ như môn bắt buộc sẽ thừa lớp rồi phải hủy do không đủ
+        sĩ số. Lớp học lại, học hè hay lớp tối thì mở lẻ ở mục Lớp học phần.
+    </div>
+
+    <!-- Đổi học kỳ, giữ nguyên phạm vi đang xem -->
+    <form method="get" class="card card-body shadow-sm mb-3" th:action="@{${duongDan}}">
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-5">
+                <label class="form-label fw-semibold">Học kỳ</label>
+                <select name="hocKy" class="form-select" required>
+                    <option th:each="hk : ${dsHocKy}" th:value="${hk.maHocKy}"
+                            th:text="${hk.tenHocKy}" th:selected="${hk.maHocKy == hocKyChon}"></option>
+                </select>
+            </div>
+            <div class="col-12 col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Xem kế hoạch</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Bảng kế hoạch -->
+    <div th:if="${keHoach != null}" class="card shadow-sm">
+        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <span class="fw-bold">Kế hoạch mở lớp</span>
+            <span class="small text-muted" th:unless="${keHoach.empty}"
+                  th:text="${keHoach.size()} + ' dòng kế hoạch'"></span>
+        </div>
+
+        <div class="table-responsive">
+    <form class="o-tim mb-3" role="search">
+        <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-magnifying-glass"></i></span>
+            <input type="search" class="form-control" placeholder="Tìm theo mã học phần, tên học phần, khóa, ngành…"
+                   data-loc="#bangKeHoach"
+                   data-trong="#khongThayKeHoach">
+            <button class="btn btn-outline-secondary" type="submit">Tìm</button>
+        </div>
+    </form>
+
+    <div class="alert alert-secondary" id="khongThayKeHoach" hidden>
+        Không có dòng nào khớp với từ khóa.
+    </div>
+
+            <table class="table table-sm align-middle mb-0 bang-ke-hoach" id="bangKeHoach">
+                <thead class="table-light">
+                <tr>
+                    <th class="text-center" style="width:80px">Khóa</th>
+                    <th class="text-center" style="width:70px">HK thứ</th>
+                    <th>Học phần</th>
+                    <th style="width:28%">Phạm vi</th>
+                    <th class="text-center" style="width:90px">Sinh viên</th>
+                    <th class="text-center" style="width:70px">Cần</th>
+                    <th class="text-center" style="width:70px">Đã có</th>
+                    <th class="text-center" style="width:90px">Mở thêm</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${keHoach.empty}">
+                    <td colspan="8" class="text-center text-muted py-4">
+                        Không có học phần nào cần mở lớp trong học kỳ này.
+                    </td>
+                </tr>
+                <tr th:each="d : ${keHoach}" th:classappend="${d.soLopThieu == 0} ? 'table-light'">
+                    <td class="text-center fw-semibold" th:text="${d.khoa}"></td>
+                    <td class="text-center" th:text="${d.hocKyThu}"></td>
+                    <td>
+                        <span class="small text-muted" th:text="${d.hocPhan.maHocPhan}"></span>
+                        <span th:text="${d.hocPhan.tenHocPhan}"></span>
+                        <span th:if="${d.tuChon}" class="badge bg-warning text-dark ms-1">tự chọn</span>
+                    </td>
+                    <td class="o-pham-vi">
+                        <span class="badge"
+                              th:classappend="${d.chung} ? 'bg-secondary' : 'bg-primary'"
+                              th:text="${d.chung} ? 'Đại cương' : 'Theo ngành'"></span>
+                        <span class="text-muted ms-1" th:text="${d.tenPhamVi}"></span>
+                    </td>
+                    <td class="text-center" th:text="${d.soSinhVien}"></td>
+                    <td class="text-center" th:text="${d.soLopCan}"></td>
+                    <td class="text-center" th:text="${d.soLopDaCo}"></td>
+                    <td class="text-center">
+                        <span th:if="${d.soLopThieu gt 0}" class="badge bg-primary"
+                              th:text="${d.soLopThieu}"></span>
+                        <span th:if="${d.soLopThieu == 0}" class="text-success">
+                            <i class="fas fa-check"></i>
+                        </span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card-footer" th:unless="${keHoach.empty}">
+            <!--
+                Nút này chỉ mở lớp trong đúng phạm vi đang xem. Đường dẫn gửi
+                đi mang sẵn khoa hoặc khối đại cương, nên không có cách nào
+                lỡ tay mở lớp của khoa khác.
+            -->
+            <form method="post" th:action="@{${duongDan}}"
+                  class="d-flex flex-wrap justify-content-between align-items-center gap-3"
+                  onsubmit="return confirm('Mở các lớp còn thiếu của phần đang xem?');">
+                <input type="hidden" name="hocKy" th:value="${hocKyChon}">
+
+                <span class="small text-muted">
+                    Chỉ mở lớp của <strong th:text="${tenPhamVi}"></strong>.
+                </span>
+
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                    <div class="form-check mb-0">
+                        <input class="form-check-input" type="checkbox" name="moDangKyNgay"
+                               id="moNgay" value="true" checked>
+                        <label class="form-check-label" for="moNgay">Mở đăng ký ngay</label>
+                    </div>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-layer-group"></i> Mở các lớp còn thiếu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

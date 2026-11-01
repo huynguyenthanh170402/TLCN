@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongkehoachtaichinh/layout}">
+<head>
+    <title>Tổng quan</title>
+
+    <style>
+        .the-chuc-nang {
+            display: block; text-decoration: none; border: none;
+            border-radius: 14px; background: #fff;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, .06);
+            transition: transform .2s ease, box-shadow .2s ease;
+            height: 100%;
+        }
+        .the-chuc-nang:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, .12);
+        }
+        @media (hover: none) { .the-chuc-nang:hover { transform: none; } }
+
+        .the-chuc-nang .o-icon {
+            width: 52px; height: 52px; flex: 0 0 52px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.25rem;
+        }
+        .the-chuc-nang.khoa { opacity: .55; pointer-events: none; }
+
+        .loi-chao {
+            background: linear-gradient(135deg, #14532d 0%, #166534 60%, #15803d 100%);
+            color: #fff; border-radius: 16px; padding: clamp(1.25rem, 4vw, 2rem);
+        }
+        .loi-chao h4 { font-weight: 700; margin-bottom: .35rem; }
+        .loi-chao p  { opacity: .85; margin-bottom: 0; }
+
+        .the-so { border-radius: 14px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+        .the-so .nhan { font-size: .78rem; text-transform: uppercase; letter-spacing: .4px; }
+        .the-so .so   { font-size: clamp(1.05rem, 2.4vw, 1.4rem); font-weight: 700; }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Tổng quan</h5>
+
+<div layout:fragment="content">
+
+    <!-- ============ Lời chào ============ -->
+    <div class="loi-chao mb-4">
+        <h4>Phòng Kế hoạch Tài chính</h4>
+        <p>
+            Xin chào <strong th:text="${#authentication.name}">tài khoản</strong>.
+            Hôm nay là <span th:text="${#temporals.format(homNay, 'EEEE, dd/MM/yyyy')}">ngày</span>.
+        </p>
+    </div>
+
+    <!-- ============ Số liệu học kỳ đang diễn ra ============ -->
+    <div th:if="${hocKy != null}">
+        <h6 class="text-uppercase text-muted fw-semibold mb-3" style="letter-spacing: .5px;">
+            <span th:text="${hocKy.tenHocKy}">Học kỳ</span>
+        </h6>
+
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-xl-3">
+                <div class="the-so p-3 h-100">
+                    <div class="nhan text-muted">Phải thu</div>
+                    <div class="so text-dark"
+                         th:text="${#numbers.formatDecimal(tk.phaiThu, 1, 'POINT', 0, 'COMMA')} + ' đ'">0</div>
+                </div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="the-so p-3 h-100">
+                    <div class="nhan text-muted">Đã thu</div>
+                    <div class="so" style="color:#15803d;"
+                         th:text="${#numbers.formatDecimal(tk.daThu, 1, 'POINT', 0, 'COMMA')} + ' đ'">0</div>
+                </div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="the-so p-3 h-100">
+                    <div class="nhan text-muted">Còn nợ</div>
+                    <div class="so text-danger"
+                         th:text="${#numbers.formatDecimal(tk.conNo, 1, 'POINT', 0, 'COMMA')} + ' đ'">0</div>
+                </div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="the-so p-3 h-100">
+                    <div class="nhan text-muted">Tỉ lệ thu</div>
+                    <div class="so text-dark" th:text="${tk.tyLeThu} + '%'">0%</div>
+                    <div class="progress mt-2" style="height: 6px;">
+                        <div class="progress-bar bg-success"
+                             th:style="'width:' + ${tk.tyLeThu} + '%'"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${hocKy == null}" class="alert alert-warning">
+        <i class="fas fa-triangle-exclamation me-1"></i>
+        Chưa có học kỳ nào ở trạng thái đang diễn ra, nên chưa hiện được số liệu thu.
+        Phòng Đào tạo cần mở học kỳ trước.
+    </div>
+
+    <!-- ============ Chức năng ============ -->
+    <h6 class="text-uppercase text-muted fw-semibold mb-3" style="letter-spacing: .5px;">
+        Nghiệp vụ
+    </h6>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-12 col-md-6 col-xl-4">
+            <a th:href="@{/taichinh/dongia}" class="the-chuc-nang">
+                <div class="p-3 d-flex align-items-start gap-3">
+                    <div class="o-icon" style="background:#dcfce7; color:#15803d;">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-semibold text-dark mb-1">Đơn giá tín chỉ</div>
+                        <div class="text-muted small">
+                            Khai báo giá mỗi tín chỉ theo học kỳ và theo khóa tuyển sinh.
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-muted mt-1"></i>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+            <a th:href="@{/taichinh/congno}" class="the-chuc-nang">
+                <div class="p-3 d-flex align-items-start gap-3">
+                    <div class="o-icon" style="background:#e0e7ff; color:#4338ca;">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-semibold text-dark mb-1">Công nợ sinh viên</div>
+                        <div class="text-muted small">
+                            Tra cứu ai còn nợ bao nhiêu, và tính lại công nợ cho cả học kỳ.
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-muted mt-1"></i>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+            <a th:href="@{/taichinh/phieuthu}" class="the-chuc-nang">
+                <div class="p-3 d-flex align-items-start gap-3">
+                    <div class="o-icon" style="background:#fef3c7; color:#b45309;">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-semibold text-dark mb-1">Sổ phiếu thu</div>
+                        <div class="text-muted small">
+                            Toàn bộ phiếu đã lập, tiền mặt và chuyển khoản.
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-muted mt-1"></i>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="the-chuc-nang khoa">
+                <div class="p-3 d-flex align-items-start gap-3">
+                    <div class="o-icon" style="background:#ffe4e6; color:#be123c;">
+                        <i class="fas fa-percent"></i>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-semibold text-dark mb-1">
+                            Miễn giảm học phí
+                            <span class="badge bg-secondary ms-1">sắp có</span>
+                        </div>
+                        <div class="text-muted small">
+                            Xét diện chính sách, ghi số tiền được miễn giảm vào công nợ.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="the-chuc-nang khoa">
+                <div class="p-3 d-flex align-items-start gap-3">
+                    <div class="o-icon" style="background:#cffafe; color:#0e7490;">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-semibold text-dark mb-1">
+                            Báo cáo thu
+                            <span class="badge bg-secondary ms-1">sắp có</span>
+                        </div>
+                        <div class="text-muted small">
+                            Tổng hợp số thu theo ngày, theo học kỳ và theo khoa.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ============ Ghi chú nghiệp vụ ============ -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h6 class="fw-semibold mb-3">
+                <i class="fas fa-circle-info me-2" style="color:#15803d;"></i>Quy trình thu học phí
+            </h6>
+            <ol class="mb-0 ps-3 text-muted" style="line-height: 1.9;">
+                <li>Phòng Đào tạo mở lớp học phần, sinh viên đăng ký.</li>
+                <li>Phòng Kế hoạch Tài chính khai báo <strong>đơn giá tín chỉ</strong> cho học kỳ.</li>
+                <li>Bấm <strong>tính lại công nợ</strong>: hệ thống nhân số tín chỉ đã đăng ký với đơn giá.</li>
+                <li>Sinh viên nộp tiền, cán bộ <strong>lập phiếu thu</strong>, số tiền cộng vào công nợ.</li>
+                <li>Sinh viên còn nợ quá hạn sẽ bị chặn đăng ký học phần ở học kỳ kế tiếp.</li>
+            </ol>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

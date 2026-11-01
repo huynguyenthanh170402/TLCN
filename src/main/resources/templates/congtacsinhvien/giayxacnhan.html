@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{congtacsinhvien/layout}">
+<head>
+    <title>Giấy xác nhận sinh viên</title>
+    <style>
+        .ma-so { font-family: ui-monospace, Consolas, monospace; font-size: .85rem; }
+        .bang-so td, .bang-so th { vertical-align: middle; }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Giấy xác nhận sinh viên</h5>
+
+<div layout:fragment="content">
+
+    <div th:if="${thongBao}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${thongBao}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${loi}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${loi}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- ===== Cấp giấy mới ===== -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header fw-bold">
+            <i class="fas fa-file-circle-plus me-1"></i> Cấp giấy mới
+        </div>
+        <div class="card-body">
+            <form th:action="@{/ctsv/giayxacnhan}" method="get" class="row g-2 align-items-end">
+                <div class="col-12 col-md-7">
+                    <label class="form-label small fw-semibold">Tìm sinh viên</label>
+                    <input type="text" name="timSv" class="form-control"
+                           th:value="${timSv}" placeholder="Nhập mã số sinh viên hoặc họ tên">
+                </div>
+                <div class="col-12 col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-magnifying-glass me-1"></i> Tìm
+                    </button>
+                </div>
+            </form>
+
+            <div th:if="${ketQuaSv != null}" class="mt-3">
+                <div th:if="${ketQuaSv.empty}" class="text-muted small">
+                    Không tìm thấy sinh viên nào khớp với từ khóa.
+                </div>
+
+                <div th:unless="${ketQuaSv.empty}" class="table-responsive">
+                    <table data-trang="0" class="table table-sm align-middle mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th>MSSV</th>
+                            <th>Họ và tên</th>
+                            <th class="d-none d-md-table-cell">Ngành</th>
+                            <th class="text-center">Khóa</th>
+                            <th class="text-center">Tình trạng</th>
+                            <th class="text-center">Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="s : ${ketQuaSv}">
+                            <td class="ma-so" th:text="${s.maSoSinhVien}"></td>
+                            <td th:text="${s.hoTen}"></td>
+                            <td class="d-none d-md-table-cell small"
+                                th:text="${s.nganh != null} ? ${s.nganh.tenNganh} : ''"></td>
+                            <td class="text-center" th:text="${s.khoaTuyenSinh}"></td>
+                            <td class="text-center">
+                                <span class="badge"
+                                      th:classappend="${s.trangThai == 1} ? 'bg-success' : 'bg-secondary'"
+                                      th:text="${s.tenTrangThai}"></span>
+                            </td>
+                            <td class="text-center">
+                                <a class="btn btn-sm btn-outline-primary"
+                                   th:href="@{/ctsv/giayxacnhan/cap(maSinhVien=${s.maSinhVien})}">
+                                    <i class="fas fa-file-signature"></i> Cấp giấy
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Sổ cấp giấy ===== -->
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span class="fw-bold"><i class="fas fa-book me-1"></i> Sổ cấp giấy</span>
+            <span class="small text-muted" th:text="${trang.totalElements} + ' giấy đã cấp'"></span>
+        </div>
+
+        <div class="card-body border-bottom">
+            <form th:action="@{/ctsv/giayxacnhan}" method="get" class="row g-2 align-items-end">
+                <div class="col-12 col-md-5">
+                    <label class="form-label small fw-semibold">Số giấy, MSSV hoặc họ tên</label>
+                    <input type="text" name="tuKhoa" class="form-control form-control-sm"
+                           th:value="${tuKhoa}" placeholder="GXN20261027-0001">
+                </div>
+                <div class="col-8 col-md-4">
+                    <label class="form-label small fw-semibold">Trạng thái</label>
+                    <select name="trangThai" class="form-select form-select-sm">
+                        <option value="" th:selected="${trangThaiChon == null}">Tất cả</option>
+                        <option value="1" th:selected="${trangThaiChon == 1}">Còn hiệu lực</option>
+                        <option value="0" th:selected="${trangThaiChon == 0}">Đã thu hồi</option>
+                    </select>
+                </div>
+                <div class="col-4 col-md-3">
+                    <button type="submit" class="btn btn-sm btn-outline-primary w-100">Lọc</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="table-responsive">
+            <table data-trang="0" class="table table-sm bang-so mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Số giấy</th>
+                    <th>Sinh viên</th>
+                    <th class="d-none d-lg-table-cell">Mục đích</th>
+                    <th class="text-center">Ngày cấp</th>
+                    <th class="text-center">Hạn dùng</th>
+                    <th class="text-center">Trạng thái</th>
+                    <th class="text-center">Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${trang.empty}">
+                    <td colspan="7" class="text-center text-muted py-4">
+                        Chưa cấp giấy xác nhận nào.
+                    </td>
+                </tr>
+
+                <tr th:each="g : ${trang}" th:classappend="${g.trangThai == 0} ? 'table-light'">
+                    <td class="ma-so" th:text="${g.soGiay}"></td>
+                    <td>
+                        <div th:text="${g.sinhVien.hoTen}"></div>
+                        <div class="ma-so text-muted" th:text="${g.sinhVien.maSoSinhVien}"></div>
+                    </td>
+                    <td class="d-none d-lg-table-cell small" th:text="${g.tenMucDich}"></td>
+                    <td class="text-center small"
+                        th:text="${#temporals.format(g.ngayCap, 'dd/MM/yyyy')}"></td>
+                    <td class="text-center small"
+                        th:text="${g.hanSuDung != null}
+                                 ? ${#temporals.format(g.hanSuDung, 'dd/MM/yyyy')} : '—'"></td>
+                    <td class="text-center">
+                        <span th:if="${g.trangThai == 0}" class="badge bg-danger">Đã thu hồi</span>
+                        <span th:if="${g.quaHan}" class="badge bg-secondary">Hết hạn</span>
+                        <span th:if="${g.conHieuLuc}" class="badge bg-success">Còn hiệu lực</span>
+                    </td>
+                    <td class="text-center text-nowrap">
+                        <a class="btn btn-sm btn-outline-secondary"
+                           th:href="@{/ctsv/giayxacnhan/{id}/in(id=${g.maGiay})}" target="_blank">
+                            <i class="fas fa-print"></i>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                th:if="${g.trangThai == 1}"
+                                data-bs-toggle="modal"
+                                th:attr="data-bs-target='#thuHoi' + ${g.maGiay}">
+                            <i class="fas fa-ban"></i>
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Phân trang -->
+        <div class="card-footer d-flex justify-content-between align-items-center"
+             th:if="${trang.totalPages gt 1}">
+            <span class="small text-muted"
+                  th:text="'Trang ' + (${trang.number} + 1) + ' / ' + ${trang.totalPages}"></span>
+            <div class="btn-group btn-group-sm">
+                <a class="btn btn-outline-secondary"
+                   th:classappend="${trang.first} ? 'disabled'"
+                   th:href="@{/ctsv/giayxacnhan(tuKhoa=${tuKhoa}, trangThai=${trangThaiChon},
+                                                page=${trang.number - 1})}">Trước</a>
+                <a class="btn btn-outline-secondary"
+                   th:classappend="${trang.last} ? 'disabled'"
+                   th:href="@{/ctsv/giayxacnhan(tuKhoa=${tuKhoa}, trangThai=${trangThaiChon},
+                                                page=${trang.number + 1})}">Sau</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hộp thoại thu hồi, mỗi giấy một hộp -->
+    <div th:each="g : ${trang}" th:if="${g.trangThai == 1}"
+         class="modal fade" th:id="'thuHoi' + ${g.maGiay}" tabindex="-1">
+        <div class="modal-dialog">
+            <form class="modal-content" method="post"
+                  th:action="@{/ctsv/giayxacnhan/{id}/thuhoi(id=${g.maGiay})}">
+                <div class="modal-header">
+                    <h6 class="modal-title">Thu hồi giấy <span th:text="${g.soGiay}"></span></h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted">
+                        Giấy đã cấp không xóa khỏi sổ, chỉ đánh dấu thu hồi. Bản in sau đó
+                        sẽ đóng dấu &quot;Đã thu hồi&quot; để nơi nhận biết giấy không còn giá trị.
+                    </p>
+                    <label class="form-label small fw-semibold">Lý do thu hồi</label>
+                    <textarea name="lyDo" class="form-control" rows="3" required
+                              placeholder="Ví dụ: cấp nhầm mục đích, sai thông tin sinh viên"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm"
+                            data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-danger btn-sm">Thu hồi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

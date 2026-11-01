@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{congtacsinhvien/layout}">
+<head>
+    <title>Cấp giấy xác nhận</title>
+    <style>
+        .bang-tt td { padding: .3rem .5rem .3rem 0; }
+        .bang-tt td.nhan { color: #6c757d; width: 42%; }
+        .ma-so { font-family: ui-monospace, Consolas, monospace; }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Cấp giấy xác nhận sinh viên</h5>
+
+<div layout:fragment="content">
+
+    <div th:if="${loi}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${loi}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <nav class="mb-3">
+        <a th:href="@{/ctsv/giayxacnhan}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Về sổ cấp giấy
+        </a>
+    </nav>
+
+    <div class="row g-3">
+
+        <!-- ===== Thông tin sẽ in lên giấy ===== -->
+        <div class="col-12 col-lg-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header fw-bold">Thông tin sẽ in lên giấy</div>
+                <div class="card-body">
+                    <table class="bang-tt w-100 small">
+                        <tr>
+                            <td class="nhan">Họ và tên</td>
+                            <td class="fw-semibold" th:text="${sv.hoTen}"></td>
+                        </tr>
+                        <tr>
+                            <td class="nhan">Mã số sinh viên</td>
+                            <td class="ma-so fw-semibold" th:text="${sv.maSoSinhVien}"></td>
+                        </tr>
+                        <tr>
+                            <td class="nhan">Ngày sinh</td>
+                            <td th:text="${sv.ngaySinh != null}
+                                         ? ${#temporals.format(sv.ngaySinh, 'dd/MM/yyyy')} : '—'"></td>
+                        </tr>
+                        <tr>
+                            <td class="nhan">Giới tính</td>
+                            <td th:text="${sv.tenGioiTinh}"></td>
+                        </tr>
+                        <tr>
+                            <td class="nhan">Lớp</td>
+                            <td class="fw-semibold" th:text="${tenLop}"></td>
+                        </tr>
+                        <tr>
+                            <td class="nhan">Ngành</td>
+                            <td th:text="${sv.nganh != null} ? ${sv.nganh.tenNganh} : '—'"></td>
+                        </tr>
+                        <tr th:if="${sv.nganh != null and sv.nganh.donVi != null}">
+                            <td class="nhan">Khoa</td>
+                            <td th:text="${sv.nganh.donVi.tenDonVi}"></td>
+                        </tr>
+                        <tr>
+                            <td class="nhan">Khóa tuyển sinh</td>
+                            <td th:text="${sv.khoaTuyenSinh}"></td>
+                        </tr>
+                        <tr>
+                            <td class="nhan">Số CCCD</td>
+                            <td th:text="${sv.soGiayTo != null} ? ${sv.soGiayTo} : '—'"></td>
+                        </tr>
+                        <tr>
+                            <td class="nhan">Hộ khẩu thường trú</td>
+                            <td th:text="${sv.diaChiThuongTru != null} ? ${sv.diaChiThuongTru} : '—'"></td>
+                        </tr>
+                        <tr>
+                            <td class="nhan">Tình trạng học tập</td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${sv.trangThai == 1} ? 'bg-success' : 'bg-warning text-dark'"
+                                      th:text="${sv.tenTrangThai}"></span>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div class="alert alert-light border small mt-3 mb-0">
+                        Thông tin lấy từ hồ sơ sinh viên. Sai chỗ nào thì sửa hồ sơ trước
+                        rồi cấp giấy, vì giấy đã cấp sẽ giữ nguyên thông tin tại thời điểm cấp.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== Nội dung cấp ===== -->
+        <div class="col-12 col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-header fw-bold">Nội dung giấy xác nhận</div>
+                <form th:action="@{/ctsv/giayxacnhan/cap}" method="post">
+                    <input type="hidden" name="maSinhVien" th:value="${sv.maSinhVien}">
+
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Mục đích sử dụng</label>
+                            <select name="mucDich" id="oMucDich" class="form-select" required>
+                                <option value="1">Vay vốn tín dụng dành cho học sinh, sinh viên</option>
+                                <option value="2">Tạm hoãn gọi nhập ngũ trong thời gian học tập</option>
+                                <option value="3">Làm vé xe buýt, vé tàu ưu đãi cho sinh viên</option>
+                                <option value="4">Xin việc làm thêm, thực tập tại doanh nghiệp</option>
+                                <option value="5">Hưởng chế độ bảo hiểm, trợ cấp theo quy định</option>
+                                <option value="6">Mục đích khác</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3 d-none" id="oKhac">
+                            <label class="form-label fw-semibold">Ghi rõ mục đích</label>
+                            <input type="text" name="mucDichKhac" class="form-control" maxlength="500"
+                                   placeholder="Nội dung sẽ in nguyên văn lên giấy">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nơi nhận</label>
+                            <input type="text" name="noiNhan" class="form-control" maxlength="300"
+                                   placeholder="Ví dụ: Ngân hàng Chính sách xã hội huyện Cần Giờ">
+                            <div class="form-text">
+                                Để trống thì giấy không có dòng &quot;Kính gửi&quot;, dùng chung được
+                                cho nhiều nơi.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Thời hạn sử dụng</label>
+                            <div class="input-group" style="max-width: 260px;">
+                                <input type="number" name="soThang" class="form-control"
+                                       min="1" max="12" th:value="${soThangMacDinh}" required>
+                                <span class="input-group-text">tháng</span>
+                            </div>
+                            <div class="form-text">
+                                Tính từ hôm nay, tối đa 12 tháng. Hết hạn thì giấy tự chuyển
+                                sang trạng thái hết hiệu lực trong sổ.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer d-flex justify-content-end gap-2">
+                        <a th:href="@{/ctsv/giayxacnhan}" class="btn btn-outline-secondary">Hủy</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-file-signature me-1"></i> Cấp giấy và xem bản in
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script>
+        // Ô "ghi rõ mục đích" chỉ hiện khi chọn Mục đích khác
+        (function () {
+            var chon = document.getElementById('oMucDich');
+            var oKhac = document.getElementById('oKhac');
+            if (!chon || !oKhac) return;
+
+            function capNhat() {
+                var la6 = chon.value === '6';
+                oKhac.classList.toggle('d-none', !la6);
+                var o = oKhac.querySelector('input');
+                if (o) o.required = la6;
+            }
+            chon.addEventListener('change', capNhat);
+            capNhat();
+        })();
+    </script>
+</th:block>
+
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title layout:title-pattern="$CONTENT_TITLE | Phòng Công tác Sinh viên">Phòng Công tác Sinh viên</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link th:href="@{/css/bang.css}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root { --sv-sidebar-width: 250px; }
+
+        body { background: #f4f6f9; overflow-x: hidden; }
+
+        img, svg, video, iframe { max-width: 100%; height: auto; }
+        td, th, p, li, h1, h2, h3, h4, h5, h6 {
+            overflow-wrap: break-word; word-break: break-word;
+        }
+        .table-responsive { -webkit-overflow-scrolling: touch; }
+
+        .sv-shell { display: flex; min-height: 100vh; }
+        @supports (height: 100dvh) { .sv-shell { min-height: 100dvh; } }
+
+        /* Màu tím đậm riêng cho khối Công tác Sinh viên. Năm khu năm màu:
+           sinh viên xanh dương, giảng viên xanh ngọc, tài chính xanh lá,
+           công tác sinh viên tím, ban giám hiệu đỏ sẫm. */
+        .sv-sidebar { background: #4c1d95; color: #fff; }
+
+        .sv-sidebar.offcanvas-lg {
+            --bs-offcanvas-width: 270px;
+            background-color: #4c1d95;
+            display: flex; flex-direction: column;
+        }
+        @media (min-width: 992px) {
+            .sv-sidebar.offcanvas-lg {
+                position: sticky; top: 0; height: 100vh;
+                width: var(--sv-sidebar-width);
+                flex: 0 0 var(--sv-sidebar-width);
+                overflow-y: auto;
+                background-color: #4c1d95 !important;
+            }
+        }
+
+        .sv-sidebar .brand {
+            padding: 16px 20px; font-weight: 700; line-height: 1.3;
+            border-bottom: 1px solid rgba(255,255,255,.15);
+        }
+        .sv-sidebar .brand small { opacity: .75; font-weight: 400; }
+
+        .sv-sidebar .nav-link {
+            color: rgba(255,255,255,.8); padding: 11px 20px;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .sv-sidebar .nav-link i { width: 22px; flex: 0 0 22px; }
+        .sv-sidebar .nav-link:hover { background: rgba(255,255,255,.08); color: #fff; }
+        .sv-sidebar .nav-link.active {
+            background: rgba(255,255,255,.18); color: #fff; font-weight: 600;
+        }
+        .sv-sidebar .nav-link.sap-co { opacity: .45; cursor: not-allowed; }
+
+        .sv-sidebar .nav-nhan {
+            padding: 14px 20px 6px; font-size: .72rem; text-transform: uppercase;
+            letter-spacing: .6px; opacity: .55;
+        }
+        .sv-sidebar .offcanvas-header { border-bottom: 1px solid rgba(255,255,255,.15); }
+
+        .sv-chan {
+            margin-top: auto;
+            border-top: 1px solid rgba(255,255,255,.15);
+            padding: 12px 20px 16px;
+        }
+        .sv-chan .ten {
+            font-size: .9rem; font-weight: 600; line-height: 1.2;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .sv-chan .vai-tro { font-size: .75rem; opacity: .6; }
+        .sv-chan .btn-dangxuat {
+            --bs-btn-hover-bg: #b91c1c;
+            --bs-btn-hover-border-color: #b91c1c;
+        }
+
+        .sv-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+
+        .sv-topbar {
+            background: #fff; padding: 10px clamp(12px, 3vw, 24px);
+            border-bottom: 1px solid #e3e6ea;
+            position: sticky; top: 0; z-index: 1020; gap: 10px;
+        }
+        .sv-topbar h5 {
+            font-size: clamp(1rem, 2.6vw, 1.25rem); margin: 0; min-width: 0;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+
+        .sv-noidung { padding: clamp(12px, 3vw, 24px); }
+
+        @media (max-width: 991.98px) {
+            .btn, .sv-sidebar .nav-link { min-height: 44px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sv-shell">
+
+    <!-- ===================== Menu trái ===================== -->
+    <aside class="sv-sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="svSidebar">
+
+        <div class="offcanvas-header d-lg-none">
+            <h5 class="offcanvas-title text-white mb-0">
+                <i class="fas fa-user-group me-2"></i>Công tác Sinh viên
+            </h5>
+            <button type="button" class="btn-close btn-close-white"
+                    data-bs-dismiss="offcanvas" data-bs-target="#svSidebar" aria-label="Đóng"></button>
+        </div>
+
+        <div class="brand d-none d-lg-block">
+            <i class="fas fa-user-group me-2"></i>Phòng Công tác<br>
+            <small>Sinh viên</small>
+        </div>
+
+        <nav class="nav flex-column mt-lg-2">
+            <a class="nav-link" th:href="@{/ctsv}"
+               th:classappend="${menu == 'tongquan'} ? 'active'">
+                <i class="fas fa-gauge-high"></i> Tổng quan
+            </a>
+
+            <div class="nav-nhan">Chế độ chính sách</div>
+
+            <a class="nav-link" th:href="@{/ctsv/miengiam}"
+               th:classappend="${menu == 'miengiam'} ? 'active'">
+                <i class="fas fa-percent"></i> Miễn giảm &amp; học bổng
+                <span class="badge bg-warning text-dark ms-auto"
+                      th:if="${soChoDuyet != null and soChoDuyet > 0}"
+                      th:text="${soChoDuyet}">0</span>
+            </a>
+
+            <div class="nav-nhan">Hồ sơ &amp; rèn luyện</div>
+
+            <!-- Chưa xây dựng. Hiện mờ và không bấm được để người dùng biết
+                 hệ thống sẽ có, thay vì bấm vào rồi gặp trang lỗi. -->
+            <a class="nav-link sap-co" href="#" onclick="return false;">
+                <i class="fas fa-address-card"></i> Hồ sơ sinh viên
+                <span class="badge bg-light text-dark ms-auto">sắp có</span>
+            </a>
+            <a class="nav-link" th:href="@{/ctsv/hoatdong}"
+               th:classappend="${menu == 'hoatdong'} ? 'active'">
+                <i class="fas fa-hands-holding-circle"></i> Công tác xã hội
+            </a>
+            <a class="nav-link sap-co" href="#" onclick="return false;">
+                <i class="fas fa-scale-balanced"></i> Khen thưởng – Kỷ luật
+                <span class="badge bg-light text-dark ms-auto">sắp có</span>
+            </a>
+            <a class="nav-link" th:href="@{/ctsv/giayxacnhan}"
+               th:classappend="${menu == 'giayxacnhan'} ? 'active'">
+                <i class="fas fa-file-signature"></i> Giấy xác nhận
+            </a>
+        </nav>
+
+        <!-- ============ Khối tài khoản, luôn ở đáy ============ -->
+        <div class="sv-chan">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="fas fa-user-circle fa-lg"></i>
+                <div class="min-w-0">
+                    <div class="ten" th:text="${#authentication.name}">tài khoản</div>
+                    <div class="vai-tro">Phòng Công tác Sinh viên</div>
+                </div>
+            </div>
+
+            <form th:action="@{/logout}" method="post" class="m-0">
+                <button type="submit" class="btn btn-sm btn-outline-light btn-dangxuat w-100">
+                    <i class="fas fa-right-from-bracket me-1"></i> Đăng xuất
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- ===================== Nội dung ===================== -->
+    <div class="sv-main">
+
+        <header class="sv-topbar d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <button class="btn btn-outline-secondary btn-sm d-lg-none" type="button"
+                        data-bs-toggle="offcanvas" data-bs-target="#svSidebar" aria-label="Mở menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h5 layout:fragment="page-title">Tổng quan</h5>
+            </div>
+        </header>
+
+        <main class="sv-noidung">
+
+            <div th:if="${thongBao}" class="alert alert-success alert-dismissible fade show">
+                <span th:text="${thongBao}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${loi}" class="alert alert-danger alert-dismissible fade show">
+                <span th:text="${loi}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div layout:fragment="content"></div>
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/bang.js}"></script>
+
+<script>
+    // Bảng nhiều cột sẽ tràn trên điện thoại, bọc lại cho cuộn ngang riêng
+    document.querySelectorAll('table').forEach(function (bang) {
+        if (!bang.closest('.table-responsive')) {
+            var khung = document.createElement('div');
+            khung.className = 'table-responsive';
+            bang.parentNode.insertBefore(khung, bang);
+            khung.appendChild(bang);
+        }
+    });
+</script>
+
+<th:block layout:fragment="scripts"></th:block>
+
+</body>
+</html>

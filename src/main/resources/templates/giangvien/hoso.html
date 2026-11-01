@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{giangvien/layout}">
+<head>
+    <title>Hồ sơ cá nhân</title>
+    <style>
+        .bang-tt td { padding: .5rem 0; border-bottom: 1px solid #f1f5f9; }
+        .bang-tt td:first-child { color: #6c757d; width: 40%; }
+        .anh-dai-dien {
+            width: 96px; height: 96px; border-radius: 50%;
+            background: #ccfbf1; color: #0f766e;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Hồ sơ cá nhân</h5>
+
+<div layout:fragment="content" th:if="${giangVien != null}">
+
+    <div class="row g-3">
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+
+                    <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+                        <div class="anh-dai-dien">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <h5 class="mb-1" th:text="${giangVien.tenHienThi}">Tên</h5>
+                            <div class="text-muted small" th:text="${giangVien.maSoGiangVien}">Mã</div>
+                            <span class="badge mt-2" style="background:#0f766e;"
+                                  th:text="${giangVien.donVi != null} ? ${giangVien.donVi.tenDonVi} : ''">Khoa</span>
+                        </div>
+                    </div>
+
+                    <table class="table table-sm bang-tt mb-0">
+                        <tr>
+                            <td>Họ và tên</td>
+                            <td class="fw-semibold" th:text="${giangVien.hoTen}"></td>
+                        </tr>
+                        <tr>
+                            <td>Học hàm</td>
+                            <td th:text="${giangVien.hocHam != null and !giangVien.hocHam.isBlank()}
+                                         ? ${giangVien.hocHam} : '—'"></td>
+                        </tr>
+                        <tr>
+                            <td>Học vị</td>
+                            <td th:text="${giangVien.hocVi != null and !giangVien.hocVi.isBlank()}
+                                         ? ${giangVien.hocVi} : '—'"></td>
+                        </tr>
+                        <tr>
+                            <td>Chuyên môn</td>
+                            <td th:text="${giangVien.chuyenMon != null} ? ${giangVien.chuyenMon} : '—'"></td>
+                        </tr>
+                        <tr>
+                            <td>Ngày sinh</td>
+                            <td th:text="${giangVien.ngaySinh != null}
+                                         ? ${#temporals.format(giangVien.ngaySinh, 'dd/MM/yyyy')} : '—'"></td>
+                        </tr>
+                        <tr>
+                            <td>Giới tính</td>
+                            <td th:switch="${giangVien.gioiTinh}">
+                                <span th:case="1">Nam</span>
+                                <span th:case="2">Nữ</span>
+                                <span th:case="*">—</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Email trường</td>
+                            <td th:text="${giangVien.emailTruong != null} ? ${giangVien.emailTruong} : '—'"></td>
+                        </tr>
+                        <tr>
+                            <td>Số điện thoại</td>
+                            <td th:text="${giangVien.soDienThoai != null} ? ${giangVien.soDienThoai} : '—'"></td>
+                        </tr>
+                        <tr>
+                            <td>Loại giảng viên</td>
+                            <td th:switch="${giangVien.loaiGiangVien}">
+                                <span th:case="1">Cơ hữu</span>
+                                <span th:case="2">Thỉnh giảng</span>
+                                <span th:case="3">Kiêm nhiệm</span>
+                                <span th:case="*">—</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Ngày bắt đầu công tác</td>
+                            <td th:text="${giangVien.ngayBatDauCongTac != null}
+                                         ? ${#temporals.format(giangVien.ngayBatDauCongTac, 'dd/MM/yyyy')} : '—'"></td>
+                        </tr>
+                        <tr>
+                            <td>Trạng thái</td>
+                            <td th:switch="${giangVien.trangThai}">
+                                <span th:case="1" class="badge bg-success">Đang công tác</span>
+                                <span th:case="2" class="badge bg-warning text-dark">Nghỉ phép</span>
+                                <span th:case="3" class="badge bg-secondary">Tạm nghỉ</span>
+                                <span th:case="0" class="badge bg-dark">Ngừng công tác</span>
+                                <span th:case="*">—</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Tài khoản đăng nhập</td>
+                            <td th:text="${#authentication.name}"></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="alert alert-light border">
+                <i class="fas fa-circle-info me-1" style="color:#0f766e;"></i>
+                Hồ sơ giảng viên do Phòng Đào tạo quản lý nên trang này chỉ để xem.
+                Thông tin sai thì báo Phòng Đào tạo sửa, đừng để hai nơi cùng sửa
+                một hồ sơ.
+            </div>
+
+            <a th:href="@{/giangvien/matkhau}" class="btn btn-outline-secondary w-100">
+                <i class="fas fa-key me-1"></i> Đổi mật khẩu
+            </a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

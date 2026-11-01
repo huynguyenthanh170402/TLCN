@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title th:text="${khoa.tenDonVi}">Khoa</title>
+    <style>
+        /* Danh sách ngành để cùng kiểu dòng với trang /faculty, đừng chỗ thì ô
+           vuông chỗ thì dòng ngang — cùng một dữ liệu mà hai mặt khác nhau thì
+           người xem phải đọc lại từ đầu. */
+        .nganh-muc {
+            border: 0 !important;
+            border-bottom: 1px solid #f0f2f5 !important;
+            padding: .7rem .5rem;
+            color: inherit;
+        }
+        .nganh-muc:last-child { border-bottom: 0 !important; }
+        .nganh-muc:hover { background: #f6f9fe; color: #0b3d91; }
+        .nganh-muc .ten { font-weight: 500; }
+        .bang-lh td { padding: .3rem .6rem .3rem 0; vertical-align: top; }
+        .bang-lh td.nhan { color: #6c757d; white-space: nowrap; width: 1%; }
+    </style>
+</head>
+<body>
+<main layout:fragment="content">
+
+    <section class="hero">
+        <div class="container">
+            <h1 th:text="${khoa.tenDonVi}">Khoa</h1>
+            <p th:if="${khoa.moTa != null}" th:text="${khoa.moTa}"></p>
+        </div>
+    </section>
+
+    <section class="py-5">
+        <div class="container">
+
+            <nav class="mb-4">
+                <a th:href="@{/faculty}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    <span th:text="#{faculty.list.heading}">Các khoa đào tạo</span>
+                </a>
+            </nav>
+
+            <!-- Liên hệ, chỉ hiện khi có dữ liệu -->
+            <div class="card mb-4"
+                 th:if="${khoa.email != null or khoa.soDienThoai != null or khoa.diaChiVanPhong != null}">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3" th:text="#{faculty.detail.contact}">Thông tin liên hệ</h6>
+                    <table class="bang-lh small mb-0">
+                        <tr th:if="${khoa.diaChiVanPhong != null}">
+                            <td class="nhan"><i class="fas fa-location-dot me-1"></i></td>
+                            <td th:text="${khoa.diaChiVanPhong}"></td>
+                        </tr>
+                        <tr th:if="${khoa.email != null}">
+                            <td class="nhan"><i class="fas fa-envelope me-1"></i></td>
+                            <td th:text="${khoa.email}"></td>
+                        </tr>
+                        <tr th:if="${khoa.soDienThoai != null}">
+                            <td class="nhan"><i class="fas fa-phone me-1"></i></td>
+                            <td th:text="${khoa.soDienThoai}"></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <h5 class="fw-bold mb-3" th:text="#{faculty.detail.majors}">Các ngành thuộc khoa</h5>
+
+            <div th:if="${dsNganh.empty}" class="alert alert-secondary"
+                 th:text="#{major.empty}">Chưa có ngành nào được khai báo.</div>
+
+            <div class="card" th:unless="${dsNganh.empty}">
+                <div class="card-body py-2">
+                    <div class="list-group list-group-flush">
+                        <a th:each="n : ${dsNganh}"
+                           class="list-group-item list-group-item-action nganh-muc
+                                  d-flex justify-content-between align-items-center gap-3"
+                           th:href="@{/major/{id}(id=${n.maNganh})}">
+
+                            <span>
+                                <span class="ten" th:text="${n.tenNganh}">Ngành</span>
+                                <span th:if="${tuyenSinh[n.maNganh] == false}"
+                                      class="badge bg-secondary ms-2"
+                                      th:text="#{major.badge.closed}">Ngừng tuyển sinh</span>
+                            </span>
+
+                            <span class="small text-muted text-end">
+                                <span th:if="${n.coChuongTrinh}"
+                                      th:text="${n.soHocPhan} + ' học phần · ' + ${n.tongTinChi} + ' tín chỉ'"></span>
+                                <span th:unless="${n.coChuongTrinh}"
+                                      th:text="#{major.detail.noprogram}">Chưa có chương trình</span>
+                            </span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+</body>
+</html>

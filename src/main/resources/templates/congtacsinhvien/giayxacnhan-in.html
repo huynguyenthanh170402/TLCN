@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="'Giấy xác nhận ' + ${g.soGiay}">Giấy xác nhận sinh viên</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
+    <style>
+        body { background: #e9ecef; margin: 0; padding: 1.5rem 1rem 3rem;
+               font-family: "Times New Roman", Times, serif; }
+
+        /* ===== Khổ giấy A4 ===== */
+        .to-giay {
+            position: relative;
+            width: 210mm; min-height: 297mm;
+            margin: 0 auto;
+            padding: 16mm 20mm 18mm;
+            background: #fff;
+            box-shadow: 0 .5rem 2rem rgba(0, 0, 0, .18);
+            font-size: 13.5pt; line-height: 1.6; color: #000;
+        }
+
+        /*
+            Logo chìm. Để ở lớp dưới cùng bằng z-index âm thay vì đặt
+            opacity lên cả tờ giấy, nếu không thì chữ cũng mờ theo.
+        */
+        .to-giay::before {
+            content: "";
+            position: absolute; inset: 0;
+            background: url('/images/logo-hcmute.png') no-repeat center 42%;
+            background-size: 62%;
+            opacity: .075;
+            z-index: 0;
+        }
+        .to-giay > * { position: relative; z-index: 1; }
+
+        /* ===== Quốc hiệu ===== */
+        .dau-trang { display: flex; gap: 1rem; }
+        .dau-trang > div { flex: 1; text-align: center; }
+        .co-quan { font-size: 12pt; text-transform: uppercase; }
+        .co-quan .don-vi { font-weight: bold; }
+        .quoc-hieu { font-size: 12pt; text-transform: uppercase; }
+        .quoc-hieu .tieu-ngu {
+            font-weight: bold; font-size: 13pt; text-transform: none;
+        }
+        .gach-ngang {
+            width: 45%; margin: .15rem auto 0; border-bottom: 1px solid #000;
+        }
+        .so-giay { font-size: 12pt; margin-top: .35rem; }
+
+        /* ===== Tiêu đề ===== */
+        .tieu-de {
+            text-align: center; margin: 2.2rem 0 .3rem;
+            font-size: 19pt; font-weight: bold; letter-spacing: .5px;
+        }
+        .tieu-de-phu { text-align: center; font-size: 12.5pt; font-style: italic; }
+
+        /* ===== Bảng thông tin ===== */
+        .bang-tt { width: 100%; border-collapse: collapse; margin-top: 1.1rem; }
+        .bang-tt td { padding: .22rem 0; vertical-align: top; }
+        .bang-tt td.nhan { width: 42%; white-space: nowrap; }
+        .bang-tt td.cham { width: 1%; padding-right: .5rem; }
+        .bang-tt td.gia-tri { font-weight: bold; }
+
+        .doan { margin-top: 1rem; text-align: justify; }
+
+        /* ===== Chữ ký ===== */
+        .khoi-ky { margin-top: 2rem; display: flex; }
+        .khoi-ky .ben-phai { margin-left: auto; width: 58%; text-align: center; }
+        .ngay-thang { font-style: italic; font-size: 12.5pt; }
+        .chuc-danh { font-weight: bold; text-transform: uppercase; margin-top: .2rem; }
+        .cho-ky { height: 26mm; }
+        .ten-nguoi-ky { font-weight: bold; }
+
+        .chan-trang {
+            margin-top: 1.4rem; padding-top: .5rem; border-top: 1px dashed #adb5bd;
+            font-size: 10pt; color: #495057; font-family: system-ui, sans-serif;
+        }
+
+        /* Dấu đã thu hồi, in đè lên tờ giấy */
+        .dau-thu-hoi {
+            position: absolute; top: 44%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-18deg);
+            border: 6px solid #c1121f; color: #c1121f;
+            padding: .4rem 2rem; border-radius: .5rem;
+            font-size: 34pt; font-weight: bold; letter-spacing: 3px;
+            opacity: .72; z-index: 2; pointer-events: none;
+        }
+
+        /* ===== Thanh công cụ, không in ===== */
+        .thanh-cong-cu {
+            width: 210mm; margin: 0 auto 1rem;
+            display: flex; gap: .5rem; flex-wrap: wrap;
+            font-family: system-ui, sans-serif;
+        }
+
+        @media print {
+            @page { size: A4; margin: 0; }
+            body { background: #fff; padding: 0; }
+            .thanh-cong-cu { display: none !important; }
+            .to-giay { box-shadow: none; margin: 0; width: auto; min-height: auto; }
+            /* Không có dòng này thì trình duyệt bỏ nền khi in, logo chìm biến mất */
+            .to-giay::before, .dau-thu-hoi {
+                -webkit-print-color-adjust: exact; print-color-adjust: exact;
+            }
+        }
+
+        /* Màn hình hẹp: thu nhỏ cho vừa, bản in vẫn đúng A4 */
+        @media (max-width: 230mm) {
+            .to-giay, .thanh-cong-cu { width: 100%; }
+            .to-giay { padding: 10mm 8mm; min-height: auto; font-size: 12pt; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="thanh-cong-cu">
+    <a th:href="@{/ctsv/giayxacnhan}" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-arrow-left me-1"></i> Về sổ cấp giấy
+    </a>
+    <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
+        <i class="fas fa-print me-1"></i> In giấy
+    </button>
+    <span class="ms-auto align-self-center small text-muted">
+        Khổ A4. Chọn &quot;In nền&quot; trong hộp thoại in để giữ logo chìm.
+    </span>
+</div>
+
+<div class="to-giay">
+
+    <div class="dau-thu-hoi" th:if="${g.trangThai == 0}">ĐÃ THU HỒI</div>
+
+    <!-- ===== Quốc hiệu, tiêu ngữ ===== -->
+    <div class="dau-trang">
+        <div class="co-quan">
+            <div>Bộ Giáo dục và Đào tạo</div>
+            <div class="don-vi">Trường Đại học Sư phạm Kỹ thuật</div>
+            <div class="don-vi">Thành phố Hồ Chí Minh</div>
+            <div class="gach-ngang"></div>
+            <div class="so-giay">Số: <span th:text="${g.soGiay}"></span></div>
+        </div>
+        <div class="quoc-hieu">
+            <div>Cộng hòa xã hội chủ nghĩa Việt Nam</div>
+            <div class="tieu-ngu">Độc lập &ndash; Tự do &ndash; Hạnh phúc</div>
+            <div class="gach-ngang"></div>
+        </div>
+    </div>
+
+    <!-- ===== Tiêu đề ===== -->
+    <div class="tieu-de">GIẤY XÁC NHẬN SINH VIÊN</div>
+    <div class="tieu-de-phu" th:if="${g.noiNhan != null}"
+         th:text="'Kính gửi: ' + ${g.noiNhan}"></div>
+
+    <div class="doan">
+        Trường Đại học Sư phạm Kỹ thuật Thành phố Hồ Chí Minh xác nhận:
+    </div>
+
+    <!-- ===== Thông tin sinh viên ===== -->
+    <table class="bang-tt">
+        <tr>
+            <td class="nhan">Họ và tên sinh viên</td><td class="cham">:</td>
+            <td class="gia-tri" th:text="${sv.hoTen}"></td>
+        </tr>
+        <tr>
+            <td class="nhan">Mã số sinh viên</td><td class="cham">:</td>
+            <td class="gia-tri" th:text="${sv.maSoSinhVien}"></td>
+        </tr>
+        <tr>
+            <td class="nhan">Ngày sinh</td><td class="cham">:</td>
+            <td th:text="${sv.ngaySinh != null}
+                         ? ${#temporals.format(sv.ngaySinh, 'dd/MM/yyyy')} : '…'"></td>
+        </tr>
+        <tr>
+            <td class="nhan">Giới tính</td><td class="cham">:</td>
+            <td th:text="${sv.tenGioiTinh}"></td>
+        </tr>
+        <tr th:if="${sv.noiSinh != null}">
+            <td class="nhan">Nơi sinh</td><td class="cham">:</td>
+            <td th:text="${sv.noiSinh}"></td>
+        </tr>
+        <tr th:if="${sv.soGiayTo != null}">
+            <td class="nhan">
+                <span th:switch="${sv.loaiGiayTo}">
+                    <span th:case="2">Số CMND</span>
+                    <span th:case="3">Số hộ chiếu</span>
+                    <span th:case="*">Số CCCD</span>
+                </span>
+            </td>
+            <td class="cham">:</td>
+            <td th:text="${sv.soGiayTo}
+                         + (${sv.ngayCapGiayTo != null}
+                            ? ', cấp ngày ' + ${#temporals.format(sv.ngayCapGiayTo, 'dd/MM/yyyy')} : '')
+                         + (${sv.noiCapGiayTo != null} ? ' tại ' + ${sv.noiCapGiayTo} : '')"></td>
+        </tr>
+        <tr th:if="${sv.diaChiThuongTru != null}">
+            <td class="nhan">Hộ khẩu thường trú</td><td class="cham">:</td>
+            <td th:text="${sv.diaChiThuongTru}"></td>
+        </tr>
+
+        <tr>
+            <td class="nhan">Lớp</td><td class="cham">:</td>
+            <td class="gia-tri" th:text="${g.lopLucCap}"></td>
+        </tr>
+        <tr>
+            <td class="nhan">Ngành đào tạo</td><td class="cham">:</td>
+            <td th:text="${sv.nganh != null} ? ${sv.nganh.tenNganh} : '…'"></td>
+        </tr>
+        <tr th:if="${sv.nganh != null and sv.nganh.donVi != null}">
+            <td class="nhan">Khoa quản lý</td><td class="cham">:</td>
+            <td th:text="${sv.nganh.donVi.tenDonVi}"></td>
+        </tr>
+        <tr>
+            <td class="nhan">Khóa tuyển sinh</td><td class="cham">:</td>
+            <td th:text="${sv.khoaTuyenSinh}"></td>
+        </tr>
+        <tr>
+            <td class="nhan">Hệ đào tạo</td><td class="cham">:</td>
+            <td>Đại học chính quy</td>
+        </tr>
+        <tr th:if="${sv.ngayNhapHoc != null}">
+            <td class="nhan">Ngày nhập học</td><td class="cham">:</td>
+            <td th:text="${#temporals.format(sv.ngayNhapHoc, 'dd/MM/yyyy')}"></td>
+        </tr>
+        <tr th:if="${sv.ngayTotNghiepDuKien != null}">
+            <td class="nhan">Thời gian tốt nghiệp dự kiến</td><td class="cham">:</td>
+            <td th:text="${#temporals.format(sv.ngayTotNghiepDuKien, 'MM/yyyy')}"></td>
+        </tr>
+        <tr>
+            <td class="nhan">Tình trạng học tập</td><td class="cham">:</td>
+            <td class="gia-tri" th:text="${g.tenTrangThaiLucCap}"></td>
+        </tr>
+    </table>
+
+    <div class="doan">
+        Hiện sinh viên có tên trên đang theo học tại Trường Đại học Sư phạm Kỹ thuật
+        Thành phố Hồ Chí Minh.
+    </div>
+
+    <div class="doan">
+        Giấy xác nhận này được cấp để sinh viên sử dụng vào mục đích:
+        <strong th:text="${g.tenMucDich}"></strong>.
+    </div>
+
+    <div class="doan" th:if="${g.hanSuDung != null}">
+        Giấy có giá trị đến hết ngày
+        <strong th:text="${#temporals.format(g.hanSuDung, 'dd/MM/yyyy')}"></strong>
+        và không có giá trị thay thế các loại văn bằng, chứng chỉ khác.
+    </div>
+
+    <!-- ===== Chữ ký ===== -->
+    <div class="khoi-ky">
+        <div class="ben-phai">
+            <div class="ngay-thang"
+                 th:text="'Thành phố Hồ Chí Minh, ngày '
+                          + ${#temporals.format(g.ngayCap, 'dd')} + ' tháng '
+                          + ${#temporals.format(g.ngayCap, 'MM')} + ' năm '
+                          + ${#temporals.format(g.ngayCap, 'yyyy')}"></div>
+            <div class="chuc-danh">Trưởng phòng Công tác Sinh viên</div>
+            <div class="cho-ky"></div>
+            <div class="ten-nguoi-ky">&nbsp;</div>
+        </div>
+    </div>
+
+    <div class="chan-trang">
+        Giấy do hệ thống cấp, số <strong th:text="${g.soGiay}"></strong>,
+        cán bộ cấp <span th:text="${g.nguoiCap}"></span>.
+        Mọi thắc mắc về tính xác thực xin liên hệ Phòng Công tác Sinh viên để tra sổ cấp giấy.
+    </div>
+
+</div>
+
+</body>
+</html>

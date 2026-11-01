@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title th:text="#{doimktam.title}">Đổi mật khẩu tạm</title>
+
+    <style>
+        .auth-wrap {
+            min-height: calc(100vh - 70px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 3rem 1rem;
+            background:
+                linear-gradient(rgba(12, 22, 42, 0.72), rgba(12, 22, 42, 0.82)),
+                url('/images/campus.jpg') center/cover no-repeat;
+        }
+        .auth-card {
+            width: 100%; max-width: 460px;
+            border: none; border-radius: 18px; overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+        }
+        .auth-head {
+            background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+            color: #fff; padding: 2rem 2rem 1.5rem; text-align: center;
+        }
+        .auth-head .auth-logo {
+            width: 62px; height: 62px; margin: 0 auto 0.9rem; border-radius: 50%;
+            background: rgba(255,255,255,.16);
+            display: flex; align-items: center; justify-content: center; font-size: 1.7rem;
+        }
+        .auth-head h4 { margin: 0; font-weight: 700; }
+        .auth-body { padding: 1.75rem 2rem 2rem; background: #fff; }
+        .auth-body .input-group-text {
+            background: #f1f3f7; border-right: 0; color: #5a6b85;
+            width: 44px; justify-content: center;
+        }
+        .auth-body .form-control { border-left: 0; padding-top: .65rem; padding-bottom: .65rem; }
+        .auth-body .form-control:focus { box-shadow: none; border-color: #d97706; }
+        .auth-body .input-group:focus-within .input-group-text { border-color: #d97706; color: #b45309; }
+        .btn-auth {
+            padding: .7rem; font-weight: 600; border-radius: 10px;
+            background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+            border: none; color: #fff;
+        }
+        .btn-auth:hover { filter: brightness(1.08); color: #fff; }
+        .auth-foot {
+            background: #f8f9fb; padding: .9rem 2rem; text-align: center;
+            font-size: .875rem; border-top: 1px solid #e9ecef;
+        }
+        @media (max-width: 576px) {
+            .auth-head, .auth-body { padding-left: 1.25rem; padding-right: 1.25rem; }
+        }
+    </style>
+</head>
+<body>
+<main layout:fragment="content">
+
+    <div class="auth-wrap">
+        <div class="card auth-card">
+
+            <div class="auth-head">
+                <div class="auth-logo"><i class="fas fa-triangle-exclamation"></i></div>
+                <h4 th:text="#{doimktam.heading}">Bắt buộc đổi mật khẩu</h4>
+            </div>
+
+            <div class="auth-body">
+
+                <div th:if="${loi}" class="alert alert-danger py-2 small">
+                    <i class="fas fa-circle-exclamation me-1"></i>
+                    <span th:text="${loi}"></span>
+                </div>
+
+                <p class="text-muted small mb-4" th:text="#{doimktam.desc}">
+                    Bạn đang dùng mật khẩu tạm do hệ thống cấp. Hãy đặt mật khẩu
+                    riêng trước khi vào các chức năng khác.
+                </p>
+
+                <form th:action="@{/doimatkhautam}" method="post">
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold" th:text="#{doimktam.new}">Mật khẩu mới</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input type="password" name="matKhauMoi" class="form-control"
+                                   minlength="6" autocomplete="new-password" autofocus required>
+                        </div>
+                        <div class="form-text" th:text="#{doimktam.hint}">Ít nhất 6 ký tự.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-semibold" th:text="#{doimktam.confirm}">Nhập lại mật khẩu mới</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input type="password" name="xacNhan" class="form-control"
+                                   minlength="6" autocomplete="new-password" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-auth w-100">
+                        <i class="fas fa-key me-2"></i>
+                        <span th:text="#{doimktam.button}">Đặt mật khẩu mới</span>
+                    </button>
+                </form>
+            </div>
+
+            <div class="auth-foot">
+                <form th:action="@{/logout}" method="post" class="m-0">
+                    <button type="submit" class="btn btn-link text-decoration-none p-0">
+                        <i class="fas fa-right-from-bracket me-1"></i>
+                        <span th:text="#{doimktam.logout}">Đăng xuất và làm lại sau</span>
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</main>
+</body>
+</html>

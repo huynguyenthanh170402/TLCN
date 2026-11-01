@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{congtacsinhvien/layout}">
+<head>
+    <title>Công tác xã hội</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Công tác xã hội</h5>
+
+<div layout:fragment="content">
+
+    <div th:if="${thongBao}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${thongBao}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${loi}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${loi}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="alert alert-light border small mb-3">
+        Sinh viên tham gia hoạt động thì được cộng điểm rèn luyện của học kỳ đó.
+        Điểm chỉ cộng cho người được <strong>điểm danh có mặt</strong> sau khi hoạt động
+        kết thúc, không cộng cho người mới chỉ đăng ký.
+    </div>
+
+    <form th:action="@{/ctsv/hoatdong}" method="get" class="card card-body shadow-sm mb-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-5">
+                <label class="form-label fw-semibold">Học kỳ</label>
+                <select name="hocKy" class="form-select" required>
+                    <option th:each="hk : ${dsHocKy}" th:value="${hk.maHocKy}"
+                            th:text="${hk.tenHocKy}" th:selected="${hk.maHocKy == hocKyChon}"></option>
+                </select>
+            </div>
+            <div class="col-12 col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Xem danh sách</button>
+            </div>
+            <div class="col-12 col-md-4 text-md-end">
+                <a th:href="@{/ctsv/hoatdong/them(hocKy=${hocKyChon})}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Tạo hoạt động
+                </a>
+            </div>
+        </div>
+    </form>
+
+    <th:block th:if="${ds != null}">
+
+        <form class="o-tim mb-3" role="search">
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-magnifying-glass"></i></span>
+                <input type="search" class="form-control"
+                       placeholder="Tìm theo tên hoạt động, đơn vị tổ chức, địa điểm…"
+                       data-loc="#bangHd" data-trong="#khongThayHd">
+                <button class="btn btn-outline-secondary" type="submit">Tìm</button>
+            </div>
+        </form>
+
+        <div class="alert alert-secondary" id="khongThayHd" hidden>
+            Không có hoạt động nào khớp với từ khóa.
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header small text-muted" th:text="${ds.size()} + ' hoạt động'"></div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="bangHd">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Hoạt động</th>
+                        <th class="text-center">Loại</th>
+                        <th class="text-center">Điểm</th>
+                        <th>Thời gian</th>
+                        <th class="text-center">Đăng ký</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${ds.empty}" data-bo-qua>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            Học kỳ này chưa có hoạt động nào.
+                        </td>
+                    </tr>
+                    <tr th:each="hd : ${ds}">
+                        <td>
+                            <div class="fw-semibold" th:text="${hd.tenHoatDong}"></div>
+                            <div class="small text-muted">
+                                <span th:if="${hd.donViToChuc != null}" th:text="${hd.donViToChuc}"></span>
+                                <span th:if="${hd.diaDiem != null}" th:text="' · ' + ${hd.diaDiem}"></span>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge" th:classappend="${hd.mauLoai}" th:text="${hd.tenLoai}"></span>
+                        </td>
+                        <td class="text-center fw-semibold" th:text="'+' + ${hd.diemCong}"></td>
+                        <td class="small">
+                            <div th:if="${hd.thoiGianBatDau != null}"
+                                 th:text="${#temporals.format(hd.thoiGianBatDau, 'HH:mm dd/MM/yyyy')}"></div>
+                            <div class="text-muted" th:if="${hd.hanDangKy != null}"
+                                 th:text="'Hạn ĐK: ' + ${#temporals.format(hd.hanDangKy, 'HH:mm dd/MM')}"></div>
+                        </td>
+                        <td class="text-center">
+                            <span th:text="${soDaDangKy[hd.maHoatDong]}"></span>
+                            <span th:if="${hd.soLuongToiDa != null}"
+                                  th:text="' / ' + ${hd.soLuongToiDa}"></span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge" th:classappend="${hd.mauTrangThai}"
+                                  th:text="${hd.tenTrangThai}"></span>
+                            <div th:if="${hd.hetHanDangKy}" class="small text-muted">hết hạn ĐK</div>
+                        </td>
+                        <td class="text-end">
+                            <a th:href="@{/ctsv/hoatdong/{id}(id=${hd.maHoatDong})}"
+                               class="btn btn-sm btn-outline-primary">Xem</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+    </th:block>
+</div>
+</body>
+</html>

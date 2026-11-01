@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongdaotao/layout}">
+<head>
+    <title>Duyệt đăng ký học phần</title>
+    <style>
+        .ma-mon { font-family: ui-monospace, Consolas, monospace; font-weight: 600; }
+        .phu-nho { font-size: .8rem; color: #6c757d; }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Duyệt đăng ký học phần</h5>
+
+<div layout:fragment="content">
+
+    <nav class="mb-3">
+        <a th:href="@{/quanly/duyetdangky(hocKy=${hocKyChon})}"
+           class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Tất cả các khoa
+        </a>
+    </nav>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body py-3">
+            <div class="d-flex justify-content-between align-items-end flex-wrap gap-3">
+                <div>
+                    <div class="fw-bold fs-5" th:text="${tenKhoa}">Khoa</div>
+                    <div class="small text-muted">Sinh viên do khoa này quản lý</div>
+                </div>
+
+                <form method="get" class="d-flex align-items-end gap-2">
+                    <input type="hidden" name="tt" th:value="${tt}">
+                    <div>
+                        <label class="form-label small fw-semibold mb-1">Học kỳ</label>
+                        <select name="hocKy" class="form-select" onchange="this.form.submit()">
+                            <option th:each="hk : ${dsHocKy}"
+                                    th:value="${hk.maHocKy}"
+                                    th:selected="${hk.maHocKy == hocKyChon}"
+                                    th:text="${hk.tenHocKy}"></option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Ba trạng thái ===== -->
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${tt == 0} ? 'active'"
+               th:href="@{/quanly/duyetdangky/khoa/{id}(id=${maDonVi}, hocKy=${hocKyChon}, tt=0)}">
+                Chờ xác nhận
+                <span class="badge bg-warning text-dark ms-1" th:text="${soChoDuyet}">0</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${tt == 1} ? 'active'"
+               th:href="@{/quanly/duyetdangky/khoa/{id}(id=${maDonVi}, hocKy=${hocKyChon}, tt=1)}">
+                Đã xác nhận
+                <span class="badge bg-success ms-1" th:text="${soDaDuyet}">0</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${tt == 2} ? 'active'"
+               th:href="@{/quanly/duyetdangky/khoa/{id}(id=${maDonVi}, hocKy=${hocKyChon}, tt=2)}">
+                Đã từ chối
+                <span class="badge bg-secondary ms-1" th:text="${soTuChoi}">0</span>
+            </a>
+        </li>
+    </ul>
+
+    <div class="row mb-3">
+        <div class="col-12 col-md-6 col-lg-5">
+            <div class="input-group">
+                <span class="input-group-text bg-white">
+                    <i class="fas fa-magnifying-glass text-muted"></i>
+                </span>
+                <input type="text" class="form-control" autocomplete="off"
+                       data-loc="#bangDangKy" data-trong="#khongThay"
+                       placeholder="Tìm mã số sinh viên, họ tên, mã học phần, mã lớp...">
+            </div>
+        </div>
+    </div>
+
+    <form th:action="@{/quanly/duyetdangky/duyethangloat}" method="post" id="formHangLoat">
+        <input type="hidden" name="maDonVi" th:value="${maDonVi}">
+        <input type="hidden" name="hocKy" th:value="${hocKyChon}">
+
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2"
+                 th:if="${tt == 0}">
+                <span class="small text-muted">
+                    Tick chọn rồi xác nhận một lượt, hoặc xử lý từng dòng ở cột bên phải.
+                    Mỗi lớp tối đa <strong th:text="${siSoToiDa}">50</strong> sinh viên;
+                    cột <em>Sĩ số lớp</em> là số đã xác nhận trên trần của lớp đó.
+                </span>
+                <button type="submit" class="btn btn-success btn-sm"
+                        th:disabled="${ds.empty}"
+                        onclick="return confirm('Xác nhận các lượt đăng ký đã chọn?');">
+                    <i class="fas fa-check-double me-1"></i> Xác nhận các dòng đã chọn
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle mb-0" id="bangDangKy" data-trang="10">
+                    <thead class="table-light">
+                    <tr>
+                        <th th:if="${tt == 0}" style="width: 2.5rem;">
+                            <input type="checkbox" class="form-check-input" id="chonTatCa">
+                        </th>
+                        <th>Sinh viên</th>
+                        <th>Học phần</th>
+                        <th>Lớp</th>
+                        <th class="text-center">Sĩ số lớp</th>
+                        <th>Đăng ký lúc</th>
+                        <th class="text-center">Trạng thái</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    <tr data-bo-qua th:if="${ds.empty}">
+                        <td class="text-center text-muted py-4"
+                            th:attr="colspan=${tt == 0} ? 7 : 6">
+                            <span th:if="${tt == 0}">Không còn lượt đăng ký nào chờ xác nhận.</span>
+                            <span th:if="${tt == 1}">Chưa có lượt đăng ký nào được xác nhận.</span>
+                            <span th:if="${tt == 2}">Chưa từ chối lượt đăng ký nào.</span>
+                        </td>
+                    </tr>
+
+                    <!-- th:each chạy trước th:with nên dk đã có giá trị khi tra sĩ số.
+                         Đặt ở thẻ tr để cả cột sĩ số lẫn cột thao tác dùng chung. -->
+                    <tr th:each="dk : ${ds}"
+                        th:with="s=${siSo[dk.lopHocPhan.maLopHocPhan]}">
+
+                        <td th:if="${tt == 0}">
+                            <input type="checkbox" class="form-check-input o-chon"
+                                   name="chon" th:value="${dk.maDangKyHocPhan}">
+                        </td>
+
+                        <td>
+                            <div class="ma-mon" th:text="${dk.sinhVien.maSoSinhVien}">MSSV</div>
+                            <div th:text="${dk.sinhVien.hoTen}">Họ tên</div>
+                            <div class="phu-nho" th:text="${dk.sinhVien.nganh?.tenNganh}">Ngành</div>
+                        </td>
+
+                        <td>
+                            <div class="ma-mon" th:text="${dk.lopHocPhan.hocPhan.maHocPhan}">Mã HP</div>
+                            <div th:text="${dk.lopHocPhan.hocPhan.tenHocPhan}">Tên học phần</div>
+                            <div class="phu-nho"
+                                 th:text="${dk.lopHocPhan.hocPhan.soTinChi} + ' tín chỉ'">TC</div>
+                        </td>
+
+                        <td>
+                            <div class="ma-mon" th:text="${dk.lopHocPhan.maLop}">Mã lớp</div>
+                            <div class="phu-nho" th:text="${dk.tenLoaiDangKy}">Loại</div>
+                        </td>
+
+                        <!-- Sĩ số lớp: đã xác nhận trên trần, kèm số đang chờ -->
+                        <td class="text-center">
+                            <th:block th:if="${s != null}">
+                                <div class="fw-bold"
+                                     th:classappend="${s.day} ? 'text-danger' : (${s.vuot} ? 'text-warning' : 'text-success')"
+                                     th:text="${s.daXacNhan} + '/' + ${s.tran}">0/50</div>
+                                <div class="phu-nho" th:if="${s.choXacNhan gt 0}"
+                                     th:text="'+' + ${s.choXacNhan} + ' chờ'">+0 chờ</div>
+                                <div class="phu-nho text-danger fw-semibold" th:if="${s.day}">Hết chỗ</div>
+                                <div class="phu-nho text-warning fw-semibold"
+                                     th:if="${!s.day and s.vuot}"
+                                     th:text="'Chỉ còn ' + ${s.conLai} + ' chỗ'">Chỉ còn 0 chỗ</div>
+                            </th:block>
+                        </td>
+
+                        <td class="small"
+                            th:text="${#temporals.format(dk.ngayDangKy, 'HH:mm dd/MM/yyyy')}">Thời gian</td>
+
+                        <td class="text-center" style="min-width: 190px;">
+
+                            <!-- Chờ xác nhận: hai nút thao tác -->
+                            <div th:if="${tt == 0}" class="d-flex gap-1 justify-content-center">
+                                <!-- Lớp hết chỗ thì tắt nút. Server vẫn kiểm lại,
+                                     nút này chỉ để chuyên viên khỏi bấm rồi nhận lỗi. -->
+                                <button type="submit" class="btn btn-sm btn-success"
+                                        th:disabled="${s != null and s.day}"
+                                        th:title="${s != null and s.day}
+                                                  ? 'Lớp đã đủ sĩ số, không xác nhận thêm được' : ''"
+                                        th:formaction="@{/quanly/duyetdangky/{id}/duyet(id=${dk.maDangKyHocPhan})}">
+                                    <i class="fas fa-check"></i> Xác nhận
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger nut-tuchoi"
+                                        th:data-ma="${dk.maDangKyHocPhan}"
+                                        th:data-mota="${dk.sinhVien.maSoSinhVien} + ' — '
+                                                      + ${dk.lopHocPhan.hocPhan.tenHocPhan}
+                                                      + ' (' + ${dk.lopHocPhan.maLop} + ')'">
+                                    <i class="fas fa-xmark"></i> Từ chối
+                                </button>
+                            </div>
+
+                            <!-- Đã xác nhận: ai duyệt, lúc nào -->
+                            <div th:if="${tt == 1}">
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check me-1"></i>Đã xác nhận
+                                </span>
+                                <div class="phu-nho mt-1" th:if="${dk.ngayDuyet != null}"
+                                     th:text="${#temporals.format(dk.ngayDuyet, 'HH:mm dd/MM/yyyy')}"></div>
+                                <div class="phu-nho" th:if="${dk.nguoiDuyet != null}"
+                                     th:text="${dk.nguoiDuyet}"></div>
+                                <div class="phu-nho fst-italic" th:if="${dk.trangThaiDuyet == null}">
+                                    Dữ liệu trước khi có bước xác nhận
+                                </div>
+                            </div>
+
+                            <!-- Bị từ chối: hiện lý do để tra lại khi sinh viên hỏi -->
+                            <div th:if="${tt == 2}">
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-ban me-1"></i>Đã từ chối
+                                </span>
+                                <div class="phu-nho mt-1 text-start" th:text="${dk.lyDoTuChoi}"></div>
+                                <div class="phu-nho text-start" th:if="${dk.ngayDuyet != null}"
+                                     th:text="${#temporals.format(dk.ngayDuyet, 'HH:mm dd/MM/yyyy')}
+                                              + ' · ' + ${dk.nguoiDuyet}"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="khongThay" class="card-body text-center text-muted py-4" hidden>
+                Không tìm thấy dòng nào khớp với từ khóa.
+            </div>
+        </div>
+    </form>
+
+    <!-- ===== Hộp nhập lý do từ chối =====
+         Một hộp dùng chung cho mọi dòng. Sinh một hộp cho mỗi dòng thì trang
+         tám chục dòng sẽ có tám chục hộp nằm sẵn trong HTML. -->
+    <div class="modal fade" id="hopTuChoi" tabindex="-1">
+        <div class="modal-dialog">
+            <!-- th:action đặt sẵn một địa chỉ giả rồi JS ghi đè theo dòng được
+                 bấm. Phải có th:action thì Spring Security mới chèn thẻ bài
+                 CSRF vào form; để trống action là mọi lượt từ chối bị chặn 403. -->
+            <form method="post" id="formTuChoi" class="modal-content"
+                  th:action="@{/quanly/duyetdangky/0/tuchoi}"
+                  th:data-goc="@{/quanly/duyetdangky/}">
+                <input type="hidden" name="maDonVi" th:value="${maDonVi}">
+                <input type="hidden" name="hocKy" th:value="${hocKyChon}">
+
+                <div class="modal-header">
+                    <h6 class="modal-title">Từ chối lượt đăng ký</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <p class="small text-muted mb-2" id="moTaDong"></p>
+
+                    <label class="form-label small fw-semibold">Lý do từ chối</label>
+                    <textarea name="lyDo" class="form-control" rows="3" required
+                              placeholder="Ví dụ: môn này không thuộc chương trình khóa của bạn, đăng ký nhầm lớp..."></textarea>
+                    <div class="form-text">
+                        Lý do hiện thẳng trên trang đăng ký học phần của sinh viên, nên viết
+                        rõ để sinh viên biết phải làm gì tiếp.
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-xmark me-1"></i> Từ chối
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Layout của Phòng Đào tạo không có khối scripts riêng nên script nằm
+         luôn trong phần nội dung, đặt ở đây để chạy sau khi bảng đã dựng. -->
+    <script>
+        (function () {
+            // Tick ô đầu bảng thì chọn hết các dòng ĐANG HIỆN. Chọn cả dòng
+            // bị ẩn do lọc hay do phân trang thì người dùng bấm xác nhận một
+            // cái là duyệt luôn những dòng họ không nhìn thấy.
+            var oTatCa = document.getElementById('chonTatCa');
+            if (oTatCa) {
+                oTatCa.addEventListener('change', function () {
+                    document.querySelectorAll('#bangDangKy tbody tr').forEach(function (dong) {
+                        if (dong.hidden) return;
+                        var o = dong.querySelector('.o-chon');
+                        if (o) o.checked = oTatCa.checked;
+                    });
+                });
+            }
+
+            var hop = document.getElementById('hopTuChoi');
+            var form = document.getElementById('formTuChoi');
+            if (!hop || !form) return;
+
+            document.querySelectorAll('.nut-tuchoi').forEach(function (nut) {
+                nut.addEventListener('click', function () {
+                    form.setAttribute('action', form.getAttribute('data-goc')
+                            + nut.getAttribute('data-ma') + '/tuchoi');
+                    document.getElementById('moTaDong').textContent =
+                            nut.getAttribute('data-mota') || '';
+                    bootstrap.Modal.getOrCreateInstance(hop).show();
+                });
+            });
+        })();
+    </script>
+</div>
+</body>
+</html>

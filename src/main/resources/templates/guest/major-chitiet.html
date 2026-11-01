@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title th:text="${nganh.tenNganh}">Ngành</title>
+    <style>
+        .o-so {
+            border: 1px solid #dee2e6; border-radius: .6rem;
+            padding: 1.1rem 1.25rem; background: #fff; height: 100%;
+            border-left: 4px solid #0b3d91;
+        }
+        .o-so .so { font-size: 1.8rem; font-weight: 700; color: #0b3d91; line-height: 1; }
+        .o-so .nhan { font-size: .82rem; color: #6c757d; }
+        .ma-mon { font-family: ui-monospace, Consolas, monospace; font-size: .82rem; }
+    </style>
+</head>
+<body>
+<main layout:fragment="content">
+
+    <section class="hero">
+        <div class="container">
+            <h1 th:text="${nganh.tenNganh}">Ngành</h1>
+            <p th:if="${nganh.donVi != null}" th:text="${nganh.donVi.tenDonVi}"></p>
+        </div>
+    </section>
+
+    <section class="py-5">
+        <div class="container">
+
+            <nav class="mb-4 d-flex flex-wrap gap-2">
+                <a th:href="@{/major}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    <span th:text="#{major.list.heading}">Ngành đào tạo</span>
+                </a>
+                <a th:if="${nganh.donVi != null}"
+                   th:href="@{/faculty/{id}(id=${nganh.donVi.maDonVi})}"
+                   class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-building-columns me-1"></i>
+                    <span th:text="${nganh.donVi.tenDonVi}"></span>
+                </a>
+            </nav>
+
+            <p th:if="${nganh.moTa != null}" class="lead" th:text="${nganh.moTa}"></p>
+
+            <div th:if="${nganh.trangThai != null and nganh.trangThai == 0}"
+                 class="alert alert-secondary">
+                <i class="fas fa-circle-info me-1"></i>
+                <span th:text="#{major.badge.closed}">Ngừng tuyển sinh</span>
+            </div>
+
+            <!-- Số liệu tổng quan -->
+            <div class="row g-3 mb-4" th:unless="${ds.empty}">
+                <div class="col-6 col-md-4">
+                    <div class="o-so">
+                        <div class="so" th:text="${tongTinChi}">0</div>
+                        <div class="nhan" th:text="#{major.detail.credits}">Tổng tín chỉ</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="o-so">
+                        <div class="so" th:text="${ds.size()}">0</div>
+                        <div class="nhan" th:text="#{major.detail.courses}">Số học phần</div>
+                    </div>
+                </div>
+            </div>
+
+            <h5 class="fw-bold mb-3" th:text="#{major.detail.program}">Khung chương trình đào tạo</h5>
+
+            <div th:if="${ds.empty}" class="alert alert-secondary"
+                 th:text="#{major.detail.noprogram}">Ngành này chưa công bố chương trình đào tạo.</div>
+
+            <!-- Mỗi học kỳ một bảng.
+                 th:each và th:with đặt ở thẻ ngoài: Thymeleaf chạy th:if trước
+                 th:with, để chung một thẻ thì biến mon chưa tồn tại lúc xét. -->
+            <th:block th:each="hk : ${#numbers.sequence(1, 8)}"
+                      th:with="mon=${ds.?[hocKyDuKien == __${hk}__]}">
+            <div class="card mb-3" th:if="${mon != null and !mon.isEmpty()}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-bold"
+                          th:text="#{major.detail.semester} + ' ' + ${hk}">Học kỳ</span>
+                    <span class="small text-muted"
+                          th:text="${mon.size()} + ' học phần'"></span>
+                </div>
+                <div class="table-responsive">
+                    <table data-trang="0" class="table table-sm align-middle mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th style="width:140px" th:text="#{major.col.code}">Mã học phần</th>
+                            <th th:text="#{major.col.name}">Tên học phần</th>
+                            <th class="text-center" style="width:80px" th:text="#{major.col.credit}">TC</th>
+                            <th class="text-center d-none d-md-table-cell" style="width:140px"
+                                th:text="#{major.col.block}">Khối kiến thức</th>
+                            <th class="text-center" style="width:110px" th:text="#{major.col.type}">Loại</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="ct : ${mon}">
+                            <td class="ma-mon fw-semibold" th:text="${ct.hocPhan.maHocPhan}"></td>
+                            <td th:text="${ct.hocPhan.tenHocPhan}"></td>
+                            <td class="text-center" th:text="${ct.hocPhan.soTinChi}"></td>
+                            <td class="text-center d-none d-md-table-cell">
+                                <span class="badge bg-light text-dark border"
+                                      th:text="${ct.tenKhoiKienThuc}"></span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge"
+                                      th:classappend="${ct.loaiHocPhan == 1} ? 'bg-secondary' : 'bg-info text-dark'"
+                                      th:text="${ct.tenLoaiHocPhan}"></span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            </th:block>
+        </div>
+    </section>
+
+</main>
+</body>
+</html>

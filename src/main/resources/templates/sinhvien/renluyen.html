@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{sinhvien/layout}">
+<head>
+    <title>Điểm rèn luyện</title>
+    <style>
+        .o-diem {
+            border-radius: .75rem; padding: 1.25rem 1.5rem; color: #fff;
+            background: linear-gradient(135deg, #0b3d91 0%, #1565c0 100%);
+        }
+        .o-diem .so { font-size: 2.6rem; font-weight: 700; line-height: 1; }
+        .thanh-diem { height: 10px; border-radius: 6px; background: rgba(255,255,255,.25); }
+        .thanh-diem > div { height: 100%; border-radius: 6px; background: #fff; }
+        .ma-so { font-family: ui-monospace, Consolas, monospace; font-size: .82rem; }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Công tác xã hội &amp; Điểm rèn luyện</h5>
+
+<div layout:fragment="content">
+
+    <div th:if="${thongBao}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${thongBao}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${loi}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${loi}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${sinhVien == null}" class="alert alert-warning">
+        Tài khoản này chưa được gắn với hồ sơ sinh viên nào.
+    </div>
+
+    <div th:if="${sinhVien != null and hocKy == null}" class="alert alert-secondary">
+        Hiện chưa có học kỳ nào đang diễn ra.
+    </div>
+
+    <th:block th:if="${sinhVien != null and hocKy != null}">
+
+        <!-- ===== Điểm học kỳ này ===== -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-lg-5">
+                <div class="o-diem h-100">
+                    <div class="small opacity-75" th:text="${hocKy.tenHocKy}"></div>
+                    <div class="d-flex align-items-end gap-2 mt-1">
+                        <div class="so" th:text="${ketQua.tongDiem}">60</div>
+                        <div class="pb-1">/ 100</div>
+                        <span class="badge ms-auto mb-1" th:classappend="${ketQua.mauXepLoai}"
+                              th:text="${ketQua.xepLoai}"></span>
+                    </div>
+
+                    <div class="thanh-diem mt-3">
+                        <div th:style="'width:' + ${ketQua.tongDiem} + '%'"></div>
+                    </div>
+
+                    <div class="small mt-3 opacity-90">
+                        Điểm nền <strong th:text="${ketQua.diemNen}"></strong>
+                        + hoạt động <strong th:text="${ketQua.diemHoatDong}"></strong>
+                        <span th:text="'(' + ${ketQua.soHoatDong} + ' hoạt động đã tham gia)'"></span>
+                    </div>
+                    <div class="small mt-1 opacity-75" th:if="${ketQua.chamTran}">
+                        Tổng vượt 100 nên tính tròn 100.
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-7">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body small">
+                        <div class="fw-bold mb-2">Điểm rèn luyện được tính thế nào</div>
+                        <p class="mb-2">
+                            Mỗi sinh viên không vi phạm nội quy bắt đầu từ
+                            <strong th:text="${ketQua.diemNen}">60</strong> điểm. Mỗi hoạt động
+                            công tác xã hội bạn <strong>tham gia đầy đủ</strong> cộng thêm số
+                            điểm ghi trên hoạt động đó, tối đa 100 điểm.
+                        </p>
+                        <p class="mb-2">
+                            Chỉ đăng ký mà vắng mặt thì <strong>không được cộng điểm</strong>.
+                            Điểm chỉ ghi nhận sau khi Phòng Công tác Sinh viên điểm danh.
+                        </p>
+                        <div class="text-muted">
+                            Xếp loại: Xuất sắc 90–100 · Tốt 80–89 · Khá 65–79 ·
+                            Trung bình 50–64 · Yếu 35–49 · Kém dưới 35.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== Hoạt động của tôi trong học kỳ này ===== -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header fw-bold">Hoạt động của tôi học kỳ này</div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Hoạt động</th>
+                        <th class="text-center">Loại</th>
+                        <th>Thời gian</th>
+                        <th class="text-center">Điểm</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${ketQua.dsThamGia.empty}">
+                        <td colspan="6" class="text-center text-muted py-4">
+                            Bạn chưa đăng ký hoạt động nào trong học kỳ này.
+                        </td>
+                    </tr>
+                    <tr th:each="dk : ${ketQua.dsThamGia}">
+                        <td>
+                            <div th:text="${dk.hoatDong.tenHoatDong}"></div>
+                            <div class="small text-muted" th:if="${dk.hoatDong.diaDiem != null}"
+                                 th:text="${dk.hoatDong.diaDiem}"></div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge" th:classappend="${dk.hoatDong.mauLoai}"
+                                  th:text="${dk.hoatDong.tenLoai}"></span>
+                        </td>
+                        <td class="small" th:text="${dk.hoatDong.thoiGianBatDau != null}
+                                 ? ${#temporals.format(dk.hoatDong.thoiGianBatDau, 'HH:mm dd/MM/yyyy')} : '—'"></td>
+                        <td class="text-center">
+                            <span th:if="${dk.duocCongDiem}" class="fw-semibold text-success"
+                                  th:text="'+' + ${dk.hoatDong.diemCong}"></span>
+                            <span th:unless="${dk.duocCongDiem}" class="text-muted"
+                                  th:text="'(' + ${dk.hoatDong.diemCong} + ')'"></span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge" th:classappend="${dk.mauTrangThai}"
+                                  th:text="${dk.tenTrangThai}"></span>
+                        </td>
+                        <td class="text-center">
+                            <form th:if="${dk.trangThai == 1 and dk.hoatDong.dangMoDangKy}"
+                                  th:action="@{/sinhvien/renluyen/huy/{id}(id=${dk.maDangKyHoatDong})}"
+                                  method="post" class="d-inline"
+                                  onsubmit="return confirm('Hủy đăng ký hoạt động này?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Hủy</button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== Hoạt động đang mở đăng ký ===== -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header fw-bold">Hoạt động đang mở đăng ký</div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Hoạt động</th>
+                        <th class="text-center">Loại</th>
+                        <th>Thời gian</th>
+                        <th class="text-center">Điểm</th>
+                        <th class="text-center">Chỗ</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${dsMo == null or dsMo.empty}">
+                        <td colspan="6" class="text-center text-muted py-4">
+                            Hiện không có hoạt động nào đang mở đăng ký.
+                        </td>
+                    </tr>
+                    <tr th:each="hd : ${dsMo}">
+                        <td>
+                            <div class="fw-semibold" th:text="${hd.tenHoatDong}"></div>
+                            <div class="small text-muted">
+                                <span th:if="${hd.donViToChuc != null}" th:text="${hd.donViToChuc}"></span>
+                                <span th:if="${hd.diaDiem != null}" th:text="' · ' + ${hd.diaDiem}"></span>
+                            </div>
+                            <div class="small" th:if="${hd.moTa != null}" th:text="${hd.moTa}"></div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge" th:classappend="${hd.mauLoai}" th:text="${hd.tenLoai}"></span>
+                        </td>
+                        <td class="small">
+                            <div th:if="${hd.thoiGianBatDau != null}"
+                                 th:text="${#temporals.format(hd.thoiGianBatDau, 'HH:mm dd/MM/yyyy')}"></div>
+                            <div class="text-muted" th:if="${hd.hanDangKy != null}"
+                                 th:text="'Hạn ĐK: ' + ${#temporals.format(hd.hanDangKy, 'HH:mm dd/MM')}"></div>
+                        </td>
+                        <td class="text-center fw-semibold text-success" th:text="'+' + ${hd.diemCong}"></td>
+                        <td class="text-center" th:with="daCo=${soDaDangKy[hd.maHoatDong]}">
+                            <span th:text="${daCo}"></span>
+                            <span th:if="${hd.soLuongToiDa != null}" th:text="' / ' + ${hd.soLuongToiDa}"></span>
+                            <span th:unless="${hd.soLuongToiDa != null}" class="text-muted">không giới hạn</span>
+                        </td>
+                        <td class="text-center" th:with="daCo=${soDaDangKy[hd.maHoatDong]}">
+                            <form th:if="${hd.soLuongToiDa == null or daCo lt hd.soLuongToiDa}"
+                                  th:action="@{/sinhvien/renluyen/dangky/{id}(id=${hd.maHoatDong})}"
+                                  method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-plus"></i> Đăng ký
+                                </button>
+                            </form>
+                            <span th:if="${hd.soLuongToiDa != null and daCo ge hd.soLuongToiDa}"
+                                  class="badge bg-secondary">Đã đủ người</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== Các học kỳ trước ===== -->
+        <div class="card shadow-sm" th:if="${lichSu != null and lichSu.size() gt 1}">
+            <div class="card-header fw-bold">Điểm rèn luyện các học kỳ</div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Học kỳ</th>
+                        <th class="text-center">Số hoạt động</th>
+                        <th class="text-center">Điểm hoạt động</th>
+                        <th class="text-center">Tổng điểm</th>
+                        <th class="text-center">Xếp loại</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="kq : ${lichSu}">
+                        <td th:text="${kq.hocKy.tenHocKy}"></td>
+                        <td class="text-center" th:text="${kq.soHoatDong}"></td>
+                        <td class="text-center" th:text="'+' + ${kq.diemHoatDong}"></td>
+                        <td class="text-center fw-semibold" th:text="${kq.tongDiem}"></td>
+                        <td class="text-center">
+                            <span class="badge" th:classappend="${kq.mauXepLoai}"
+                                  th:text="${kq.xepLoai}"></span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </th:block>
+</div>
+</body>
+</html>

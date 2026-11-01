@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongkehoachtaichinh/layout}">
+<head>
+    <title>Lập phiếu thu</title>
+    <style>
+        .o-tien { font-size: clamp(1.2rem, 3vw, 1.75rem); font-weight: 700; }
+        .bang-tt td { padding: .35rem 0; }
+        .bang-tt td:first-child { color: #6c757d; width: 45%; }
+        td.tien, th.tien { text-align: right; white-space: nowrap; }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Lập phiếu thu</h5>
+
+<div layout:fragment="content">
+
+    <a th:href="@{/taichinh/congno}" class="btn btn-sm btn-outline-secondary mb-3">
+        <i class="fas fa-arrow-left me-1"></i> Về danh sách công nợ
+    </a>
+
+    <div class="row g-3">
+
+        <!-- ============ Thông tin công nợ ============ -->
+        <div class="col-12 col-lg-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header fw-semibold">Sinh viên</div>
+                <div class="card-body">
+                    <table class="table table-sm bang-tt mb-3">
+                        <tr>
+                            <td>MSSV</td>
+                            <td class="fw-semibold" th:text="${cn.sinhVien.maSoSinhVien}"></td>
+                        </tr>
+                        <tr>
+                            <td>Họ tên</td>
+                            <td th:text="${cn.sinhVien.hoTen}"></td>
+                        </tr>
+                        <tr>
+                            <td>Khoa</td>
+                            <td th:text="${cn.sinhVien.nganh != null and cn.sinhVien.nganh.donVi != null}
+                                         ? ${cn.sinhVien.nganh.donVi.tenDonVi} : ''"></td>
+                        </tr>
+                        <tr>
+                            <td>Khóa</td>
+                            <td th:text="${cn.sinhVien.khoaTuyenSinh}"></td>
+                        </tr>
+                        <tr>
+                            <td>Học kỳ</td>
+                            <td th:text="${cn.hocKy.tenHocKy}"></td>
+                        </tr>
+                        <tr>
+                            <td>Nội dung</td>
+                            <td th:text="${cn.noiDung}"></td>
+                        </tr>
+                        <tr>
+                            <td>Hạn đóng</td>
+                            <td th:text="${cn.hanThanhToan != null}
+                                         ? ${#temporals.format(cn.hanThanhToan, 'dd/MM/yyyy')} : '—'"></td>
+                        </tr>
+                    </table>
+
+                    <hr>
+
+                    <table class="table table-sm bang-tt mb-0">
+                        <tr>
+                            <td>Phải đóng</td>
+                            <td class="text-end"
+                                th:text="${#numbers.formatDecimal(cn.soTienPhaiDong, 1, 'POINT', 0, 'COMMA')} + ' đ'"></td>
+                        </tr>
+                        <tr>
+                            <td>Miễn giảm</td>
+                            <td class="text-end"
+                                th:text="${#numbers.formatDecimal(cn.soTienMienGiam, 1, 'POINT', 0, 'COMMA')} + ' đ'"></td>
+                        </tr>
+                        <tr>
+                            <td>Đã đóng</td>
+                            <td class="text-end" style="color:#15803d;"
+                                th:text="${#numbers.formatDecimal(cn.soTienDaDong, 1, 'POINT', 0, 'COMMA')} + ' đ'"></td>
+                        </tr>
+                    </table>
+
+                    <div class="mt-3 p-3 rounded" style="background:#f1f5f9;">
+                        <div class="text-muted small">Còn phải đóng</div>
+                        <div class="o-tien"
+                             th:classappend="${cn.soTienConLai.signum() > 0} ? 'text-danger' : 'text-success'"
+                             th:text="${#numbers.formatDecimal(cn.soTienConLai, 1, 'POINT', 0, 'COMMA')} + ' đ'"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ Biểu mẫu thu tiền ============ -->
+        <div class="col-12 col-lg-7">
+            <div class="card shadow-sm mb-3">
+                <div class="card-header fw-semibold">Ghi nhận tiền nộp</div>
+                <div class="card-body">
+
+                    <div th:if="${cn.soTienConLai.signum() == 0}" class="alert alert-success mb-0">
+                        <i class="fas fa-circle-check me-1"></i>
+                        Công nợ này đã đóng đủ, không cần lập thêm phiếu.
+                    </div>
+
+                    <form th:if="${cn.soTienConLai.signum() > 0}"
+                          method="post"
+                          th:action="@{/taichinh/phieuthu/{id}(id=${cn.maCongNoHocPhi})}">
+
+                        <div class="mb-3">
+                            <label class="form-label">Số tiền (đ)</label>
+                            <input type="number" name="soTien" class="form-control"
+                                   min="1" step="1000" required
+                                   th:max="${cn.soTienConLai}"
+                                   th:value="${cn.soTienConLai}">
+                            <div class="form-text">
+                                Để nguyên là thu đủ. Sửa nhỏ hơn nếu sinh viên đóng từng đợt.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Hình thức</label>
+                            <div class="d-flex gap-3 flex-wrap">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="hinhThuc"
+                                           id="htTienMat" value="1" checked>
+                                    <label class="form-check-label" for="htTienMat">Tiền mặt</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="hinhThuc"
+                                           id="htChuyenKhoan" value="2">
+                                    <label class="form-check-label" for="htChuyenKhoan">Chuyển khoản</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú</label>
+                            <input type="text" name="ghiChu" class="form-control"
+                                   maxlength="500" placeholder="Số giao dịch, người nộp thay…">
+                        </div>
+
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-receipt me-1"></i> Lập phiếu thu
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ============ Các phiếu đã lập ============ -->
+            <div class="card shadow-sm">
+                <div class="card-header fw-semibold">Phiếu đã lập cho công nợ này</div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Số phiếu</th>
+                            <th>Ngày</th>
+                            <th class="tien">Số tiền</th>
+                            <th>Hình thức</th>
+                            <th>Người thu</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${dsPhieu.empty}">
+                            <td colspan="6" class="text-center text-muted py-3">Chưa có phiếu nào.</td>
+                        </tr>
+                        <tr th:each="pt : ${dsPhieu}"
+                            th:classappend="${pt.daHuy} ? 'text-muted' : ''">
+                            <td class="small fw-semibold">
+                                <span th:text="${pt.soPhieu}"></span>
+                                <span th:if="${pt.daHuy}" class="badge bg-secondary ms-1">đã hủy</span>
+                            </td>
+                            <td class="small" th:text="${#temporals.format(pt.ngayThu, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td class="tien"
+                                th:text="${#numbers.formatDecimal(pt.soTien, 1, 'POINT', 0, 'COMMA')}"></td>
+                            <td class="small" th:text="${pt.tenHinhThuc}"></td>
+                            <td class="small" th:text="${pt.nguoiThu}"></td>
+                            <td class="text-end">
+                                <form th:if="${!pt.daHuy}" method="post"
+                                      th:action="@{/taichinh/phieuthu/huy/{id}(id=${pt.maPhieuThu})}"
+                                      class="m-0">
+                                    <input type="hidden" name="maCongNo" th:value="${cn.maCongNoHocPhi}">
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">Hủy</button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer small text-muted">
+                    Phiếu đã lập thì không sửa, chỉ hủy. Hủy phiếu sẽ trừ lại số tiền
+                    khỏi công nợ nhưng phiếu vẫn nằm trong sổ để còn dấu vết.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

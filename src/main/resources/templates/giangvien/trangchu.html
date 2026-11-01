@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{giangvien/layout}">
+<head>
+    <title>Tổng quan</title>
+    <style>
+        .loi-chao {
+            background: linear-gradient(135deg, #0f766e 0%, #0d9488 60%, #14b8a6 100%);
+            color: #fff; border-radius: 16px; padding: clamp(1.25rem, 4vw, 2rem);
+        }
+        .loi-chao h4 { font-weight: 700; margin-bottom: .35rem; }
+        .loi-chao p  { opacity: .85; margin-bottom: 0; }
+
+        .the-so { border-radius: 14px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+        .the-so .nhan { font-size: .78rem; text-transform: uppercase; letter-spacing: .4px; }
+        .the-so .so   { font-size: clamp(1.3rem, 3vw, 1.8rem); font-weight: 700; }
+
+        .buoi-day {
+            border-left: 4px solid #0f766e; background: #fff; border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,.05);
+        }
+        .buoi-day .gio { font-weight: 700; color: #0f766e; white-space: nowrap; }
+
+        .the-chuc-nang {
+            display: block; text-decoration: none; border: none; border-radius: 14px;
+            background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,.06);
+            transition: transform .2s ease, box-shadow .2s ease; height: 100%;
+        }
+        .the-chuc-nang:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,.12); }
+        @media (hover: none) { .the-chuc-nang:hover { transform: none; } }
+        .the-chuc-nang .o-icon {
+            width: 52px; height: 52px; flex: 0 0 52px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.25rem;
+        }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Tổng quan</h5>
+
+<div layout:fragment="content" th:if="${giangVien != null}">
+
+    <!-- ============ Lời chào ============ -->
+    <div class="loi-chao mb-4">
+        <h4 th:text="${giangVien.tenHienThi}">Giảng viên</h4>
+        <p>
+            Hôm nay là <span th:text="${#temporals.format(homNay, 'EEEE, dd/MM/yyyy')}">ngày</span>.
+            <span th:if="${hocKy != null}" th:text="'Học kỳ ' + ${hocKy.tenHocKy} + '.'"></span>
+        </p>
+    </div>
+
+    <!-- ============ Buổi dạy hôm nay ============ -->
+    <h6 class="text-uppercase text-muted fw-semibold mb-3" style="letter-spacing: .5px;">
+        Lên lớp hôm nay
+    </h6>
+
+    <div th:if="${buoiHomNay == null or buoiHomNay.empty}"
+         class="alert alert-light border mb-4">
+        <i class="fas fa-mug-hot me-1" style="color:#0f766e;"></i>
+        Hôm nay không có buổi lên lớp nào.
+    </div>
+
+    <div class="row g-2 mb-4" th:unless="${buoiHomNay == null or buoiHomNay.empty}">
+        <div class="col-12" th:each="lh : ${buoiHomNay}">
+            <div class="buoi-day p-3 d-flex flex-wrap align-items-center gap-3">
+                <div class="gio">
+                    <span th:text="${gioBatDau[lh.tietBatDau]}">07:00</span><br>
+                    <small class="text-muted fw-normal"
+                           th:text="'Tiết ' + ${lh.tietBatDau} + '–' + ${lh.tietKetThuc}">Tiết</small>
+                </div>
+                <div class="flex-grow-1 min-w-0">
+                    <div class="fw-semibold" th:text="${lh.lopHocPhan.hocPhan.tenHocPhan}">Học phần</div>
+                    <div class="small text-muted">
+                        <span th:text="${lh.lopHocPhan.maLop}">Mã lớp</span>
+                        <span th:if="${lh.phongHoc != null}"
+                              th:text="' · Phòng ' + ${lh.phongHoc.maPhong}"></span>
+                    </div>
+                </div>
+                <a th:href="@{/giangvien/lop/{id}(id=${lh.lopHocPhan.maLopHocPhan})}"
+                   class="btn btn-sm btn-outline-secondary">Xem lớp</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Số liệu học kỳ ============ -->
+    <div class="row g-3 mb-4" th:if="${tq != null}">
+        <div class="col-6 col-xl-3">
+            <div class="the-so p-3 h-100">
+                <div class="nhan text-muted">Lớp được phân công</div>
+                <div class="so text-dark" th:text="${tq.soLop}">0</div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="the-so p-3 h-100">
+                <div class="nhan text-muted">Lớp được nhập điểm</div>
+                <div class="so" style="color:#0f766e;" th:text="${tq.soLopChinh}">0</div>
+                <div class="small text-muted">vai trò giảng viên chính</div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="the-so p-3 h-100">
+                <div class="nhan text-muted">Buổi dạy mỗi tuần</div>
+                <div class="so text-dark" th:text="${tq.soBuoiTrongTuan}">0</div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="the-so p-3 h-100">
+                <div class="nhan text-muted">Bảng điểm chưa xong</div>
+                <div class="so"
+                     th:classappend="${tq.soBangDiemChuaXong > 0} ? 'text-danger' : 'text-muted'"
+                     th:text="${tq.soBangDiemChuaXong}">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Chức năng ============ -->
+    <h6 class="text-uppercase text-muted fw-semibold mb-3" style="letter-spacing: .5px;">
+        Chức năng
+    </h6>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6 col-xl-4">
+            <a th:href="@{/giangvien/lichday}" class="the-chuc-nang">
+                <div class="p-3 d-flex align-items-start gap-3">
+                    <div class="o-icon" style="background:#ccfbf1; color:#0f766e;">
+                        <i class="fas fa-calendar-days"></i>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-semibold text-dark mb-1">Lịch dạy</div>
+                        <div class="text-muted small">
+                            Thời khóa biểu cả tuần: thứ, tiết, phòng học của từng lớp.
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-muted mt-1"></i>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+            <a th:href="@{/giangvien/lop}" class="the-chuc-nang">
+                <div class="p-3 d-flex align-items-start gap-3">
+                    <div class="o-icon" style="background:#dbeafe; color:#1d4ed8;">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-semibold text-dark mb-1">Lớp giảng dạy</div>
+                        <div class="text-muted small">
+                            Danh sách lớp, sĩ số, danh sách sinh viên và nhập điểm.
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-muted mt-1"></i>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+            <a th:href="@{/giangvien/hoso}" class="the-chuc-nang">
+                <div class="p-3 d-flex align-items-start gap-3">
+                    <div class="o-icon" style="background:#f1f5f9; color:#334155;">
+                        <i class="fas fa-id-badge"></i>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-semibold text-dark mb-1">Hồ sơ cá nhân</div>
+                        <div class="text-muted small">
+                            Thông tin giảng viên, khoa công tác, học hàm học vị.
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-muted mt-1"></i>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- ============ Ghi chú nghiệp vụ ============ -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h6 class="fw-semibold mb-3">
+                <i class="fas fa-circle-info me-2" style="color:#0f766e;"></i>Quy trình nhập điểm
+            </h6>
+            <ol class="mb-0 ps-3 text-muted" style="line-height: 1.9;">
+                <li>Phòng Đào tạo khóa đăng ký, chuyển lớp sang trạng thái <strong>Đang học</strong>.</li>
+                <li>Giảng viên chính nhập ba cột điểm: quá trình, giữa kỳ, cuối kỳ.</li>
+                <li>Đủ ba cột thì hệ thống tự tính tổng kết, điểm chữ và thang 4.</li>
+                <li>Nhập đủ cả lớp rồi <strong>gửi duyệt</strong>. Gửi rồi thì không sửa được nữa.</li>
+                <li>Phòng Đào tạo duyệt và công bố, sinh viên mới xem được điểm.</li>
+            </ol>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{giangvien/layout}">
+<head>
+    <title>Lịch dạy</title>
+    <style>
+        .bang-tkb { table-layout: fixed; min-width: 900px; }
+        .bang-tkb th, .bang-tkb td {
+            border: 1px solid #dee2e6; vertical-align: top; padding: 4px;
+        }
+        .bang-tkb thead th { background: #f8f9fa; text-align: center; font-size: .85rem; }
+        .cot-tiet {
+            width: 92px; background: #f8f9fa; text-align: center;
+            font-size: .78rem; color: #6c757d;
+        }
+        .cot-tiet strong { display: block; color: #212529; font-size: .9rem; }
+
+        .o-buoi {
+            background: #ccfbf1; border-left: 3px solid #0f766e;
+            border-radius: 6px; padding: 6px 8px; height: 100%;
+            font-size: .8rem; line-height: 1.35;
+        }
+        .o-buoi .mon { font-weight: 600; color: #134e4a; }
+        .o-buoi .phu { color: #475569; }
+
+        .the-buoi {
+            border-left: 4px solid #0f766e; background: #fff;
+            border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.05);
+        }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Lịch dạy</h5>
+
+<div layout:fragment="content" th:if="${giangVien != null}">
+
+    <!-- ============ Chọn học kỳ ============ -->
+    <form method="get" th:action="@{/giangvien/lichday}" class="mb-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-5 col-lg-4">
+                <label class="form-label small text-muted mb-1">Học kỳ</label>
+                <select name="maHocKy" class="form-select form-select-sm"
+                        onchange="this.form.submit()">
+                    <option th:each="hk : ${dsHocKy}"
+                            th:value="${hk.maHocKy}"
+                            th:text="${hk.tenHocKy}"
+                            th:selected="${maHocKy != null and maHocKy == hk.maHocKy}"></option>
+                </select>
+            </div>
+        </div>
+    </form>
+
+    <div th:if="${dsLich == null or dsLich.empty}" class="alert alert-light border">
+        <i class="fas fa-calendar-xmark me-1" style="color:#0f766e;"></i>
+        Chưa có buổi dạy nào trong học kỳ này. Lịch sẽ hiện ra sau khi Phòng Đào tạo
+        xếp phòng và giờ học cho các lớp bạn phụ trách.
+    </div>
+
+    <div th:unless="${dsLich == null or dsLich.empty}">
+
+        <!-- ============ Bảng tuần ============ -->
+        <div class="card shadow-sm mb-4 d-none d-md-block">
+            <div class="table-responsive">
+                <table class="table bang-tkb mb-0">
+                    <thead>
+                    <tr>
+                        <th class="cot-tiet">Tiết</th>
+                        <th th:each="thu : ${#numbers.sequence(2, 8)}"
+                            th:text="${thu == 8} ? 'Chủ nhật' : 'Thứ ' + ${thu}">Thứ</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="tiet : ${#numbers.sequence(1, 12)}">
+                        <td class="cot-tiet">
+                            <strong th:text="${tiet}">1</strong>
+                            <span th:text="${gioBatDau[tiet]}">07:00</span>
+                        </td>
+
+                        <th:block th:each="thu : ${#numbers.sequence(2, 8)}"
+                                  th:with="khoa=${thu + '-' + tiet}">
+
+                            <!-- Ô bị buổi học phía trên chiếm thì không vẽ,
+                                 vì td ở hàng trên đã rowspan xuống đây. -->
+                            <th:block th:if="${!tkb.oBiChiem.contains(khoa)}">
+
+                                <td th:if="${tkb.oBatDau.containsKey(khoa)}"
+                                    th:with="lh=${tkb.oBatDau.get(khoa)}"
+                                    th:rowspan="${lh.soTiet}">
+                                    <div class="o-buoi">
+                                        <div class="mon" th:text="${lh.lopHocPhan.hocPhan.tenHocPhan}">Học phần</div>
+                                        <div class="phu" th:text="${lh.lopHocPhan.maLop}">Mã lớp</div>
+                                        <div class="phu" th:if="${lh.phongHoc != null}"
+                                             th:text="'Phòng ' + ${lh.phongHoc.maPhong}">Phòng</div>
+                                        <div class="phu"
+                                             th:text="'Tiết ' + ${lh.tietBatDau} + '–' + ${lh.tietKetThuc}">Tiết</div>
+                                    </div>
+                                </td>
+
+                                <td th:unless="${tkb.oBatDau.containsKey(khoa)}"></td>
+                            </th:block>
+                        </th:block>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ============ Danh sách buổi, dễ đọc trên điện thoại ============ -->
+        <h6 class="text-uppercase text-muted fw-semibold mb-3 d-md-none"
+            style="letter-spacing: .5px;">Các buổi trong tuần</h6>
+
+        <div class="row g-2 d-md-none">
+            <div class="col-12" th:each="lh : ${dsLich}">
+                <div class="the-buoi p-3">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div class="min-w-0">
+                            <div class="fw-semibold" th:text="${lh.lopHocPhan.hocPhan.tenHocPhan}">Học phần</div>
+                            <div class="small text-muted" th:text="${lh.lopHocPhan.maLop}">Mã lớp</div>
+                        </div>
+                        <span class="badge" style="background:#0f766e;"
+                              th:text="${lh.tenThu}">Thứ</span>
+                    </div>
+                    <div class="small text-muted mt-2">
+                        <i class="fas fa-clock me-1"></i>
+                        <span th:text="${gioBatDau[lh.tietBatDau]}">07:00</span>
+                        <span th:text="' · tiết ' + ${lh.tietBatDau} + '–' + ${lh.tietKetThuc}"></span>
+                        <span th:if="${lh.phongHoc != null}"
+                              th:text="' · phòng ' + ${lh.phongHoc.maPhong}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-muted small mt-3 mb-0">
+            Lịch này suy ra từ phân công giảng dạy. Phòng Đào tạo đổi giờ hay đổi phòng
+            của một lớp thì bảng trên tự đổi theo, không cần ai cập nhật lại.
+        </p>
+    </div>
+
+</div>
+</body>
+</html>

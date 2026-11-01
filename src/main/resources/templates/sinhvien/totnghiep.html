@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{sinhvien/layout}">
+<head>
+    <title>Xét tốt nghiệp</title>
+    <style>
+        .o-dk {
+            display: flex; gap: .75rem; align-items: flex-start;
+            padding: .85rem 0; border-bottom: 1px solid #e9ecef;
+        }
+        .o-dk:last-child { border-bottom: 0; }
+        .o-dk .bieu-tuong { font-size: 1.1rem; width: 1.5rem; flex: 0 0 1.5rem; text-align: center; }
+        .o-dk.dat    .bieu-tuong { color: #198754; }
+        .o-dk.thieu  .bieu-tuong { color: #dc3545; }
+        .o-dk .ten   { font-weight: 600; }
+        .o-dk .chitiet { font-size: .85rem; color: #6c757d; }
+
+        .vach { height: 8px; border-radius: 5px; background: #e9ecef; overflow: hidden; }
+        .vach > div { height: 100%; background: #198754; }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Xét tốt nghiệp</h5>
+
+<div layout:fragment="content">
+
+    <div th:if="${thongBao}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${thongBao}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${loi}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${loi}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${sinhVien == null}" class="alert alert-warning">
+        Tài khoản này chưa được gắn với hồ sơ sinh viên nào.
+    </div>
+
+    <th:block th:if="${sinhVien != null}">
+
+        <!-- ===== Bảng điều kiện ===== -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span class="fw-bold">Điều kiện tốt nghiệp</span>
+                <span class="badge fs-6"
+                      th:classappend="${ketQua.duDieuKien} ? 'bg-success' : 'bg-warning text-dark'"
+                      th:text="'Đạt ' + ${ketQua.soDieuKienDat} + ' / '
+                               + ${ketQua.tongDieuKien} + ' điều kiện'"></span>
+            </div>
+
+            <div class="card-body">
+                <div class="vach mb-3">
+                    <div th:style="'width:' + (${ketQua.tongDieuKien gt 0}
+                                   ? (${ketQua.soDieuKienDat * 100 / ketQua.tongDieuKien}) : 0) + '%'"></div>
+                </div>
+
+                <div th:each="dk : ${ketQua.dsDieuKien}" class="o-dk"
+                     th:classappend="${dk.dat} ? 'dat' : 'thieu'">
+                    <div class="bieu-tuong">
+                        <i th:class="${dk.dat} ? 'fas fa-circle-check' : 'fas fa-circle-xmark'"></i>
+                    </div>
+                    <div>
+                        <div class="ten" th:text="${dk.ten}"></div>
+                        <div class="chitiet" th:text="${dk.chiTiet}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer small text-muted">
+                Bảng này tính theo dữ liệu hiện có trên hệ thống: điểm đã công bố, công nợ
+                học phí và điểm rèn luyện. Điểm chưa công bố chưa được tính vào.
+            </div>
+        </div>
+
+        <!-- ===== Nộp đơn ===== -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header fw-bold">Đợt xét đang nhận đơn</div>
+
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Đợt</th>
+                        <th>Học kỳ</th>
+                        <th>Hạn nộp đơn</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${dsDot == null or dsDot.empty}">
+                        <td colspan="4" class="text-center text-muted py-4">
+                            Hiện không có đợt xét nào đang nhận đơn.
+                        </td>
+                    </tr>
+                    <tr th:each="d : ${dsDot}">
+                        <td class="fw-semibold" th:text="${d.tenDot}"></td>
+                        <td class="small" th:text="${d.hocKy.tenHocKy}"></td>
+                        <td class="small" th:text="${d.ngayDongDangKy != null}
+                                 ? ${#temporals.format(d.ngayDongDangKy, 'HH:mm dd/MM/yyyy')} : '—'"></td>
+                        <td class="text-center">
+                            <form th:action="@{/sinhvien/totnghiep/nopdon/{id}(id=${d.maDot})}"
+                                  method="post" class="d-inline"
+                                  onsubmit="return confirm('Nộp đơn xét tốt nghiệp cho đợt này?');">
+                                <button type="submit" class="btn btn-sm btn-primary"
+                                        th:disabled="${!ketQua.duDieuKien}">
+                                    <i class="fas fa-paper-plane me-1"></i> Nộp đơn
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card-footer small text-muted" th:unless="${ketQua.duDieuKien}">
+                <i class="fas fa-circle-info me-1"></i>
+                Nút nộp đơn mở ra khi bạn đạt đủ các điều kiện phía trên.
+            </div>
+        </div>
+
+        <!-- ===== Đơn đã nộp ===== -->
+        <div class="card shadow-sm" th:unless="${dsDon == null or dsDon.empty}">
+            <div class="card-header fw-bold">Đơn đã nộp</div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Đợt</th>
+                        <th>Ngày nộp</th>
+                        <th class="text-center">Tín chỉ</th>
+                        <th class="text-center">GPA</th>
+                        <th class="text-center">Rèn luyện</th>
+                        <th class="text-center">Kết quả</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="don : ${dsDon}">
+                        <td th:text="${don.dot.tenDot}"></td>
+                        <td class="small" th:text="${#temporals.format(don.ngayNop, 'dd/MM/yyyy')}"></td>
+                        <td class="text-center small"
+                            th:text="${don.tinChiLucNop} + ' / ' + ${don.tinChiYeuCau}"></td>
+                        <td class="text-center small" th:text="${don.gpaLucNop}"></td>
+                        <td class="text-center small" th:text="${don.diemRenLuyenLucNop}"></td>
+                        <td class="text-center">
+                            <span class="badge" th:classappend="${don.mauTrangThai}"
+                                  th:text="${don.tenTrangThai}"></span>
+                            <div th:if="${don.lyDoTuChoi != null}" class="small text-danger mt-1"
+                                 th:text="${don.lyDoTuChoi}"></div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer small text-muted">
+                Số liệu trong bảng là bản chụp tại lúc nộp đơn, giữ nguyên để đối chiếu
+                với quyết định của hội đồng.
+            </div>
+        </div>
+
+    </th:block>
+</div>
+</body>
+</html>

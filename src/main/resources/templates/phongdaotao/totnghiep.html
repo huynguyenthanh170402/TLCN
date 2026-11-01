@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongdaotao/layout}">
+<head>
+    <title>Xét tốt nghiệp</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Xét tốt nghiệp</h5>
+
+<div layout:fragment="content">
+
+    <div class="alert alert-light border small mb-3">
+        Trường không xét tốt nghiệp quanh năm mà gom thành đợt. Tạo đợt, mở nhận đơn cho
+        sinh viên nộp, chốt danh sách rồi xét từng hồ sơ. Hệ thống tự đối chiếu điều kiện
+        theo dữ liệu đang có, hội đồng chỉ việc xác nhận.
+    </div>
+
+    <!-- Tạo đợt mới -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header fw-bold">
+            <i class="fas fa-plus me-1"></i> Tạo đợt xét tốt nghiệp
+        </div>
+        <form th:action="@{/quanly/totnghiep/them}" method="post">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-7">
+                        <label class="form-label fw-semibold">Tên đợt</label>
+                        <input type="text" name="tenDot" class="form-control" maxlength="300" required
+                               placeholder="Ví dụ: Đợt 1 năm học 2026-2027">
+                    </div>
+                    <div class="col-12 col-md-5">
+                        <label class="form-label fw-semibold">Học kỳ</label>
+                        <select name="maHocKy" class="form-select" required>
+                            <option th:each="hk : ${dsHocKy}" th:value="${hk.maHocKy}"
+                                    th:text="${hk.tenHocKy}"></option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label fw-semibold">Mở nhận đơn</label>
+                        <input type="datetime-local" name="ngayMoDangKy" class="form-control">
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label fw-semibold">Đóng nhận đơn</label>
+                        <input type="datetime-local" name="ngayDongDangKy" class="form-control">
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label fw-semibold">Ngày họp xét</label>
+                        <input type="date" name="ngayXet" class="form-control">
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-end">
+                <button type="submit" class="btn btn-primary">Tạo đợt</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Danh sách đợt -->
+    <form class="o-tim mb-3" role="search">
+        <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-magnifying-glass"></i></span>
+            <input type="search" class="form-control" placeholder="Tìm theo tên đợt, học kỳ…"
+                   data-loc="#bangDot" data-trong="#khongThayDot">
+            <button class="btn btn-outline-secondary" type="submit">Tìm</button>
+        </div>
+    </form>
+
+    <div class="alert alert-secondary" id="khongThayDot" hidden>
+        Không có đợt nào khớp với từ khóa.
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header small text-muted" th:text="${dsDot.size()} + ' đợt'"></div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="bangDot">
+                <thead class="table-light">
+                <tr>
+                    <th>Tên đợt</th>
+                    <th>Học kỳ</th>
+                    <th>Nhận đơn</th>
+                    <th>Ngày xét</th>
+                    <th class="text-center">Trạng thái</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${dsDot.empty}" data-bo-qua>
+                    <td colspan="6" class="text-center text-muted py-4">Chưa có đợt xét nào.</td>
+                </tr>
+                <tr th:each="d : ${dsDot}">
+                    <td class="fw-semibold" th:text="${d.tenDot}"></td>
+                    <td class="small" th:text="${d.hocKy.tenHocKy}"></td>
+                    <td class="small">
+                        <span th:if="${d.ngayMoDangKy != null}"
+                              th:text="${#temporals.format(d.ngayMoDangKy, 'dd/MM/yyyy')}"></span>
+                        <span th:if="${d.ngayDongDangKy != null}"
+                              th:text="' – ' + ${#temporals.format(d.ngayDongDangKy, 'dd/MM/yyyy')}"></span>
+                    </td>
+                    <td class="small" th:text="${d.ngayXet != null}
+                             ? ${#temporals.format(d.ngayXet, 'dd/MM/yyyy')} : '—'"></td>
+                    <td class="text-center">
+                        <span class="badge" th:classappend="${d.mauTrangThai}"
+                              th:text="${d.tenTrangThai}"></span>
+                        <div th:if="${d.hetHanNopDon}" class="small text-muted">hết hạn nộp</div>
+                    </td>
+                    <td class="text-end">
+                        <a th:href="@{/quanly/totnghiep/{id}(id=${d.maDot})}"
+                           class="btn btn-sm btn-outline-primary">Xem</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

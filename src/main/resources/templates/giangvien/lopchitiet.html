@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{giangvien/layout}">
+<head>
+    <title>Chi tiết lớp</title>
+    <style>
+        .bang-tt td { padding: .35rem 0; }
+        .bang-tt td:first-child { color: #6c757d; width: 45%; }
+        .buoi {
+            background: #ccfbf1; border-left: 3px solid #0f766e;
+            border-radius: 8px; padding: 8px 10px; font-size: .85rem;
+        }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Chi tiết lớp</h5>
+
+<div layout:fragment="content">
+
+    <a th:href="@{/giangvien/lop}" class="btn btn-sm btn-outline-secondary mb-3">
+        <i class="fas fa-arrow-left me-1"></i> Về danh sách lớp
+    </a>
+
+    <div class="row g-3">
+
+        <!-- ============ Thông tin lớp ============ -->
+        <div class="col-12 col-lg-4">
+            <div class="card shadow-sm mb-3">
+                <div class="card-header fw-semibold" th:text="${lop.maLop}">Mã lớp</div>
+                <div class="card-body">
+                    <table class="table table-sm bang-tt mb-0">
+                        <tr>
+                            <td>Học phần</td>
+                            <td class="fw-semibold" th:text="${lop.hocPhan.tenHocPhan}"></td>
+                        </tr>
+                        <tr>
+                            <td>Mã học phần</td>
+                            <td th:text="${lop.hocPhan.maHocPhan}"></td>
+                        </tr>
+                        <tr>
+                            <td>Số tín chỉ</td>
+                            <td th:text="${lop.hocPhan.soTinChi}"></td>
+                        </tr>
+                        <tr>
+                            <td>Học kỳ</td>
+                            <td th:text="${lop.hocKy.tenHocKy}"></td>
+                        </tr>
+                        <tr>
+                            <td>Loại lớp</td>
+                            <td>
+                                <span class="badge" th:classappend="${lop.mauLoaiLop}"
+                                      th:text="${lop.tenLoaiLop}"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Sĩ số</td>
+                            <td>
+                                <span th:text="${bang.size()}">0</span>
+                                <span class="text-muted" th:if="${lop.siSoToiDa != null}"
+                                      th:text="' / ' + ${lop.siSoToiDa}"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Vai trò của bạn</td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${laChinh} ? 'bg-success' : 'bg-secondary'"
+                                      th:text="${pc.tenVaiTro}"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Bảng điểm</td>
+                            <td th:text="${tinhTrang}"></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ============ Lịch học của lớp ============ -->
+            <div class="card shadow-sm">
+                <div class="card-header fw-semibold">Lịch học</div>
+                <div class="card-body">
+                    <p class="text-muted small mb-0" th:if="${dsLich.empty}">
+                        Phòng Đào tạo chưa xếp giờ cho lớp này.
+                    </p>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="buoi" th:each="lh : ${dsLich}">
+                            <div class="fw-semibold" th:text="${lh.tenThu}">Thứ</div>
+                            <div class="text-muted">
+                                <span th:text="${gioBatDau[lh.tietBatDau]}">07:00</span>
+                                <span th:text="' · tiết ' + ${lh.tietBatDau} + '–' + ${lh.tietKetThuc}"></span>
+                            </div>
+                            <div class="text-muted" th:if="${lh.phongHoc != null}"
+                                 th:text="'Phòng ' + ${lh.phongHoc.maPhong}
+                                          + (${lh.phongHoc.toaNha != null} ? ' · ' + ${lh.phongHoc.toaNha} : '')">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ Danh sách sinh viên ============ -->
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <span class="fw-semibold">Danh sách sinh viên</span>
+                    <a th:if="${laChinh}"
+                       th:href="@{/giangvien/lop/{id}/diem(id=${lop.maLopHocPhan})}"
+                       class="btn btn-sm btn-primary">
+                        <i class="fas fa-pen me-1"></i> Nhập điểm
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th style="width: 50px;">#</th>
+                            <th>MSSV</th>
+                            <th>Họ tên</th>
+                            <th>Ngành</th>
+                            <th>Diện</th>
+                            <th class="text-center">Tổng kết</th>
+                            <th class="text-center">Điểm chữ</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${bang.empty}">
+                            <td colspan="7" class="text-center text-muted py-4">
+                                Lớp chưa có sinh viên đăng ký.
+                            </td>
+                        </tr>
+                        <tr th:each="d, it : ${bang}" th:with="dk=${d.dangKy}, kq=${d.ketQua}">
+                            <td class="text-muted small" th:text="${it.count}">1</td>
+                            <td class="small fw-semibold" th:text="${dk.sinhVien.maSoSinhVien}"></td>
+                            <td th:text="${dk.sinhVien.hoTen}"></td>
+                            <td class="small text-muted"
+                                th:text="${dk.sinhVien.nganh != null} ? ${dk.sinhVien.nganh.tenNganh} : ''"></td>
+                            <td class="small text-muted" th:text="${dk.tenLoaiDangKy}"></td>
+                            <td class="text-center fw-semibold"
+                                th:text="${kq != null and kq.diemTongKet != null} ? ${kq.diemTongKet} : '—'"></td>
+                            <td class="text-center">
+                                <span th:if="${kq != null and kq.diemChu != null}"
+                                      class="badge"
+                                      th:classappend="${kq.ketQua != null and kq.ketQua == 1} ? 'bg-success' : 'bg-danger'"
+                                      th:text="${kq.diemChu}"></span>
+                                <span th:unless="${kq != null and kq.diemChu != null}" class="text-muted">—</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <p class="text-muted small mt-3 mb-0" th:unless="${laChinh}">
+                Bạn là <span th:text="${pc.tenVaiTro}">trợ giảng</span> của lớp này nên
+                chỉ xem được danh sách, không nhập điểm. Điểm do giảng viên chính nhập.
+            </p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

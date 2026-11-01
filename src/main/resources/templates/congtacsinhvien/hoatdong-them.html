@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{congtacsinhvien/layout}">
+<head>
+    <title>Tạo hoạt động</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Tạo hoạt động công tác xã hội</h5>
+
+<div layout:fragment="content">
+
+    <div th:if="${loi}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${loi}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <nav class="mb-3">
+        <a th:href="@{/ctsv/hoatdong(hocKy=${hocKyChon})}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Về danh sách hoạt động
+        </a>
+    </nav>
+
+    <form th:action="@{/ctsv/hoatdong/them}" method="post" class="card shadow-sm">
+        <div class="card-body">
+
+            <div class="row g-3">
+                <div class="col-12 col-md-8">
+                    <label class="form-label fw-semibold">Tên hoạt động</label>
+                    <input type="text" name="tenHoatDong" class="form-control" maxlength="300" required
+                           placeholder="Ví dụ: Chủ nhật Xanh – dọn vệ sinh ký túc xá">
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label fw-semibold">Học kỳ</label>
+                    <select name="maHocKy" class="form-select" required>
+                        <option th:each="hk : ${dsHocKy}" th:value="${hk.maHocKy}"
+                                th:text="${hk.tenHocKy}" th:selected="${hk.maHocKy == hocKyChon}"></option>
+                    </select>
+                    <div class="form-text">Điểm cộng vào điểm rèn luyện của học kỳ này.</div>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Mô tả</label>
+                    <textarea name="moTa" class="form-control" rows="3" maxlength="2000"
+                              placeholder="Nội dung công việc, yêu cầu với người tham gia, cần mang theo gì…"></textarea>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label fw-semibold">Loại hoạt động</label>
+                    <select name="loaiHoatDong" class="form-select">
+                        <option value="1">Tình nguyện</option>
+                        <option value="2">Văn hóa văn nghệ</option>
+                        <option value="3">Thể thao</option>
+                        <option value="4">Hội thảo, tập huấn</option>
+                        <option value="5">Khác</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-4">
+                    <label class="form-label fw-semibold">Điểm rèn luyện cộng</label>
+                    <input type="number" name="diemCong" class="form-control"
+                           min="1" max="30" th:value="${diemMacDinh}" required>
+                    <div class="form-text">
+                        Từ 1 đến 30. Một hoạt động cộng quá nhiều sẽ làm điểm rèn luyện
+                        mất ý nghĩa so với các hoạt động khác.
+                    </div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <label class="form-label fw-semibold">Số lượng tối đa</label>
+                    <input type="number" name="soLuongToiDa" class="form-control" min="1"
+                           placeholder="Để trống nếu không giới hạn">
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold">Đơn vị tổ chức</label>
+                    <input type="text" name="donViToChuc" class="form-control" maxlength="200"
+                           placeholder="Ví dụ: Đoàn Thanh niên trường">
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold">Địa điểm</label>
+                    <input type="text" name="diaDiem" class="form-control" maxlength="300"
+                           placeholder="Ví dụ: Sân A5, cơ sở 1">
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label fw-semibold">Bắt đầu</label>
+                    <input type="datetime-local" name="thoiGianBatDau" class="form-control">
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label fw-semibold">Kết thúc</label>
+                    <input type="datetime-local" name="thoiGianKetThuc" class="form-control">
+                    <div class="form-text">Qua giờ này mới điểm danh được.</div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label fw-semibold">Hạn đăng ký</label>
+                    <input type="datetime-local" name="hanDangKy" class="form-control">
+                    <div class="form-text">Phải trước lúc bắt đầu.</div>
+                </div>
+            </div>
+
+            <div class="alert alert-light border small mt-3 mb-0">
+                Hoạt động tạo xong ở trạng thái <strong>Nháp</strong>, sinh viên chưa thấy.
+                Kiểm tra lại thông tin rồi bấm <strong>Mở đăng ký</strong> ở trang chi tiết.
+            </div>
+        </div>
+
+        <div class="card-footer d-flex justify-content-end gap-2">
+            <a th:href="@{/ctsv/hoatdong(hocKy=${hocKyChon})}" class="btn btn-outline-secondary">Hủy</a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Tạo hoạt động
+            </button>
+        </div>
+    </form>
+</div>
+</body>
+</html>

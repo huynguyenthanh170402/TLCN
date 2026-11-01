@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongdaotao/layout}">
+<head>
+    <title>Chương trình đào tạo</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">
+    Chương trình đào tạo — <span th:text="${tenKhoa}">Khoa</span>
+</h5>
+
+<div layout:fragment="content">
+
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a th:href="@{/quanly/chuongtrinh}">Chương trình đào tạo</a>
+            </li>
+            <li class="breadcrumb-item active" th:text="${tenKhoa}"></li>
+        </ol>
+    </nav>
+
+    <div class="mb-3">
+        <span class="text-muted small">
+            Bấm vào ngành để xem khung chương trình theo từng học kỳ, thêm, sửa
+            hoặc gỡ học phần.
+        </span>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+    <form class="o-tim mb-3" role="search">
+        <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-magnifying-glass"></i></span>
+            <input type="search" class="form-control" placeholder="Tìm theo tên ngành…"
+                   data-loc="#bangNganhCt"
+                   data-trong="#khongThayNganhCt">
+            <button class="btn btn-outline-secondary" type="submit">Tìm</button>
+        </div>
+    </form>
+
+    <div class="alert alert-secondary" id="khongThayNganhCt" hidden>
+        Không có dòng nào khớp với từ khóa.
+    </div>
+
+            <table class="table table-hover align-middle mb-0" id="bangNganhCt">
+                <thead class="table-light">
+                <tr>
+                    <th>Ngành</th>
+                    <th class="text-center">Số học phần</th>
+                    <th class="text-center">Tổng tín chỉ</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${dsNganh.empty}">
+                    <td colspan="4" class="text-center text-muted py-4">
+                        Khoa này chưa có ngành nào được khai báo.
+                    </td>
+                </tr>
+                <tr th:each="n : ${dsNganh}">
+                    <td class="fw-semibold" th:text="${n.tenNganh}"></td>
+                    <td class="text-center">
+                        <span th:if="${n.coChuongTrinh}" th:text="${n.soHocPhan}"></span>
+                        <span th:unless="${n.coChuongTrinh}"
+                              class="badge bg-warning text-dark">Chưa có</span>
+                    </td>
+                    <td class="text-center"
+                        th:text="${n.coChuongTrinh} ? ${n.tongTinChi} : '—'"></td>
+                    <td class="text-end">
+                        <a th:href="@{/quanly/chuongtrinh/nganh/{id}(id=${n.maNganh})}"
+                           class="btn btn-sm btn-outline-primary">Xem</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

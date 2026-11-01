@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{congtacsinhvien/layout}">
+<head>
+    <title>Miễn giảm &amp; học bổng</title>
+    <style>
+        .thanh-loc { background: #fff; border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+        .ty-le { font-weight: 700; color: #6d28d9; white-space: nowrap; }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Miễn giảm &amp; học bổng</h5>
+
+<div layout:fragment="content">
+
+    <div class="row g-3">
+
+        <!-- ============ Lập hồ sơ ============ -->
+        <div class="col-12 col-xl-4">
+            <div class="card shadow-sm">
+                <div class="card-header fw-semibold">Lập hồ sơ mới</div>
+                <div class="card-body">
+                    <form method="post" th:action="@{/ctsv/miengiam/denghi}">
+
+                        <div class="mb-3">
+                            <label class="form-label">Mã số sinh viên</label>
+                            <input type="text" name="maSoSinhVien" class="form-control"
+                                   required placeholder="24tx610010">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Học kỳ</label>
+                            <select name="maHocKy" class="form-select" required>
+                                <option value="">— Chọn học kỳ —</option>
+                                <option th:each="hk : ${dsHocKy}"
+                                        th:value="${hk.maHocKy}"
+                                        th:text="${hk.tenHocKy}"></option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Loại</label>
+                            <select name="loai" class="form-select">
+                                <option value="1">Miễn giảm chính sách</option>
+                                <option value="2">Học bổng khuyến khích học tập</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Diện được hưởng</label>
+                            <input type="text" name="dienHuong" class="form-control" maxlength="300"
+                                   placeholder="Con thương binh, hộ nghèo, học bổng loại Giỏi…">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tỉ lệ giảm (%)</label>
+                            <input type="number" name="tyLePhanTram" class="form-control"
+                                   min="1" max="100" step="5" value="50" required>
+                            <div class="form-text">
+                                Ghi phần trăm, không ghi số tiền. Sinh viên đăng ký thêm hay
+                                bớt học phần thì số tiền được giảm tự thay đổi theo.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú</label>
+                            <input type="text" name="ghiChu" class="form-control" maxlength="1000"
+                                   placeholder="Số quyết định, căn cứ xét…">
+                        </div>
+
+                        <button type="submit" class="btn w-100 text-white" style="background:#6d28d9;">
+                            <i class="fas fa-plus me-1"></i> Lập hồ sơ
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="alert alert-light border mt-3 mb-0 small text-muted">
+                <i class="fas fa-circle-info me-1" style="color:#6d28d9;"></i>
+                Hồ sơ lập xong ở trạng thái <strong>chờ duyệt</strong>, chưa có tác dụng gì.
+                Chỉ khi bấm <strong>Duyệt</strong> thì Phòng Kế hoạch Tài chính mới nhìn thấy
+                và quy ra tiền lúc tính lại công nợ.
+            </div>
+        </div>
+
+        <!-- ============ Danh sách ============ -->
+        <div class="col-12 col-xl-8">
+
+            <form method="get" th:action="@{/ctsv/miengiam}" class="thanh-loc p-3 mb-3">
+                <div class="row g-2 align-items-end">
+                    <div class="col-12 col-md-5">
+                        <label class="form-label small text-muted mb-1">Học kỳ</label>
+                        <select name="maHocKy" class="form-select form-select-sm">
+                            <option value="">Tất cả học kỳ</option>
+                            <option th:each="hk : ${dsHocKy}"
+                                    th:value="${hk.maHocKy}"
+                                    th:text="${hk.tenHocKy}"
+                                    th:selected="${maHocKy != null and maHocKy == hk.maHocKy}"></option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small text-muted mb-1">Trạng thái</label>
+                        <select name="trangThai" class="form-select form-select-sm">
+                            <option value="">Tất cả</option>
+                            <option value="0" th:selected="${trangThai != null and trangThai == 0}">Chờ duyệt</option>
+                            <option value="1" th:selected="${trangThai != null and trangThai == 1}">Đã duyệt</option>
+                            <option value="2" th:selected="${trangThai != null and trangThai == 2}">Từ chối</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <label class="form-label small text-muted mb-1">MSSV / họ tên</label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" name="tuKhoa" class="form-control" th:value="${tuKhoa}">
+                            <button class="btn btn-outline-secondary" type="submit">
+                                <i class="fas fa-magnifying-glass"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <div class="card shadow-sm">
+                <div class="table-responsive">
+                    <table data-trang="0" class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th>MSSV</th>
+                            <th>Họ tên</th>
+                            <th>Học kỳ</th>
+                            <th>Loại</th>
+                            <th>Diện</th>
+                            <th class="text-center">Tỉ lệ</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${ds.empty}">
+                            <td colspan="8" class="text-center text-muted py-4">
+                                Chưa có hồ sơ nào khớp điều kiện lọc.
+                            </td>
+                        </tr>
+                        <tr th:each="mg : ${ds.content}">
+                            <td class="small fw-semibold" th:text="${mg.sinhVien.maSoSinhVien}"></td>
+                            <td th:text="${mg.sinhVien.hoTen}"></td>
+                            <td class="small" th:text="${mg.hocKy.maHocKyCode}"></td>
+                            <td class="small" th:text="${mg.tenLoai}"></td>
+                            <td class="small text-muted" th:text="${mg.dienHuong}"></td>
+                            <td class="text-center ty-le"
+                                th:text="${#numbers.formatDecimal(mg.tyLePhanTram, 1, 0)} + '%'"></td>
+                            <td class="text-center">
+                                <span th:switch="${mg.trangThai}">
+                                    <span th:case="0" class="badge bg-warning text-dark">Chờ duyệt</span>
+                                    <span th:case="1" class="badge bg-success">Đã duyệt</span>
+                                    <span th:case="2" class="badge bg-secondary">Từ chối</span>
+                                </span>
+                            </td>
+                            <td class="text-end" style="white-space: nowrap;">
+
+                                <form th:if="${mg.choDuyet}" method="post"
+                                      th:action="@{/ctsv/miengiam/duyet/{id}(id=${mg.maMienGiam})}"
+                                      class="d-inline m-0">
+                                    <button class="btn btn-sm btn-success" type="submit">Duyệt</button>
+                                </form>
+
+                                <form th:if="${mg.choDuyet}" method="post"
+                                      th:action="@{/ctsv/miengiam/tuchoi/{id}(id=${mg.maMienGiam})}"
+                                      class="d-inline m-0">
+                                    <button class="btn btn-sm btn-outline-secondary" type="submit">Từ chối</button>
+                                </form>
+
+                                <form th:if="${mg.daDuyet}" method="post"
+                                      th:action="@{/ctsv/miengiam/thuhoi/{id}(id=${mg.maMienGiam})}"
+                                      class="d-inline m-0">
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">Thu hồi</button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <nav class="mt-3" th:if="${ds.totalPages > 1}">
+                <ul class="pagination pagination-sm justify-content-center flex-wrap mb-0">
+                    <li class="page-item" th:classappend="${ds.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/ctsv/miengiam(maHocKy=${maHocKy},trangThai=${trangThai},tuKhoa=${tuKhoa},trang=${ds.number - 1})}">Trước</a>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link" th:text="'Trang ' + (${ds.number} + 1) + ' / ' + ${ds.totalPages}"></span>
+                    </li>
+                    <li class="page-item" th:classappend="${ds.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/ctsv/miengiam(maHocKy=${maHocKy},trangThai=${trangThai},tuKhoa=${tuKhoa},trang=${ds.number + 1})}">Sau</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+</body>
+</html>

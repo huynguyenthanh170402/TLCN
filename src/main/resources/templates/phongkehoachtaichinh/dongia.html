@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongkehoachtaichinh/layout}">
+<head>
+    <title>Đơn giá tín chỉ</title>
+    <style>
+        td.tien, th.tien { text-align: right; white-space: nowrap; }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Đơn giá tín chỉ</h5>
+
+<div layout:fragment="content">
+
+    <div class="row g-3">
+
+        <!-- ============ Biểu mẫu ============ -->
+        <div class="col-12 col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header fw-semibold"
+                     th:text="${dangSua != null} ? 'Sửa đơn giá' : 'Thêm đơn giá'">Thêm đơn giá</div>
+                <div class="card-body">
+                    <form method="post" th:action="@{/taichinh/dongia/luu}">
+
+                        <input type="hidden" name="maDonGia"
+                               th:if="${dangSua != null}" th:value="${dangSua.maDonGia}">
+
+                        <div class="mb-3">
+                            <label class="form-label">Học kỳ</label>
+                            <select name="maHocKy" class="form-select" required>
+                                <option value="">— Chọn học kỳ —</option>
+                                <option th:each="hk : ${dsHocKy}"
+                                        th:value="${hk.maHocKy}"
+                                        th:text="${hk.tenHocKy}"
+                                        th:selected="${dangSua != null and dangSua.hocKy.maHocKy == hk.maHocKy}"></option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Khóa tuyển sinh</label>
+                            <input type="text" name="khoaTuyenSinh" class="form-control"
+                                   maxlength="20" placeholder="Để trống = mọi khóa"
+                                   th:value="${dangSua != null} ? ${dangSua.khoaTuyenSinh} : ''">
+                            <div class="form-text">
+                                Bỏ trống thì đơn giá này áp cho mọi khóa trong học kỳ.
+                                Điền một khóa cụ thể, ví dụ 2024, thì dòng đó thắng dòng chung.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Đơn giá mỗi tín chỉ (đ)</label>
+                            <input type="number" name="donGia" class="form-control"
+                                   min="0" step="1000" required
+                                   th:value="${dangSua != null} ? ${dangSua.donGia} : 850000">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú</label>
+                            <input type="text" name="ghiChu" class="form-control" maxlength="500"
+                                   th:value="${dangSua != null} ? ${dangSua.ghiChu} : ''">
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success flex-grow-1">
+                                <i class="fas fa-floppy-disk me-1"></i>
+                                <span th:text="${dangSua != null} ? 'Cập nhật' : 'Thêm'">Thêm</span>
+                            </button>
+                            <a th:if="${dangSua != null}" th:href="@{/taichinh/dongia}"
+                               class="btn btn-outline-secondary">Hủy</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ Bảng giá ============ -->
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Học kỳ</th>
+                            <th>Phạm vi</th>
+                            <th class="tien">Đơn giá / tín chỉ</th>
+                            <th>Ghi chú</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${ds.empty}">
+                            <td colspan="5" class="text-center text-muted py-4">
+                                Chưa khai báo đơn giá nào. Khi đó hệ thống tạm dùng 850.000 đ mỗi tín chỉ.
+                            </td>
+                        </tr>
+                        <tr th:each="dg : ${ds}">
+                            <td th:text="${dg.hocKy.tenHocKy}"></td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${dg.khoaTuyenSinh == null} ? 'bg-secondary' : 'bg-success'"
+                                      th:text="${dg.tenPhamVi}"></span>
+                            </td>
+                            <td class="tien fw-semibold"
+                                th:text="${#numbers.formatDecimal(dg.donGia, 1, 'POINT', 0, 'COMMA')} + ' đ'"></td>
+                            <td class="small text-muted" th:text="${dg.ghiChu}"></td>
+                            <td class="text-end">
+                                <a th:href="@{/taichinh/dongia(sua=${dg.maDonGia})}"
+                                   class="btn btn-sm btn-outline-primary">Sửa</a>
+                                <form method="post"
+                                      th:action="@{/taichinh/dongia/xoa/{id}(id=${dg.maDonGia})}"
+                                      class="d-inline m-0">
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">Xóa</button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="alert alert-light border mt-3 mb-0 small text-muted">
+                <i class="fas fa-circle-info me-1 text-success"></i>
+                Sửa đơn giá không tự động đổi số tiền của các công nợ đã sinh trước đó.
+                Muốn áp giá mới, vào mục <strong>Công nợ sinh viên</strong>, chọn học kỳ
+                rồi bấm <strong>Tính lại công nợ học kỳ này</strong>.
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

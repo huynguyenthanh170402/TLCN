@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{congtacsinhvien/layout}">
+<head>
+    <title>Chi tiết hoạt động</title>
+    <style>
+        .ma-so { font-family: ui-monospace, Consolas, monospace; font-size: .85rem; }
+        .bang-tt td { padding: .25rem .5rem .25rem 0; vertical-align: top; }
+        .bang-tt td.nhan { color: #6c757d; width: 38%; white-space: nowrap; }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Chi tiết hoạt động</h5>
+
+<div layout:fragment="content">
+
+    <div th:if="${thongBao}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${thongBao}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${loi}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${loi}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <nav class="mb-3">
+        <a th:href="@{/ctsv/hoatdong(hocKy=${hd.hocKy.maHocKy})}"
+           class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Về danh sách hoạt động
+        </a>
+    </nav>
+
+    <div class="row g-3 mb-3">
+
+        <!-- ===== Thông tin hoạt động ===== -->
+        <div class="col-12 col-lg-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <span class="fw-bold">Thông tin</span>
+                    <span class="badge" th:classappend="${hd.mauTrangThai}"
+                          th:text="${hd.tenTrangThai}"></span>
+                </div>
+                <div class="card-body">
+                    <h6 class="fw-bold" th:text="${hd.tenHoatDong}"></h6>
+                    <p class="small text-muted" th:if="${hd.moTa != null}" th:text="${hd.moTa}"></p>
+
+                    <table class="bang-tt w-100 small">
+                        <tr>
+                            <td class="nhan">Học kỳ</td>
+                            <td th:text="${hd.hocKy.tenHocKy}"></td>
+                        </tr>
+                        <tr>
+                            <td class="nhan">Loại</td>
+                            <td><span class="badge" th:classappend="${hd.mauLoai}"
+                                      th:text="${hd.tenLoai}"></span></td>
+                        </tr>
+                        <tr>
+                            <td class="nhan">Điểm rèn luyện</td>
+                            <td class="fw-semibold" th:text="'+' + ${hd.diemCong} + ' điểm'"></td>
+                        </tr>
+                        <tr th:if="${hd.donViToChuc != null}">
+                            <td class="nhan">Đơn vị tổ chức</td>
+                            <td th:text="${hd.donViToChuc}"></td>
+                        </tr>
+                        <tr th:if="${hd.diaDiem != null}">
+                            <td class="nhan">Địa điểm</td>
+                            <td th:text="${hd.diaDiem}"></td>
+                        </tr>
+                        <tr th:if="${hd.thoiGianBatDau != null}">
+                            <td class="nhan">Bắt đầu</td>
+                            <td th:text="${#temporals.format(hd.thoiGianBatDau, 'HH:mm dd/MM/yyyy')}"></td>
+                        </tr>
+                        <tr th:if="${hd.thoiGianKetThuc != null}">
+                            <td class="nhan">Kết thúc</td>
+                            <td th:text="${#temporals.format(hd.thoiGianKetThuc, 'HH:mm dd/MM/yyyy')}"></td>
+                        </tr>
+                        <tr th:if="${hd.hanDangKy != null}">
+                            <td class="nhan">Hạn đăng ký</td>
+                            <td th:text="${#temporals.format(hd.hanDangKy, 'HH:mm dd/MM/yyyy')}"></td>
+                        </tr>
+                        <tr>
+                            <td class="nhan">Đã đăng ký</td>
+                            <td>
+                                <span class="fw-semibold" th:text="${soDaDangKy}"></span>
+                                <span th:if="${hd.soLuongToiDa != null}"
+                                      th:text="' / ' + ${hd.soLuongToiDa}"></span>
+                                <span th:unless="${hd.soLuongToiDa != null}" class="text-muted">
+                                    (không giới hạn)</span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- ===== Chuyển trạng thái ===== -->
+                <div class="card-footer d-flex flex-wrap gap-2">
+                    <form th:if="${hd.trangThai == 0 or hd.trangThai == 2}"
+                          th:action="@{/ctsv/hoatdong/{id}/trangthai(id=${hd.maHoatDong})}"
+                          method="post" class="d-inline">
+                        <input type="hidden" name="trangThai" value="1">
+                        <button class="btn btn-sm btn-success">Mở đăng ký</button>
+                    </form>
+
+                    <form th:if="${hd.trangThai == 1}"
+                          th:action="@{/ctsv/hoatdong/{id}/trangthai(id=${hd.maHoatDong})}"
+                          method="post" class="d-inline">
+                        <input type="hidden" name="trangThai" value="2">
+                        <button class="btn btn-sm btn-primary">Chốt danh sách</button>
+                    </form>
+
+                    <form th:if="${hd.trangThai == 2}"
+                          th:action="@{/ctsv/hoatdong/{id}/trangthai(id=${hd.maHoatDong})}"
+                          method="post" class="d-inline"
+                          onsubmit="return confirm('Kết thúc hoạt động? Sau đó không sửa điểm danh được nữa.');">
+                        <input type="hidden" name="trangThai" value="3">
+                        <button class="btn btn-sm btn-outline-dark">Kết thúc</button>
+                    </form>
+
+                    <form th:if="${hd.trangThai != 3 and hd.trangThai != 4}"
+                          th:action="@{/ctsv/hoatdong/{id}/trangthai(id=${hd.maHoatDong})}"
+                          method="post" class="d-inline"
+                          onsubmit="return confirm('Hủy hoạt động này?');">
+                        <input type="hidden" name="trangThai" value="4">
+                        <button class="btn btn-sm btn-outline-danger">Hủy hoạt động</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== Danh sách tham gia ===== -->
+        <div class="col-12 col-lg-7">
+            <div class="card shadow-sm h-100">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <span class="fw-bold">Danh sách tham gia</span>
+                    <span class="small text-muted" th:text="${ds.size()} + ' sinh viên'"></span>
+                </div>
+
+                <!-- Thêm sinh viên trực tiếp -->
+                <div class="card-body border-bottom" th:if="${hd.trangThai != 3 and hd.trangThai != 4}">
+                    <form th:action="@{/ctsv/hoatdong/{id}/them-sinhvien(id=${hd.maHoatDong})}"
+                          method="post" class="row g-2 align-items-end">
+                        <div class="col-12 col-md-7">
+                            <label class="form-label small fw-semibold">Thêm sinh viên bằng MSSV</label>
+                            <input type="text" name="maSoSinhVien" class="form-control form-control-sm"
+                                   required placeholder="Ví dụ: 22110123">
+                        </div>
+                        <div class="col-12 col-md-5">
+                            <button type="submit" class="btn btn-sm btn-outline-primary w-100">
+                                <i class="fas fa-user-plus"></i> Thêm vào danh sách
+                            </button>
+                        </div>
+                    </form>
+                    <div class="form-text">
+                        Dùng khi sinh viên tới tham gia trực tiếp mà chưa kịp đăng ký trên hệ thống.
+                    </div>
+                </div>
+
+                <!-- Điểm danh -->
+                <form th:action="@{/ctsv/hoatdong/{id}/diemdanh(id=${hd.maHoatDong})}" method="post">
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th style="width:44px" class="text-center">Có mặt</th>
+                                <th>MSSV</th>
+                                <th>Họ và tên</th>
+                                <th class="d-none d-md-table-cell">Ngành</th>
+                                <th class="text-center">Trạng thái</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${ds.empty}">
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    Chưa có sinh viên nào đăng ký.
+                                </td>
+                            </tr>
+                            <tr th:each="dk : ${ds}"
+                                th:classappend="${dk.trangThai == 4} ? 'table-light text-muted'">
+                                <td class="text-center">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="coMat" th:value="${dk.maDangKyHoatDong}"
+                                           th:checked="${dk.trangThai == 2}"
+                                           th:disabled="${dk.trangThai == 4}">
+                                </td>
+                                <td class="ma-so" th:text="${dk.sinhVien.maSoSinhVien}"></td>
+                                <td th:text="${dk.sinhVien.hoTen}"></td>
+                                <td class="d-none d-md-table-cell small"
+                                    th:text="${dk.sinhVien.nganh != null} ? ${dk.sinhVien.nganh.tenNganh} : ''"></td>
+                                <td class="text-center">
+                                    <span class="badge" th:classappend="${dk.mauTrangThai}"
+                                          th:text="${dk.tenTrangThai}"></span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="card-footer" th:unless="${ds.empty}">
+                        <div th:if="${!hd.daDienRa}" class="small text-muted mb-2">
+                            <i class="fas fa-clock me-1"></i>
+                            Chưa tới giờ kết thúc nên chưa điểm danh được.
+                        </div>
+                        <div th:if="${hd.trangThai == 0 or hd.trangThai == 1}" class="small text-muted mb-2">
+                            <i class="fas fa-circle-info me-1"></i>
+                            Bấm <strong>Chốt danh sách</strong> trước rồi mới điểm danh được.
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <span class="small text-muted">
+                                Người không đánh dấu sẽ bị ghi là vắng mặt và không được cộng điểm.
+                            </span>
+                            <button type="submit" class="btn btn-success btn-sm"
+                                    th:disabled="${!hd.daDienRa or hd.trangThai != 2}">
+                                <i class="fas fa-clipboard-check me-1"></i> Lưu điểm danh
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

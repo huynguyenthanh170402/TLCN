@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{bangiamhieu/layout}">
+<head>
+    <title>Kết quả học tập</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Kết quả học tập</h5>
+
+<div layout:fragment="content">
+
+    <div class="row g-3">
+        <div class="col-12 col-xl-7">
+            <div class="khung-bd h-100">
+                <div class="dau">
+                    <p class="ten">Phân bố điểm chữ</p>
+                    <p class="mo-ta">
+                        Mọi lượt học đã công bố điểm. Cột F cao bất thường ở một
+                        học phần là dấu hiệu cần rà lại đề thi hoặc cách giảng dạy.
+                    </p>
+                </div>
+                <div class="than"><div class="o-ve cao"><canvas id="bdDiemChu"></canvas></div></div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-5">
+            <div class="khung-bd h-100">
+                <div class="dau">
+                    <p class="ten">Xếp loại học lực</p>
+                    <p class="mo-ta">Theo điểm trung bình tích lũy thang 4</p>
+                </div>
+                <div class="than">
+                    <div class="o-ve"><canvas id="bdXepLoai"></canvas></div>
+                    <ul class="chu-giai mt-3" id="chuGiaiXepLoai"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tieu-muc">Tỷ lệ đạt theo học phần</div>
+
+    <div class="khung-bd">
+        <div class="dau">
+            <p class="mo-ta">
+                Học phần dưới 50% là nơi cần Phòng Đào tạo xem lại trước tiên:
+                có thể do đề quá khó, do thiếu học phần tiên quyết, hoặc do xếp lớp quá đông.
+            </p>
+        </div>
+        <div class="table-responsive" style="max-height: 460px;">
+            <table class="table table-sm align-middle mb-0 bang-so">
+                <thead class="table-light sticky-top">
+                <tr>
+                    <th>Học phần</th>
+                    <th class="text-center">Số lượt</th>
+                    <th style="width: 45%">Tỷ lệ đạt</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${bc.hocPhanNhan.empty}">
+                    <td colspan="3" class="text-center text-muted py-3">Chưa có dữ liệu.</td>
+                </tr>
+                <tr th:each="ten, it : ${bc.hocPhanNhan}"
+                    th:with="tyLe=${bc.hocPhanTyLeDat[it.index]}">
+                    <td th:text="${ten}"></td>
+                    <td class="text-center" th:text="${bc.hocPhanSoLuot[it.index]}"></td>
+                    <td>
+                        <div class="progress" style="height: 18px;">
+                            <div class="progress-bar"
+                                 th:classappend="${tyLe ge 80} ? 'bg-success' : (${tyLe ge 50} ? 'bg-warning text-dark' : 'bg-danger')"
+                                 th:style="'width:' + ${tyLe} + '%'"
+                                 th:text="${tyLe} + '%'"></div>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <p class="text-muted small mt-3 mb-0">
+        Điểm chỉ được tính khi đã công bố. Bảng điểm giảng viên còn đang nhập
+        hoặc mới gửi duyệt chưa xuất hiện ở đây, nên con số luôn là kết quả chính thức.
+    </p>
+
+</div>
+
+<th:block layout:fragment="scripts">
+
+<script th:inline="javascript">
+    var chuNhan    = /*[[${bc.diemChuNhan}]]*/ [];
+    var chuSoLuong = /*[[${bc.diemChuSoLuong}]]*/ [];
+    var xlNhan     = /*[[${bc.xepLoaiNhan}]]*/ [];
+    var xlSoLuong  = /*[[${bc.xepLoaiSoLuong}]]*/ [];
+</script>
+
+<script>
+    BD.cotDung('bdDiemChu', chuNhan, chuSoLuong, 'điểm chữ', 'số lượt', 'lượt');
+    BD.vanhKhuyen('bdXepLoai', xlNhan, xlSoLuong);
+    BD.chuGiai('chuGiaiXepLoai', xlNhan, xlSoLuong);
+</script>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{bangiamhieu/layout}">
+<head>
+    <title>Thu học phí</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Thu học phí</h5>
+
+<div layout:fragment="content">
+
+    <div class="row g-3">
+        <div class="col-6 col-xl-4">
+            <div class="the-so">
+                <div class="nhan">Phải thu</div>
+                <div class="so"
+                     th:text="${#numbers.formatDecimal(bc.tongPhaiThu, 1, 'POINT', 0, 'COMMA')}">0</div>
+                <div class="phu">đồng, đã trừ miễn giảm</div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-4">
+            <div class="the-so">
+                <div class="nhan">Đã thu</div>
+                <div class="so" style="color:#15803d;"
+                     th:text="${#numbers.formatDecimal(bc.tongDaThu, 1, 'POINT', 0, 'COMMA')}">0</div>
+                <div class="phu">đạt <span th:text="${bc.tyLeThu}">0</span>%</div>
+            </div>
+        </div>
+        <div class="col-12 col-xl-4">
+            <div class="the-so">
+                <div class="nhan">Còn nợ</div>
+                <div class="so text-danger"
+                     th:text="${#numbers.formatDecimal(bc.tongConNo, 1, 'POINT', 0, 'COMMA')}">0</div>
+                <div class="phu">đồng, cộng dồn mọi học kỳ</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tieu-muc">Diễn biến theo học kỳ</div>
+
+    <div class="khung-bd">
+        <div class="dau">
+            <p class="ten">Phải thu và đã thu theo học kỳ</p>
+            <p class="mo-ta">
+                Đơn vị: triệu đồng. Khoảng cách giữa hai cột chính là phần còn nợ
+                của học kỳ đó. Khoảng cách nới rộng dần qua các kỳ là dấu hiệu
+                công tác thu đang chậm lại.
+            </p>
+        </div>
+        <div class="than"><div class="o-ve cao"><canvas id="bdHocPhi"></canvas></div></div>
+    </div>
+
+    <div class="tieu-muc">Bảng số liệu</div>
+
+    <div class="khung-bd">
+        <div class="table-responsive" style="max-height: 420px;">
+            <table class="table table-sm align-middle mb-0 bang-so">
+                <thead class="table-light sticky-top">
+                <tr>
+                    <th>Học kỳ</th>
+                    <th class="text-end">Phải thu (triệu)</th>
+                    <th class="text-end">Đã thu (triệu)</th>
+                    <th class="text-end">Còn nợ (triệu)</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${bc.hocPhiNhan.empty}">
+                    <td colspan="4" class="text-center text-muted py-3">Chưa có dữ liệu.</td>
+                </tr>
+                <tr th:each="ten, it : ${bc.hocPhiNhan}"
+                    th:with="pt=${bc.hocPhiPhaiThu[it.index]}, dt=${bc.hocPhiDaThu[it.index]}">
+                    <td th:text="${ten}"></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(pt, 1, 'POINT', 1, 'COMMA')}"></td>
+                    <td class="text-end" style="color:#15803d;"
+                        th:text="${#numbers.formatDecimal(dt, 1, 'POINT', 1, 'COMMA')}"></td>
+                    <td class="text-end fw-semibold"
+                        th:text="${#numbers.formatDecimal(pt.subtract(dt), 1, 'POINT', 1, 'COMMA')}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <p class="text-muted small mt-3 mb-0">
+        Số liệu do Phòng Kế hoạch Tài chính nhập qua phiếu thu, phần miễn giảm do
+        Phòng Công tác Sinh viên duyệt. Ban Giám hiệu chỉ xem kết quả tổng hợp,
+        không sửa được con số nào ở đây.
+    </p>
+
+</div>
+
+<th:block layout:fragment="scripts">
+
+<script th:inline="javascript">
+    var hpNhan    = /*[[${bc.hocPhiNhan}]]*/ [];
+    var hpPhaiThu = /*[[${bc.hocPhiPhaiThu}]]*/ [];
+    var hpDaThu   = /*[[${bc.hocPhiDaThu}]]*/ [];
+</script>
+
+<script>
+(function () {
+    'use strict';
+
+    new Chart(document.getElementById('bdHocPhi'), {
+        type: 'bar',
+        data: { labels: hpNhan, datasets: [
+            BD.cot('Phải thu', hpPhaiThu, BD.S1),
+            BD.cot('Đã thu', hpDaThu, BD.S3)
+        ] },
+        options: {
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                x: BD.truc('học kỳ', true),
+                y: Object.assign(BD.truc('triệu đồng'), { beginAtZero: true })
+            },
+            plugins: {
+                /* Hai dãy số nên bắt buộc có chú giải, không để đoán theo màu */
+                legend: {
+                    display: true, position: 'top', align: 'end',
+                    labels: {
+                        color: '#52514e', usePointStyle: true,
+                        pointStyle: 'rectRounded', boxWidth: 10, font: { size: 12 }
+                    }
+                },
+                tooltip: BD.tooltip(function (c) {
+                    return c.dataset.label + ': ' + BD.soVn(c.parsed.y) + ' triệu';
+                }, true)
+            }
+        }
+    });
+})();
+</script>
+</th:block>
+</body>
+</html>

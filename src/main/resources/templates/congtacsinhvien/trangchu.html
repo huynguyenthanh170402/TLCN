@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{congtacsinhvien/layout}">
+<head>
+    <title>Tổng quan</title>
+
+    <style>
+        .the-chuc-nang {
+            display: block; text-decoration: none; border: none;
+            border-radius: 14px; background: #fff;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, .06);
+            transition: transform .2s ease, box-shadow .2s ease;
+            height: 100%;
+        }
+        .the-chuc-nang:hover {
+            transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0, 0, 0, .12);
+        }
+        @media (hover: none) { .the-chuc-nang:hover { transform: none; } }
+
+        .the-chuc-nang .o-icon {
+            width: 52px; height: 52px; flex: 0 0 52px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.25rem;
+        }
+        .the-chuc-nang.khoa { opacity: .55; pointer-events: none; }
+
+        .loi-chao {
+            background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 60%, #7c3aed 100%);
+            color: #fff; border-radius: 16px; padding: clamp(1.25rem, 4vw, 2rem);
+        }
+        .loi-chao h4 { font-weight: 700; margin-bottom: .35rem; }
+        .loi-chao p  { opacity: .85; margin-bottom: 0; }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Tổng quan</h5>
+
+<div layout:fragment="content">
+
+    <!-- ============ Lời chào ============ -->
+    <div class="loi-chao mb-4">
+        <h4>Phòng Công tác Sinh viên</h4>
+        <p>
+            Xin chào <strong th:text="${#authentication.name}">tài khoản</strong>.
+            Hôm nay là <span th:text="${#temporals.format(homNay, 'EEEE, dd/MM/yyyy')}">ngày</span>.
+        </p>
+    </div>
+
+    <!-- ============ Việc cần làm ============ -->
+    <div class="alert d-flex flex-wrap align-items-center gap-2"
+         th:if="${soChoDuyet > 0}"
+         style="background:#f5f3ff; border:1px solid #ddd6fe;">
+        <i class="fas fa-bell" style="color:#6d28d9;"></i>
+        <span class="flex-grow-1">
+            Có <strong th:text="${soChoDuyet}">0</strong> hồ sơ miễn giảm đang chờ duyệt.
+        </span>
+        <a th:href="@{/ctsv/miengiam(trangThai=0)}" class="btn btn-sm text-white"
+           style="background:#6d28d9;">Xem ngay</a>
+    </div>
+
+    <!-- ============ Chức năng ============ -->
+    <h6 class="text-uppercase text-muted fw-semibold mb-3" style="letter-spacing: .5px;">
+        Nghiệp vụ
+    </h6>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-12 col-md-6 col-xl-4">
+            <a th:href="@{/ctsv/miengiam}" class="the-chuc-nang">
+                <div class="p-3 d-flex align-items-start gap-3">
+                    <div class="o-icon" style="background:#ede9fe; color:#6d28d9;">
+                        <i class="fas fa-percent"></i>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-semibold text-dark mb-1">Miễn giảm &amp; học bổng</div>
+                        <div class="text-muted small">
+                            Xét diện chính sách và học bổng, duyệt tỉ lệ giảm học phí.
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-muted mt-1"></i>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="the-chuc-nang khoa">
+                <div class="p-3 d-flex align-items-start gap-3">
+                    <div class="o-icon" style="background:#e0e7ff; color:#4338ca;">
+                        <i class="fas fa-address-card"></i>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-semibold text-dark mb-1">
+                            Hồ sơ sinh viên
+                            <span class="badge bg-secondary ms-1">sắp có</span>
+                        </div>
+                        <div class="text-muted small">
+                            Tra cứu lý lịch, địa chỉ liên hệ và thông tin gia đình.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="the-chuc-nang khoa">
+                <div class="p-3 d-flex align-items-start gap-3">
+                    <div class="o-icon" style="background:#fef3c7; color:#b45309;">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-semibold text-dark mb-1">
+                            Đánh giá rèn luyện
+                            <span class="badge bg-secondary ms-1">sắp có</span>
+                        </div>
+                        <div class="text-muted small">
+                            Chấm điểm rèn luyện theo học kỳ, làm căn cứ xét học bổng.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="the-chuc-nang khoa">
+                <div class="p-3 d-flex align-items-start gap-3">
+                    <div class="o-icon" style="background:#ffe4e6; color:#be123c;">
+                        <i class="fas fa-scale-balanced"></i>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-semibold text-dark mb-1">
+                            Khen thưởng – Kỷ luật
+                            <span class="badge bg-secondary ms-1">sắp có</span>
+                        </div>
+                        <div class="text-muted small">
+                            Ghi nhận quyết định khen thưởng, cảnh cáo, đình chỉ học tập.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="the-chuc-nang khoa">
+                <div class="p-3 d-flex align-items-start gap-3">
+                    <div class="o-icon" style="background:#cffafe; color:#0e7490;">
+                        <i class="fas fa-file-signature"></i>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-semibold text-dark mb-1">
+                            Giấy xác nhận
+                            <span class="badge bg-secondary ms-1">sắp có</span>
+                        </div>
+                        <div class="text-muted small">
+                            Cấp giấy xác nhận sinh viên, vay vốn, hoãn nghĩa vụ quân sự.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ============ Ghi chú nghiệp vụ ============ -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h6 class="fw-semibold mb-3">
+                <i class="fas fa-circle-info me-2" style="color:#6d28d9;"></i>Miễn giảm đi qua hai phòng
+            </h6>
+            <ol class="mb-0 ps-3 text-muted" style="line-height: 1.9;">
+                <li>Phòng Công tác Sinh viên lập hồ sơ, ghi <strong>tỉ lệ phần trăm</strong> được giảm.</li>
+                <li>Duyệt hồ sơ. Chưa duyệt thì chưa có giá trị gì.</li>
+                <li>Phòng Kế hoạch Tài chính nhìn thấy hồ sơ đã duyệt, bấm tính lại công nợ.</li>
+                <li>Hệ thống quy tỉ lệ ra số tiền, trừ vào học phí phải đóng của học kỳ đó.</li>
+            </ol>
+            <p class="text-muted small mt-3 mb-0">
+                Hai phòng không cùng sửa một con số: bên này quyết định tỉ lệ,
+                bên kia quy ra tiền. Nhờ vậy mỗi số tiền miễn giảm luôn có một
+                quyết định đứng sau.
+            </p>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

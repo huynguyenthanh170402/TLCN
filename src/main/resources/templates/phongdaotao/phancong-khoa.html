@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongdaotao/layout}">
+<head>
+    <title>Phân công giảng dạy</title>
+    <style>
+        /* Tên khoa đứng dưới tên giảng viên, nghiêng và nhạt để không
+           tranh chỗ với tên người */
+        .khoa-gv { font-style: italic; font-size: .82rem; color: #6c757d; }
+        .ma-lop  { font-family: ui-monospace, Consolas, monospace; font-size: .82rem; }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">
+    Phân công giảng dạy — <span th:text="${tenKhoa}">Khoa</span>
+</h5>
+
+<div layout:fragment="content">
+
+    <nav class="mb-3">
+        <a th:href="@{/quanly/phancong(hocKy=${hocKyChon})}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Về danh sách khoa
+        </a>
+    </nav>
+
+    <!-- Lọc, giữ nguyên khoa đang xem -->
+    <form method="get" class="card card-body shadow-sm mb-3"
+          th:action="@{/quanly/phancong/khoa/{id}(id=${maDonVi})}">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label fw-semibold">Học kỳ</label>
+                <select name="hocKy" class="form-select">
+                    <option th:each="hk : ${dsHocKy}" th:value="${hk.maHocKy}"
+                            th:text="${hk.tenHocKy}" th:selected="${hk.maHocKy == hocKyChon}"></option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="chuaPhanCong"
+                           id="chuaPc" value="true" th:checked="${chuaPhanCong}">
+                    <label class="form-check-label" for="chuaPc">Chỉ lớp chưa có giảng viên</label>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Xem danh sách</button>
+            </div>
+        </div>
+    </form>
+
+    <div th:if="${ds != null}" class="card shadow-sm">
+        <div class="card-header small text-muted" th:text="${ds.size()} + ' lớp'"></div>
+
+        <div class="table-responsive">
+    <form class="o-tim mb-3" role="search">
+        <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-magnifying-glass"></i></span>
+            <input type="search" class="form-control" placeholder="Tìm theo mã lớp, học phần, tên giảng viên…"
+                   data-loc="#bangPhanCong"
+                   data-trong="#khongThayPhanCong">
+            <button class="btn btn-outline-secondary" type="submit">Tìm</button>
+        </div>
+    </form>
+
+    <div class="alert alert-secondary" id="khongThayPhanCong" hidden>
+        Không có dòng nào khớp với từ khóa.
+    </div>
+
+            <table class="table align-middle mb-0" id="bangPhanCong">
+                <thead class="table-light">
+                <tr>
+                    <th>Mã lớp</th>
+                    <th>Học phần</th>
+                    <th>Lịch học</th>
+                    <th style="width:320px">Giảng viên phụ trách</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${ds.empty}">
+                    <td colspan="4" class="text-center text-muted py-4">
+                        Khoa này không có lớp nào trong học kỳ đã chọn.
+                    </td>
+                </tr>
+                <tr th:each="d : ${ds}" th:with="lop=${d.lop}">
+                    <td>
+                        <div class="ma-lop fw-semibold" th:text="${lop.maLop}"></div>
+                        <span class="badge" th:classappend="${lop.mauLoaiLop}" th:text="${lop.tenLoaiLop}"></span>
+                    </td>
+                    <td>
+                        <div th:text="${lop.hocPhan.tenHocPhan}"></div>
+                        <small class="text-muted" th:text="${lop.hocPhan.soTinChi} + ' TC'"></small>
+                    </td>
+                    <td class="small">
+                        <div th:if="${d.lich.empty}" class="text-muted">Chưa xếp lịch</div>
+                        <div th:each="lh : ${d.lich}"
+                             th:text="${lh.tenThu} + ', tiết ' + ${lh.tietBatDau} + '–' + ${lh.tietKetThuc}
+                                      + ' · ' + (${lh.phongHoc != null} ? ${lh.phongHoc.maPhong} : 'chưa có phòng')">
+                        </div>
+                    </td>
+                    <td>
+                        <div class="mb-2">
+                            <th:block th:if="${d.giangVien != null}">
+                                <div class="fw-semibold"
+                                     th:text="${d.giangVien.tenHienThi}
+                                              + ' (' + ${d.giangVien.maSoGiangVien} + ')'"></div>
+                                <!-- Khoa công tác của người đang giữ lớp. Cần thấy ngay
+                                     để biết lớp có đang giao cho người ngoài khoa phụ
+                                     trách học phần hay không. -->
+                                <div class="khoa-gv"
+                                     th:text="'(' + ${d.giangVien.donVi != null
+                                                      ? d.giangVien.donVi.tenDonVi
+                                                      : 'chưa rõ khoa'} + ')'"></div>
+                            </th:block>
+
+                            <span th:if="${d.giangVien == null}" class="badge bg-warning text-dark">
+                                Chưa phân công
+                            </span>
+                        </div>
+
+                        <form method="post" class="d-flex gap-2"
+                              th:action="@{/quanly/phancong/khoa/{khoa}/{lop}(khoa=${maDonVi}, lop=${lop.maLopHocPhan})}">
+                            <input type="hidden" name="hocKy" th:value="${hocKyChon}">
+                            <input type="hidden" name="chuaPhanCong" th:value="${chuaPhanCong}">
+
+                            <!-- Gom theo khoa: tên khoa hiện một lần làm nhãn nhóm,
+                                 thay vì lặp lại trên từng dòng rồi cắt mất tên người
+                                 trong ô chọn hẹp. -->
+                            <select name="maGiangVien" class="form-select form-select-sm" required>
+                                <option value="">— Chọn giảng viên —</option>
+                                <optgroup th:each="nhom : ${dsGv[lop.maLopHocPhan]}"
+                                          th:label="${nhom.key}">
+                                    <option th:each="gv : ${nhom.value}"
+                                            th:value="${gv.maGiangVien}"
+                                            th:text="${gv.maSoGiangVien} + ' – ' + ${gv.tenHienThi}"></option>
+                                </optgroup>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-primary text-nowrap">
+                                <i class="fas fa-user-check"></i> Giao lớp
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <p class="text-muted small mt-3">
+        Ô chọn ưu tiên giảng viên thuộc khoa phụ trách học phần, và chỉ liệt kê người đang
+        công tác. Khoa đó không còn ai thì mở ra toàn trường, lúc này tên khoa trong ô chọn
+        cho biết đang giao lớp ra ngoài khoa. Hệ thống chặn nếu giảng viên đã có lớp khác
+        trùng giờ trong học kỳ này. Phân công cũ được giữ lại ở trạng thái đã hủy để tra
+        lịch sử.
+    </p>
+</div>
+</body>
+</html>

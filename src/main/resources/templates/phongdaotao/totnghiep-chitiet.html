@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongdaotao/layout}">
+<head>
+    <title>Đợt xét tốt nghiệp</title>
+    <style>
+        .ma-so { font-family: ui-monospace, Consolas, monospace; font-size: .82rem; }
+        .dk-dat    { color: #198754; }
+        .dk-thieu  { color: #dc3545; }
+        .o-dieukien { font-size: .82rem; }
+        .o-dieukien li { margin-bottom: .15rem; }
+    </style>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">
+    Xét tốt nghiệp — <span th:text="${dot.tenDot}">Đợt</span>
+</h5>
+
+<div layout:fragment="content">
+
+    <nav class="mb-3">
+        <a th:href="@{/quanly/totnghiep}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Về danh sách đợt
+        </a>
+    </nav>
+
+    <!-- Thông tin đợt + chuyển trạng thái -->
+    <div class="card shadow-sm mb-3">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <div class="fw-bold" th:text="${dot.tenDot}"></div>
+                <div class="small text-muted">
+                    <span th:text="${dot.hocKy.tenHocKy}"></span>
+                    <span th:if="${dot.ngayXet != null}"
+                          th:text="' · họp xét ' + ${#temporals.format(dot.ngayXet, 'dd/MM/yyyy')}"></span>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="badge fs-6" th:classappend="${dot.mauTrangThai}"
+                      th:text="${dot.tenTrangThai}"></span>
+
+                <form th:if="${dot.trangThai == 0 or dot.trangThai == 2}"
+                      th:action="@{/quanly/totnghiep/{id}/trangthai(id=${dot.maDot})}"
+                      method="post" class="d-inline">
+                    <input type="hidden" name="trangThai" value="1">
+                    <button class="btn btn-sm btn-success">Mở nhận đơn</button>
+                </form>
+
+                <form th:if="${dot.trangThai == 1}"
+                      th:action="@{/quanly/totnghiep/{id}/trangthai(id=${dot.maDot})}"
+                      method="post" class="d-inline">
+                    <input type="hidden" name="trangThai" value="2">
+                    <button class="btn btn-sm btn-primary">Chốt danh sách</button>
+                </form>
+
+                <form th:if="${dot.trangThai == 2}"
+                      th:action="@{/quanly/totnghiep/{id}/trangthai(id=${dot.maDot})}"
+                      method="post" class="d-inline"
+                      onsubmit="return confirm('Công bố kết quả đợt này?');">
+                    <input type="hidden" name="trangThai" value="3">
+                    <button class="btn btn-sm btn-outline-dark">Công bố kết quả</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danh sách đơn -->
+    <form class="o-tim mb-3" role="search" th:unless="${dsDon.empty}">
+        <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-magnifying-glass"></i></span>
+            <input type="search" class="form-control" placeholder="Tìm theo MSSV, họ tên, ngành…"
+                   data-loc="#bangDon" data-trong="#khongThayDon">
+            <button class="btn btn-outline-secondary" type="submit">Tìm</button>
+        </div>
+    </form>
+
+    <div class="alert alert-secondary" id="khongThayDon" hidden>
+        Không có hồ sơ nào khớp với từ khóa.
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header small text-muted" th:text="${dsDon.size()} + ' hồ sơ'"></div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0" id="bangDon">
+                <thead class="table-light">
+                <tr>
+                    <th>Sinh viên</th>
+                    <th class="d-none d-lg-table-cell">Ngành</th>
+                    <th class="text-center">Tín chỉ</th>
+                    <th class="text-center">GPA</th>
+                    <th class="text-center">Rèn luyện</th>
+                    <th>Đối chiếu điều kiện hiện tại</th>
+                    <th class="text-center">Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${dsDon.empty}" data-bo-qua>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        Chưa có sinh viên nào nộp đơn.
+                    </td>
+                </tr>
+
+                <tr th:each="don : ${dsDon}" th:with="kq=${ketQua[don.maDon]}">
+                    <td>
+                        <div th:text="${don.sinhVien.hoTen}"></div>
+                        <div class="ma-so text-muted" th:text="${don.sinhVien.maSoSinhVien}"></div>
+                        <span class="badge mt-1" th:classappend="${don.mauTrangThai}"
+                              th:text="${don.tenTrangThai}"></span>
+                    </td>
+                    <td class="d-none d-lg-table-cell small"
+                        th:text="${don.sinhVien.nganh != null} ? ${don.sinhVien.nganh.tenNganh} : ''"></td>
+                    <td class="text-center small"
+                        th:text="${don.tinChiLucNop} + ' / ' + ${don.tinChiYeuCau}"></td>
+                    <td class="text-center small" th:text="${don.gpaLucNop}"></td>
+                    <td class="text-center small" th:text="${don.diemRenLuyenLucNop}"></td>
+
+                    <!-- Xét lại theo dữ liệu hiện tại, vì từ lúc nộp có thể đã khác -->
+                    <td class="o-dieukien">
+                        <div th:if="${kq.duDieuKien}" class="dk-dat fw-semibold">
+                            <i class="fas fa-circle-check me-1"></i>Đủ cả
+                            <span th:text="${kq.tongDieuKien}"></span> điều kiện
+                        </div>
+                        <div th:unless="${kq.duDieuKien}">
+                            <div class="dk-thieu fw-semibold mb-1">
+                                <i class="fas fa-triangle-exclamation me-1"></i>
+                                Đạt <span th:text="${kq.soDieuKienDat}"></span> /
+                                <span th:text="${kq.tongDieuKien}"></span> điều kiện
+                            </div>
+                            <ul class="mb-0 ps-3">
+                                <li th:each="dk : ${kq.dsDieuKien}" th:unless="${dk.dat}"
+                                    class="dk-thieu">
+                                    <span th:text="${dk.ten}"></span>:
+                                    <span class="text-muted" th:text="${dk.chiTiet}"></span>
+                                </li>
+                            </ul>
+                        </div>
+                    </td>
+
+                    <td class="text-center text-nowrap">
+                        <th:block th:if="${don.choXet}">
+                            <form th:action="@{/quanly/totnghiep/{d}/don/{id}/duyet(d=${dot.maDot}, id=${don.maDon})}"
+                                  method="post" class="d-inline"
+                                  onsubmit="return confirm('Công nhận tốt nghiệp cho sinh viên này? Trạng thái sẽ chuyển sang Đã tốt nghiệp.');">
+                                <button class="btn btn-sm btn-success"
+                                        th:disabled="${!kq.duDieuKien}">Công nhận</button>
+                            </form>
+                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                    data-bs-toggle="modal"
+                                    th:attr="data-bs-target='#tuChoi' + ${don.maDon}">
+                                Không đạt
+                            </button>
+                        </th:block>
+
+                        <div th:unless="${don.choXet}" class="small text-muted">
+                            <div th:if="${don.nguoiXet != null}" th:text="${don.nguoiXet}"></div>
+                            <div th:if="${don.lyDoTuChoi != null}" th:text="${don.lyDoTuChoi}"></div>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Hộp thoại ghi lý do không đạt -->
+    <div th:each="don : ${dsDon}" th:if="${don.choXet}"
+         class="modal fade" th:id="'tuChoi' + ${don.maDon}" tabindex="-1">
+        <div class="modal-dialog">
+            <form class="modal-content" method="post"
+                  th:action="@{/quanly/totnghiep/{d}/don/{id}/tuchoi(d=${dot.maDot}, id=${don.maDon})}">
+                <div class="modal-header">
+                    <h6 class="modal-title">
+                        Không đủ điều kiện — <span th:text="${don.sinhVien.hoTen}"></span>
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted">
+                        Lý do sẽ hiện trên cổng sinh viên, nên ghi rõ còn thiếu gì và cần
+                        làm gì để đợt sau nộp lại được.
+                    </p>
+                    <textarea name="lyDo" class="form-control" rows="3" required
+                              placeholder="Ví dụ: còn nợ học phần Vật lý 2, chưa đủ 150 tín chỉ."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-danger btn-sm">Ghi nhận không đạt</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

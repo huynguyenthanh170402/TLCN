@@ -1,0 +1,54 @@
+/*
+ * Kiểu dùng chung cho mọi bảng dữ liệu của hệ thống.
+ *
+ * Để ở một tệp thay vì chép vào từng layout: sáu khu vai trò đều cần đúng
+ * những kiểu này, chép ra sáu bản thì sửa một chỗ sẽ quên năm chỗ kia.
+ */
+
+/* ===== Ô tìm ===== */
+.o-tim { max-width: 520px; }
+.o-tim .input-group-text { background: #fff; border-right: 0; color: #6c757d; }
+.o-tim .form-control { border-left: 0; }
+.o-tim .form-control:focus { box-shadow: none; border-color: #ced4da; }
+.o-tim .input-group:focus-within {
+    box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .15);
+    border-radius: .375rem;
+}
+
+/*
+ * Dòng bị lọc hoặc không thuộc trang hiện tại phải ẩn hẳn.
+ * Thiếu dòng này thì thuộc tính hidden của HTML bị display của Bootstrap
+ * đè lên và không ăn thua.
+ */
+[hidden] { display: none !important; }
+
+/*
+ * ===== Dòng chẵn lẻ khác màu =====
+ *
+ * Không dùng table-striped của Bootstrap được, vì nó tô theo nth-of-type —
+ * đếm cả những dòng đang ẩn do lọc hoặc do phân trang, nên sau khi lọc thì
+ * màu sọc loang lổ. Ở đây JavaScript gắn lớp theo thứ tự các dòng đang
+ * thấy, nên sọc luôn đều.
+ *
+ * Đặt qua biến --bs-table-bg-type để màu này xếp lớp đúng với table-hover
+ * và với các dòng có màu riêng như table-success, thay vì đè mất chúng.
+ */
+.table > tbody > tr.dong-chan > * { --bs-table-bg-type: rgba(0, 0, 0, .028); }
+
+/* ===== Thanh phân trang ===== */
+.thanh-trang {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: .5rem;
+    padding: .6rem .9rem;
+    border-top: 1px solid #e9ecef;
+    background: #fff;
+}
+.thanh-trang .dem-dong { font-size: .82rem; color: #6c757d; }
+.thanh-trang .pagination { margin-bottom: 0; }
+.thanh-trang .page-link { cursor: pointer; }
+
+/* Thẻ nào bọc bảng thì thanh phân trang nằm gọn trong bo góc dưới của thẻ */
+.card > .thanh-trang:last-child {
+    border-bottom-left-radius: inherit;
+    border-bottom-right-radius: inherit;
+}

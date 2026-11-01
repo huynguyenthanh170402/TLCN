@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{bangiamhieu/layout}">
+<head>
+    <title>Thống kê sinh viên</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Thống kê sinh viên</h5>
+
+<div layout:fragment="content">
+
+    <div class="row g-3">
+        <div class="col-6 col-xl-3">
+            <div class="the-so">
+                <div class="nhan">Đang học</div>
+                <div class="so" th:text="${bc.tongSinhVienDangHoc}">0</div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="the-so">
+                <div class="nhan">Tổng hồ sơ</div>
+                <div class="so" th:text="${bc.tongSinhVien}">0</div>
+                <div class="phu">kể cả đã tốt nghiệp và thôi học</div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="the-so">
+                <div class="nhan">Số khoa có sinh viên</div>
+                <div class="so" th:text="${bc.khoaNhan.size()}">0</div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="the-so">
+                <div class="nhan">Số khóa đang quản lý</div>
+                <div class="so" th:text="${bc.khoaTsNhan.size()}">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== QUY MÔ ===================== -->
+    <div class="tieu-muc">Quy mô đào tạo</div>
+
+    <div class="row g-3">
+        <div class="col-12 col-xl-7">
+            <div class="khung-bd h-100">
+                <div class="dau">
+                    <p class="ten">Sinh viên theo khoa</p>
+                    <p class="mo-ta">Xếp từ khoa đông nhất xuống</p>
+                </div>
+                <div class="than"><div class="o-ve cao"><canvas id="bdKhoa"></canvas></div></div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-5">
+            <div class="khung-bd h-100">
+                <div class="dau">
+                    <p class="ten">Trạng thái học vụ</p>
+                    <p class="mo-ta">
+                        Tỷ lệ thôi học và đình chỉ phản ánh chất lượng đầu vào
+                        và khả năng giữ chân người học
+                    </p>
+                </div>
+                <div class="than">
+                    <div class="o-ve"><canvas id="bdTrangThai"></canvas></div>
+                    <ul class="chu-giai mt-3" id="chuGiaiTrangThai"></ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="khung-bd">
+                <div class="dau">
+                    <p class="ten">Quy mô từng khóa tuyển sinh</p>
+                    <p class="mo-ta">
+                        Số sinh viên đã nhập học của mỗi khóa. Dãy số đi xuống
+                        liên tiếp là dấu hiệu tuyển sinh đang khó.
+                    </p>
+                </div>
+                <div class="than"><div class="o-ve"><canvas id="bdKhoaTs"></canvas></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== TẢI GIẢNG DẠY ===================== -->
+    <div class="tieu-muc">Tải giảng dạy</div>
+
+    <div class="khung-bd">
+        <div class="dau">
+            <p class="ten">Sinh viên trên một giảng viên, theo khoa</p>
+            <p class="mo-ta">
+                Chỉ tính sinh viên đang học và giảng viên đang công tác.
+                Đây là chỉ số Bộ Giáo dục và Đào tạo dùng khi xét điều kiện mở ngành
+                và xác định chỉ tiêu tuyển sinh. Vạch đứt là ngưỡng 25 của khối kỹ thuật.
+            </p>
+        </div>
+        <div class="than"><div class="o-ve"><canvas id="bdSvGv"></canvas></div></div>
+    </div>
+
+    <!-- ===================== BẢNG SỐ ===================== -->
+    <div class="tieu-muc">Bảng số liệu</div>
+
+    <div class="khung-bd">
+        <div class="table-responsive" style="max-height: 420px;">
+            <table class="table table-sm align-middle mb-0 bang-so">
+                <thead class="table-light sticky-top">
+                <tr>
+                    <th>Khoa</th>
+                    <th class="text-end">Sinh viên</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${bc.khoaNhan.empty}">
+                    <td colspan="2" class="text-center text-muted py-3">Chưa có dữ liệu.</td>
+                </tr>
+                <tr th:each="ten, it : ${bc.khoaNhan}">
+                    <td th:text="${ten}"></td>
+                    <td class="text-end fw-semibold" th:text="${bc.khoaSoLuong[it.index]}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<th:block layout:fragment="scripts">
+
+<script th:inline="javascript">
+    var khoaNhan      = /*[[${bc.khoaNhan}]]*/ [];
+    var khoaSoLuong   = /*[[${bc.khoaSoLuong}]]*/ [];
+    var ttNhan        = /*[[${bc.trangThaiNhan}]]*/ [];
+    var ttSoLuong     = /*[[${bc.trangThaiSoLuong}]]*/ [];
+    var khoaTsNhan    = /*[[${bc.khoaTsNhan}]]*/ [];
+    var khoaTsSoLuong = /*[[${bc.khoaTsSoLuong}]]*/ [];
+    var svGvNhan      = /*[[${bc.svGvNhan}]]*/ [];
+    var svGvTiLe      = /*[[${bc.svGvTiLe}]]*/ [];
+</script>
+
+<script>
+(function () {
+    'use strict';
+
+    BD.cotNgang('bdKhoa', khoaNhan, khoaSoLuong, 'sinh viên', 'sinh viên');
+    BD.vanhKhuyen('bdTrangThai', ttNhan, ttSoLuong);
+    BD.chuGiai('chuGiaiTrangThai', ttNhan, ttSoLuong);
+    BD.cotDung('bdKhoaTs', khoaTsNhan, khoaTsSoLuong, 'khóa tuyển sinh', 'sinh viên', 'sinh viên');
+
+    /* Vạch ngưỡng 25 vẽ bằng một plugin nhỏ thay vì thêm thư viện chú thích */
+    var vachNguong = {
+        id: 'vachNguong',
+        afterDatasetsDraw: function (bieuDo) {
+            var ctx = bieuDo.ctx;
+            var x = bieuDo.scales.x.getPixelForValue(25);
+            if (!isFinite(x)) { return; }
+            ctx.save();
+            ctx.strokeStyle = '#d03b3b';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 4]);
+            ctx.beginPath();
+            ctx.moveTo(x, bieuDo.chartArea.top);
+            ctx.lineTo(x, bieuDo.chartArea.bottom);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = '#d03b3b';
+            ctx.font = '600 11px system-ui, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('Ngưỡng 25', x + 5, bieuDo.chartArea.top + 12);
+            ctx.restore();
+        }
+    };
+
+    BD.caoTheoSoDong('bdSvGv', svGvNhan.length);
+    new Chart(document.getElementById('bdSvGv'), {
+        type: 'bar',
+        data: { labels: svGvNhan, datasets: [BD.cot('SV/GV', svGvTiLe, BD.S1)] },
+        options: {
+            maintainAspectRatio: false, indexAxis: 'y',
+            interaction: { mode: 'nearest', intersect: false },
+            scales: {
+                x: Object.assign(BD.truc('sinh viên mỗi giảng viên'), { beginAtZero: true }),
+                y: BD.truc(null, true)
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: BD.tooltip(function (c) {
+                    return c.parsed.x + ' sinh viên / 1 giảng viên';
+                })
+            }
+        },
+        plugins: [vachNguong]
+    });
+})();
+</script>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title th:text="#{loi403.title}">Không có quyền truy cập</title>
+
+    <style>
+        /* Dùng lại khung của trang đăng nhập cho đồng bộ, đổi sang tông đỏ */
+        .auth-wrap {
+            min-height: calc(100vh - 70px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 3rem 1rem;
+            background:
+                linear-gradient(rgba(12, 22, 42, 0.72), rgba(12, 22, 42, 0.82)),
+                url('/images/campus.jpg') center/cover no-repeat fixed;
+        }
+        .auth-card {
+            width: 100%; max-width: 520px;
+            border: none; border-radius: 18px; overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+        }
+        .auth-head {
+            background: linear-gradient(135deg, #7f1d1d 0%, #b91c1c 100%);
+            color: #fff; padding: 2rem 2rem 1.5rem; text-align: center;
+        }
+        .auth-head .auth-logo {
+            width: 62px; height: 62px; margin: 0 auto 0.9rem; border-radius: 50%;
+            background: rgba(255, 255, 255, .16);
+            display: flex; align-items: center; justify-content: center; font-size: 1.7rem;
+        }
+        .auth-head h4 { margin: 0; font-weight: 700; }
+        .auth-body { padding: 1.75rem 2rem 2rem; background: #fff; }
+
+        /* Bảng thông tin chẩn đoán: nhãn trái, giá trị phải, chữ nhỏ */
+        .bang-loi { font-size: .875rem; }
+        .bang-loi th {
+            width: 38%; font-weight: 600; color: #5a6b85;
+            padding: .45rem .75rem .45rem 0; vertical-align: top;
+        }
+        .bang-loi td {
+            padding: .45rem 0; word-break: break-all; vertical-align: top;
+        }
+        .auth-foot {
+            background: #f8f9fb; padding: .9rem 2rem; text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        @media (max-width: 576px) {
+            .auth-head, .auth-body, .auth-foot { padding-left: 1.25rem; padding-right: 1.25rem; }
+            .bang-loi th, .bang-loi td { display: block; width: 100%; padding: .2rem 0; }
+            .bang-loi th { padding-top: .6rem; }
+        }
+    </style>
+</head>
+<body>
+<main layout:fragment="content">
+
+    <div class="auth-wrap">
+        <div class="card auth-card">
+
+            <div class="auth-head">
+                <div class="auth-logo"><i class="fas fa-ban"></i></div>
+                <h4 th:text="#{loi403.heading}">Bạn không có quyền vào mục này</h4>
+            </div>
+
+            <div class="auth-body">
+
+                <p class="text-muted small mb-4" th:text="#{loi403.desc}">
+                    Tài khoản đang đăng nhập không được cấp quyền cho chức năng vừa mở.
+                </p>
+
+                <table class="bang-loi w-100 mb-0">
+                    <tr th:if="${duongDan != null}">
+                        <th th:text="#{loi403.path}">Đường dẫn đã mở</th>
+                        <td><code th:text="${duongDan}"></code></td>
+                    </tr>
+                    <tr th:if="${tenDangNhap != null}">
+                        <th th:text="#{loi403.account}">Tài khoản</th>
+                        <td th:text="${tenDangNhap}"></td>
+                    </tr>
+                    <tr th:if="${dsQuyen != null}">
+                        <th th:text="#{loi403.roles}">Quyền hiện có</th>
+                        <td>
+                            <span th:each="q : ${dsQuyen}"
+                                  class="badge bg-secondary me-1 mb-1"
+                                  th:text="${q}"></span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="auth-foot d-flex justify-content-center gap-2 flex-wrap">
+                <a th:href="@{/}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-house me-1"></i>
+                    <span th:text="#{loi403.home}">Về trang chính</span>
+                </a>
+                <form th:action="@{/logout}" method="post" class="m-0">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-right-from-bracket me-1"></i>
+                        <span th:text="#{loi403.logout}">Đăng xuất</span>
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</main>
+</body>
+</html>

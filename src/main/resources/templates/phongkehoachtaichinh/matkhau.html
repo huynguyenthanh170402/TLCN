@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{phongkehoachtaichinh/layout}">
+<head>
+    <title>Đổi mật khẩu</title>
+</head>
+<body>
+
+<h5 layout:fragment="page-title">Đổi mật khẩu</h5>
+
+<div layout:fragment="content">
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-5">
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+
+                    <p class="text-muted small">
+                        Đổi mật khẩu cho tài khoản
+                        <strong th:text="${#authentication.name}">tài khoản</strong>.
+                    </p>
+
+                    <form method="post" th:action="@{/taichinh/matkhau}">
+
+                        <div class="mb-3">
+                            <label class="form-label">Mật khẩu hiện tại</label>
+                            <input type="password" name="matKhauCu" class="form-control"
+                                   required autocomplete="current-password">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Mật khẩu mới</label>
+                            <input type="password" name="matKhauMoi" class="form-control"
+                                   required minlength="6" autocomplete="new-password">
+                            <div class="form-text">Ít nhất 6 ký tự.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Nhập lại mật khẩu mới</label>
+                            <input type="password" name="xacNhan" class="form-control"
+                                   required minlength="6" autocomplete="new-password">
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-key me-1"></i> Đổi mật khẩu
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <p class="text-muted small mt-3 mb-0">
+                Mật khẩu được lưu dưới dạng băm BCrypt, không ai đọc lại được
+                mật khẩu gốc, kể cả quản trị viên. Quên mật khẩu thì dùng chức năng
+                đặt lại ở trang đăng nhập.
+            </p>
+        </div>
+    </div>
+</div>
+</body>
+</html>
